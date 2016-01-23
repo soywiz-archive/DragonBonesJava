@@ -1,62 +1,80 @@
-package dragonBones;
+﻿package dragonBones;
+import dragonBones.events.*;
+import flash.events.Event;
+import flash.events.EventDispatcher;
 
-import java.util.ArrayList;
+import dragonBones.animation.Animation;
+import dragonBones.animation.AnimationState;
+import dragonBones.animation.TimelineState;
+import dragonBones.core.IArmature;
+import dragonBones.core.dragonBones_internal;
+import dragonBones.objects.ArmatureData;
+import dragonBones.objects.DragonBonesData;
+import dragonBones.objects.Frame;
+import dragonBones.objects.SkinData;
+import dragonBones.objects.SlotData;
 
-[Event(name="zOrderUpdated", type="dragonBones.events.ArmatureEvent")]
+//use namespace dragonBones_internal;
 
-	/**
-	 * Dispatched when an animation state begins fade in (Even if fade in time is 0)
-	 */
-	[Event(name="fadeIn", type="dragonBones.events.AnimationEvent")]
+/**
+ * Dispatched when slot's zOrder changed
+ */
+@EventInfo(name="zOrderUpdated", type="dragonBones.events.ArmatureEvent")
 
-	/**
-	 * Dispatched when an animation state begins fade out (Even if fade out time is 0)
-	 */
-	[Event(name="fadeOut", type="dragonBones.events.AnimationEvent")]
+/**
+ * Dispatched when an animation state begins fade in (Even if fade in time is 0)
+ */
+@EventInfo(name="fadeIn", type="dragonBones.events.AnimationEvent")
 
-	/**
-	 * Dispatched when an animation state start to play(AnimationState may play when fade in start or end. It is controllable).
-	 */
-	[Event(name="start", type="dragonBones.events.AnimationEvent")]
+/**
+ * Dispatched when an animation state begins fade out (Even if fade out time is 0)
+ */
+@EventInfo(name="fadeOut", type="dragonBones.events.AnimationEvent")
 
-	/**
-	 * Dispatched when an animation state play complete (if playtimes equals to 0 means loop forever. Then this Event will not be triggered)
-	 */
-	[Event(name="complete", type="dragonBones.events.AnimationEvent")]
+/**
+ * Dispatched when an animation state start to play(AnimationState may play when fade in start or end. It is controllable).
+ */
+@EventInfo(name="start", type="dragonBones.events.AnimationEvent")
 
-	/**
-	 * Dispatched when an animation state complete a loop.
-	 */
-	[Event(name="loopComplete", type="dragonBones.events.AnimationEvent")]
+/**
+ * Dispatched when an animation state play complete (if playtimes equals to 0 means loop forever. Then this Event will not be triggered)
+ */
+@EventInfo(name="complete", type="dragonBones.events.AnimationEvent")
 
-	/**
-	 * Dispatched when an animation state fade in complete.
-	 */
-	[Event(name="fadeInComplete", type="dragonBones.events.AnimationEvent")]
+/**
+ * Dispatched when an animation state complete a loop.
+ */
+@EventInfo(name="loopComplete", type="dragonBones.events.AnimationEvent")
 
-	/**
-	 * Dispatched when an animation state fade out complete.
-	 */
-	[Event(name="fadeOutComplete", type="dragonBones.events.AnimationEvent")]
+/**
+ * Dispatched when an animation state fade in complete.
+ */
+@EventInfo(name="fadeInComplete", type="dragonBones.events.AnimationEvent")
 
-	/**
-	 * Dispatched when an animation state enter a frame with animation frame event.
-	 */
-	[Event(name="animationFrameEvent", type="dragonBones.events.FrameEvent")]
+/**
+ * Dispatched when an animation state fade out complete.
+ */
+@EventInfo(name="fadeOutComplete", type="dragonBones.events.AnimationEvent")
+
+/**
+ * Dispatched when an animation state enter a frame with animation frame event.
+ */
+@EventInfo(name="animationFrameEvent", type="dragonBones.events.FrameEvent")
 
 /**
  * Dispatched when an bone enter a frame with animation frame event.
  */
-@Event("boneFrameEvent", "dragonBones.events.FrameEvent")
+@EventInfo(name="boneFrameEvent", type="dragonBones.events.FrameEvent")
+
 public class Armature extends EventDispatcher implements IArmature
 {
-	public DragonBonesData __dragonBonesData;
+	private DragonBonesData __dragonBonesData;
 
 
 	/**
 	 * The instance dispatch sound event.
 	 */
-	private static const _soundManager:SoundEventManager = SoundEventManager.getInstance();
+	private static final SoundEventManager _soundManager = SoundEventManager.getInstance();
 
 	/**
 	 * The name should be same with ArmatureData's name
@@ -76,43 +94,42 @@ public class Armature extends EventDispatcher implements IArmature
 
 
 	/** @private Store slots based on slots' zOrder*/
-	protected ArrayList<Slot> _slotList;
+	protected var _slotList:Vector.<Slot>;
 
 	/** @private Store bones based on bones' hierarchy (From root to leaf)*/
-	protected ArrayList<Bone> _boneList;
+	protected var _boneList:Vector.<Bone>;
 
-	private boolean _delayDispose;
-	private boolean _lockDispose;
+	private var _delayDispose:Boolean;
+	private var _lockDispose:Boolean;
 
 	/** @private */
-	private ArmatureData _armatureData;
-
+	dragonBones_internal var _armatureData:ArmatureData;
 	/**
 	 * ArmatureData.
 	 * @see dragonBones.objects.ArmatureData.
 	 */
-	public ArmatureData getArmatureData()
+	public function get armatureData():ArmatureData
 	{
 		return _armatureData;
 	}
 
 	/** @private */
-	protected Object _display;
+	protected var _display:Object;
 	/**
 	 * Armature's display object. It's instance type depends on render engine. For example "flash.display.DisplayObject" or "startling.display.DisplayObject"
 	 */
-	public Object getDisplay()
+	public function get display():Object
 	{
 		return _display;
 	}
 
 	/** @private */
-	protected Animation _animation;
+	protected var _animation:Animation;
 	/**
 	 * An Animation instance
 	 * @see dragonBones.animation.Animation
 	 */
-	public Animation getAnimation()
+	public function get animation():Animation
 	{
 		return _animation;
 	}
@@ -120,13 +137,13 @@ public class Armature extends EventDispatcher implements IArmature
 	/**
 	 * save more skinLists
 	 */
-	private Object _skinLists;
+	dragonBones_internal var _skinLists:Object;
 	/**
 	 * Creates a Armature blank instance.
 	 * @param Instance type of this object varies from flash.display.DisplayObject to startling.display.DisplayObject and subclasses.
 	 * @see #display
 	 */
-	public Armature(Object display)
+	public function Armature(display:Object)
 	{
 		super(this);
 		_display = display;
@@ -135,11 +152,11 @@ public class Armature extends EventDispatcher implements IArmature
 
 		_slotsZOrderChanged = false;
 
-		_slotList = new ArrayList<Slot>;
+		_slotList = new Vector.<Slot>;
 		_slotList.fixed = true;
-		_boneList = new ArrayList<Bone>;
+		_boneList = new Vector.<Bone>;
 		_boneList.fixed = true;
-		_eventList = new ArrayList<Event>;
+		_eventList = new Vector.<Event>;
 		_skinLists = { };
 		_delayDispose = false;
 		_lockDispose = false;
@@ -150,10 +167,10 @@ public class Armature extends EventDispatcher implements IArmature
 	/**
 	 * Cleans up any resources used by this instance.
 	 */
-	public void dispose()
+	public function dispose():void
 	{
 		_delayDispose = true;
-		if(_animation == null || _lockDispose)
+		if(!_animation || _lockDispose)
 		{
 			return;
 		}
@@ -190,7 +207,7 @@ public class Armature extends EventDispatcher implements IArmature
 	/**
 	 * Force update bones and slots. (When bone's animation play complete, it will not update)
 	 */
-	public void invalidUpdate(String boneName = null)
+	public function invalidUpdate(boneName:String = null):void
 	{
 		if(boneName)
 		{
@@ -288,10 +305,10 @@ public class Armature extends EventDispatcher implements IArmature
 	 * @return A Vector.&lt;Slot&gt; instance.
 	 * @see dragonBones.Slot
 	 */
-	public ArrayList<Slot> getSlots(boolean returnCopy = true)
-{
-	return returnCopy?_slotList.concat():_slotList;
-}
+	public function getSlots(returnCopy:Boolean = true):Vector.<Slot>
+	{
+		return returnCopy?_slotList.concat():_slotList;
+	}
 
 	/**
 	 * Retrieves a Slot by name
@@ -299,7 +316,7 @@ public class Armature extends EventDispatcher implements IArmature
 	 * @return A Slot instance or null if no Slot with that name exist.
 	 * @see dragonBones.Slot
 	 */
-	public Slot getSlot(String slotName)
+	public function getSlot(slotName:String):Slot
 	{
 		for each(var slot:Slot in _slotList)
 		{
@@ -388,9 +405,9 @@ public class Armature extends EventDispatcher implements IArmature
 	 * @see dragonBones.Bone
 	 */
 	public function getBones(returnCopy:Boolean = true):Vector.<Bone>
-{
-	return returnCopy?_boneList.concat():_boneList;
-}
+	{
+		return returnCopy?_boneList.concat():_boneList;
+	}
 
 	/**
 	 * Retrieves a Bone by name

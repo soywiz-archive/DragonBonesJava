@@ -3,23 +3,25 @@ package dragonBones.display;
 import flash.display.BlendMode;
 import flash.display.DisplayObject;
 import flash.display.DisplayObjectContainer;
+import flash.geom.ColorTransform;
 
+import dragonBones.Slot;
 import dragonBones.core.dragonBones_internal;
-import dragonBones.fast.FastSlot;
 
 //use namespace dragonBones_internal;
 
-public class NativeFastSlot extends FastSlot
+public class NativeSlot extends Slot
 {
 	private DisplayObject _nativeDisplay;
 
-	public NativeFastSlot()
+	public NativeSlot()
 	{
 		super(this);
 		_nativeDisplay = null;
 	}
 
-	@Override public void dispose()
+	@Override
+	public void dispose()
 	{
 		super.dispose();
 
@@ -30,8 +32,7 @@ public class NativeFastSlot extends FastSlot
 	//Abstract method
 
 	/** @private */
-	@Override
-	private void updateDisplay(Object value)
+	@Override private void updateDisplay(Object value)
 	{
 		_nativeDisplay = (DisplayObject)value;
 	}
@@ -47,16 +48,14 @@ public class NativeFastSlot extends FastSlot
 	}
 
 	/** @private */
-	@Override
-	private void addDisplayToContainer(Object container, int index = -1)
+	@Override private void addDisplayToContainer(Object container, int index = -1)
 	{
-		var nativeContainer:DisplayObjectContainer = container as DisplayObjectContainer;
+		DisplayObjectContainer nativeContainer = (DisplayObjectContainer)container;
 		if(_nativeDisplay && nativeContainer)
 		{
 			if (index < 0)
 			{
 				nativeContainer.addChild(_nativeDisplay);
-
 			}
 			else
 			{
@@ -66,8 +65,7 @@ public class NativeFastSlot extends FastSlot
 	}
 
 	/** @private */
-	@Override
-	private void removeDisplayFromContainer()
+	@Override private void removeDisplayFromContainer()
 	{
 		if(_nativeDisplay && _nativeDisplay.parent)
 		{
@@ -76,8 +74,7 @@ public class NativeFastSlot extends FastSlot
 	}
 
 	/** @private */
-	@Override
-	private void updateTransform()
+	@Override private void updateTransform()
 	{
 		if(_nativeDisplay)
 		{
@@ -86,18 +83,16 @@ public class NativeFastSlot extends FastSlot
 	}
 
 	/** @private */
-	@Override
-	private void updateDisplayVisible(boolean value)
+	@Override private void updateDisplayVisible(boolean value)
 	{
-		//if(_nativeDisplay)
-		//{
-			//_nativeDisplay.visible = this._parent.visible && this._visible && value;
-		//}
+		if(_nativeDisplay)
+		{
+			_nativeDisplay.visible = this._parent.visible && this._visible && value;
+		}
 	}
 
 	/** @private */
-	@Override
-	private void updateDisplayColor(
+	@Override private void updateDisplayColor(
 		double aOffset,
 		double rOffset,
 		double gOffset,
@@ -119,8 +114,7 @@ public class NativeFastSlot extends FastSlot
 	}
 
 	/** @private */
-	@Override
-	private void updateDisplayBlendMode(String value)
+	@Override private void updateDisplayBlendMode(String value)
 	{
 		if(_nativeDisplay)
 		{

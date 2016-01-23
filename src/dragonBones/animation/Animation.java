@@ -1,9 +1,6 @@
 ﻿package dragonBones.animation;
-	import dragonBones.Armature;
 	import dragonBones.Slot;
 	import dragonBones.core.dragonBones_internal;
-	import dragonBones.fast.animation.FastBoneTimelineState;
-	import dragonBones.fast.animation.FastSlotTimelineState;
 	import dragonBones.objects.AnimationData;
 
 	import java.util.ArrayList;

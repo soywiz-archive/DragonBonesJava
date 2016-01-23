@@ -2,7 +2,6 @@ package dragonBones.animation;
 import dragonBones.objects.CurveData;
 import flash.geom.Point;
 
-import dragonBones.Armature;
 import dragonBones.Bone;
 import dragonBones.core.dragonBones_internal;
 import dragonBones.objects.DBTransform;

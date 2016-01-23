@@ -2,7 +2,6 @@ package dragonBones.core;
 
 import flash.geom.Matrix;
 
-import dragonBones.Armature;
 import dragonBones.Bone;
 import dragonBones.objects.DBTransform;
 import dragonBones.utils.TransformUtil;
