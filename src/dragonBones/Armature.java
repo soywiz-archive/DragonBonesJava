@@ -404,7 +404,7 @@ public class Armature extends EventDispatcher implements IArmature
 	 * @return A Vector.&lt;Bone&gt; instance.
 	 * @see dragonBones.Bone
 	 */
-	public function getBones(returnCopy:Boolean = true):Vector.<Bone>
+	public ArrayList<Bone> getBones(boolean returnCopy = true)
 	{
 		return returnCopy?_boneList.concat():_boneList;
 	}

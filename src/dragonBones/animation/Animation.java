@@ -1,9 +1,11 @@
 ﻿package dragonBones.animation;
+	import dragonBones.Armature;
 	import dragonBones.Slot;
 	import dragonBones.core.dragonBones_internal;
 	import dragonBones.objects.AnimationData;
 
 	import java.util.ArrayList;
+	import java.util.Objects;
 
 /**
  * An Animation instance is used to control the animation state of an Armature.
@@ -61,14 +63,14 @@ public class Animation
 	 */
 	public void dispose()
 	{
-		if(!_armature)
+		if(_armature == null)
 		{
 			return;
 		}
 
 		resetAnimationStateList();
 
-		_animationList.length = 0;
+		_animationList.clear();
 
 		_armature = null;
 		_animationDataList = null;
@@ -78,7 +80,7 @@ public class Animation
 
 	private void resetAnimationStateList()
 	{
-		int i = _animationStateList.length;
+		int i = _animationStateList.size();
 		AnimationState animationState;
 		while(i -- > 0)
 		{
@@ -88,6 +90,8 @@ public class Animation
 		}
 		_animationStateList.clear();
 	}
+
+
 
 	/**
 	 * Fades the animation with name animation in over a period of time seconds and fades other animations out.
@@ -108,7 +112,7 @@ public class Animation
 		String animationName,
 		double fadeInTime = -1,
 		double duration = -1,
-		double playTimes = NaN,
+		double playTimes = Double.NaN,
 		int layer = 0,
 		String group = null,
 		String fadeOutMode = SAME_LAYER_AND_GROUP,
@@ -121,16 +125,16 @@ public class Animation
 			return null;
 		}
 		int i = _animationDataList.length;
-		AnimationData animationData;
-		while(i --)
+		AnimationData animationData = null;
+		while(i -- > 0)
 		{
-			if(_animationDataList[i].name == animationName)
+			if(Objects.equals(_animationDataList.get(i).name, animationName))
 			{
-				animationData = _animationDataList[i];
+				animationData = _animationDataList.get(i);
 				break;
 			}
 		}
-		if (!animationData)
+		if (animationData == null)
 		{
 			return null;
 		}
@@ -150,7 +154,7 @@ public class Animation
 			durationScale = duration * 1000 / animationData.duration;
 		}
 
-		playTimes = isNaN(playTimes)?animationData.playTimes:playTimes;
+		playTimes = Double.isNaN(playTimes)?animationData.playTimes:playTimes;
 
 //根据fadeOutMode,选择正确的animationState执行fadeOut
 		AnimationState animationState;
@@ -160,10 +164,10 @@ public class Animation
 				break;
 
 			case SAME_LAYER:
-				i = _animationStateList.length;
+				i = _animationStateList.size();
 				while(i -- > 0)
 				{
-					animationState = _animationStateList[i];
+					animationState = _animationStateList.get(i);
 					if(animationState.layer == layer)
 					{
 						animationState.fadeOut(fadeInTime, pauseFadeOut);

@@ -1,5 +1,7 @@
 package dragonBones.objects;
 
+import java.util.ArrayList;
+
 public class Timeline
 {
 	public int duration;
