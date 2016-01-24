@@ -1,7 +1,7 @@
 package dragonBones.fast;
 
+import dragonBones.core.IAnimation;
 import dragonBones.core.ISlotCacheGenerator;
-import dragonBones.events.EventInfo;
 import dragonBones.utils.ArrayListUtils;
 import flash.Pair;
 import flash.errors.ArgumentError;
@@ -12,7 +12,6 @@ import dragonBones.cache.AnimationCacheManager;
 import dragonBones.cache.SlotFrameCache;
 import dragonBones.core.IArmature;
 import dragonBones.core.ICacheableArmature;
-import dragonBones.core.dragonBones_internal;
 import dragonBones.events.FrameEvent;
 import dragonBones.fast.animation.FastAnimation;
 import dragonBones.fast.animation.FastAnimationState;
@@ -94,7 +93,7 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
     private boolean useCache = true;
     public FastArmature(Object display)
     {
-        super(this);
+        super();
         _display = display;
         _animation = new FastAnimation(this);
         _slotsZOrderChanged = false;
@@ -487,7 +486,7 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
 
     public void resetAnimation()
     {
-        getAnimation().animationState.resetTimelineStateList();
+        getFastAnimation().animationState.resetTimelineStateList();
         for (FastBone boneItem : boneList)
         {
             boneItem._timelineState = null;
@@ -520,7 +519,7 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
      * An Animation instance
      * @see dragonBones.animation.Animation
      */
-    public FastAnimation getAnimation()
+    public FastAnimation getFastAnimation()
     {
         return _animation;
     }
@@ -562,5 +561,8 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
         {
             _eventList.add(event);
         }
+    }
+    public IAnimation getAnimation() {
+        return _animation;
     }
 }

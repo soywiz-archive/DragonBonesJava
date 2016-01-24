@@ -1,4 +1,4 @@
 package starling.textures;
 
-public class SubTexture {
+public class SubTexture extends Texture {
 }

@@ -21,7 +21,7 @@ import java.util.Map;
  */
 public class StarlingTextureAtlas extends TextureAtlas implements ITextureAtlas
 {
-	private BitmapData _bitmapData;
+	public BitmapData _bitmapData;
 	/**
 	 * @private
 	 */

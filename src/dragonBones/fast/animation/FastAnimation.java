@@ -2,6 +2,7 @@ package dragonBones.fast.animation;
 
 import dragonBones.animation.BaseAnimation;
 import dragonBones.cache.AnimationCacheManager;
+import dragonBones.core.IAnimation;
 import dragonBones.core.IAnimationState;
 import dragonBones.core.IArmature;
 import dragonBones.fast.FastArmature;
@@ -18,7 +19,7 @@ import java.util.Objects;
 /**
  * 不支持动画融合，在开启缓存的情况下，不支持无极的平滑补间
  */
-public class FastAnimation extends BaseAnimation
+public class FastAnimation implements IAnimation
 {
 	public ArrayList<String> animationList;
 	public FastAnimationState animationState;
@@ -41,6 +42,18 @@ public class FastAnimation extends BaseAnimation
 		_isPlaying = false;
 		_timeScale = 1;
 	}
+
+	public AnimationCacheManager animationCacheManager;
+	public IAnimationState ianimationState;
+
+	public IAnimationState gotoAndPlay(String animationName, double fadeInTime, double duration) {
+		return gotoAndPlay(animationName, fadeInTime, duration, Double.NaN);
+	}
+
+	public IAnimationState gotoAndPlay(String animationName) {
+		return gotoAndPlay(animationName, -1, -1, Double.NaN);
+	}
+
 
 	/**
 	 * Qualifies all resources used by this Animation instance for garbage collection.
@@ -280,5 +293,9 @@ public class FastAnimation extends BaseAnimation
 	public String getLastAnimationName()
 	{
 		return animationState!= null?animationState.name:null;
+	}
+
+	public IAnimationState getAnimationState() {
+		return animationState;
 	}
 }

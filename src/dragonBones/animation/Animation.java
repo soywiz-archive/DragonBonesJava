@@ -2,6 +2,7 @@
 
 import dragonBones.Armature;
 import dragonBones.Slot;
+import dragonBones.core.IAnimationState;
 import dragonBones.objects.AnimationData;
 import dragonBones.utils.ArrayListUtils;
 
@@ -14,7 +15,7 @@ import java.util.Objects;
  * @see Animation
  * @see dragonBones.animation.AnimationState
  */
-public class Animation
+public class Animation extends BaseAnimation
 {
 	public static final String NONE = "none";
 	public static final String SAME_LAYER = "sameLayer";
@@ -92,14 +93,17 @@ public class Animation
 		_animationStateList.clear();
 	}
 
-	public AnimationState gotoAndPlay(String animationName) {
+	public IAnimationState gotoAndPlay(String animationName) {
 		return gotoAndPlay(animationName, -1, -1, Double.NaN, 0, null, SAME_LAYER_AND_GROUP, true, true);
 	}
 
-	public AnimationState gotoAndPlay(String animationName, double fadeInTime) {
+	public IAnimationState gotoAndPlay(String animationName, double fadeInTime) {
 		return gotoAndPlay(animationName, fadeInTime, -1, Double.NaN, 0, null, SAME_LAYER_AND_GROUP, true, true);
 	}
 
+	public IAnimationState gotoAndPlay(String animationName, double fadeInTime, double duration, double playTimes) {
+		return gotoAndPlay(animationName, fadeInTime, duration, playTimes, 0, null, SAME_LAYER_AND_GROUP, true, true);
+	}
 
 	/**
 	 * Fades the animation with name animation in over a period of time seconds and fades other animations out.
@@ -116,7 +120,7 @@ public class Animation
 	 * @see dragonBones.objects.AnimationData
 	 * @see dragonBones.animation.AnimationState
 	 */
-	public AnimationState gotoAndPlay(
+	public IAnimationState gotoAndPlay(
 		String animationName,
 		double fadeInTime,
 		double duration,
@@ -279,7 +283,7 @@ public class Animation
 		AnimationState animationState = getState(animationName, layer);
 		if(animationState == null)
 		{
-			animationState = gotoAndPlay(animationName, fadeInTime, duration, Double.NaN, layer, group, fadeOutMode, true, true);
+			animationState = (AnimationState) gotoAndPlay(animationName, fadeInTime, duration, Double.NaN, layer, group, fadeOutMode, true, true);
 		}
 
 		if(normalizedTime >= 0)

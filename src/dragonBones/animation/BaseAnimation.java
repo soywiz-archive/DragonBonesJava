@@ -1,9 +1,10 @@
 package dragonBones.animation;
 
 import dragonBones.cache.AnimationCacheManager;
+import dragonBones.core.IAnimation;
 import dragonBones.core.IAnimationState;
 
-abstract public class BaseAnimation {
+abstract public class BaseAnimation implements IAnimation {
 	public AnimationCacheManager animationCacheManager;
 	public IAnimationState ianimationState;
 

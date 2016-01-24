@@ -251,10 +251,10 @@ abstract public class FastSlot extends FastDBObject implements ISlotCacheGenerat
 				FastArmature targetArmature = (FastArmature)display;
 
 				if(	this.armature != null &&
-					this.armature.getAnimation().animationState != null &&
-					targetArmature.getAnimation().hasAnimation(this.armature.getAnimation().animationState.name))
+					this.armature.getAnimation().getAnimationState() != null &&
+					targetArmature.getAnimation().hasAnimation(this.armature.getAnimation().getAnimationState().getName()))
 				{
-					targetArmature.getAnimation().gotoAndPlay(this.armature.getAnimation().animationState.name);
+					targetArmature.getAnimation().gotoAndPlay(this.armature.getAnimation().getAnimationState().getName());
 				}
 				else
 				{

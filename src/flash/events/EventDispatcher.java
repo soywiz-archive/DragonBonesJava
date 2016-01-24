@@ -15,6 +15,11 @@ public class EventDispatcher implements IEventDispatcher {
 	}
 
 	@Override
+	public void addEventListener(String type, Runnable1<Event> listener) {
+		throw new RuntimeException();
+	}
+
+	@Override
 	public boolean dispatchEvent(Event event) {
 		throw new RuntimeException();
 	}
@@ -26,6 +31,11 @@ public class EventDispatcher implements IEventDispatcher {
 
 	@Override
 	public void removeEventListener(String type, Runnable1<Event> listener, boolean useCapture) {
+		throw new RuntimeException();
+	}
+
+	@Override
+	public void removeEventListener(String type, Runnable1<Event> listener) {
 		throw new RuntimeException();
 	}
 

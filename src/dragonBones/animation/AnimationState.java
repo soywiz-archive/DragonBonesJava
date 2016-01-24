@@ -2,6 +2,7 @@
 import dragonBones.Armature;
 import dragonBones.Bone;
 import dragonBones.Slot;
+import dragonBones.core.IAnimationState;
 import dragonBones.events.AnimationEvent;
 import dragonBones.objects.AnimationData;
 import dragonBones.objects.Frame;
@@ -17,7 +18,7 @@ import java.util.Objects;
  * The AnimationState gives full control over animation blending.
  * In most cases the Animation interface is sufficient and easier to use. Use the AnimationState if you need full control over the animation blending any playback process.
  */
-final public class AnimationState
+final public class AnimationState implements IAnimationState
 {
 	private static ArrayList<AnimationState> _pool = new ArrayList<AnimationState>();
 
@@ -1010,5 +1011,9 @@ final public class AnimationState
 	public int getPlayTimes()
 	{
 		return _playTimes;
+	}
+
+	public double getProgress() {
+		throw new RuntimeException("@TODO: Should not execute this!");
 	}
 }

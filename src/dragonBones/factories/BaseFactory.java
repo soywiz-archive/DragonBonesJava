@@ -36,7 +36,7 @@ import java.util.Objects;
 
 //use namespace dragonBones_internal;
 
-public class BaseFactory  extends EventDispatcher
+abstract public class BaseFactory  extends EventDispatcher
 {
 	protected static final Matrix _helpMatrix = new Matrix();
 
@@ -45,14 +45,9 @@ public class BaseFactory  extends EventDispatcher
 
 	/** @private */
 	protected Map<String, ArrayList<ITextureAtlas>> textureAtlasDic = new HashMap<>();
-	public BaseFactory(BaseFactory self)
+	public BaseFactory()
 	{
 		super();
-
-		if(self != this)
-		{
-			throw new IllegalOperationError("Abstract class can not be instantiated!");
-		}
 	}
 
 	public void dispose()

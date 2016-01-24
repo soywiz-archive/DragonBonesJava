@@ -5,11 +5,11 @@ import dragonBones.display.NativeFastSlot;
 import dragonBones.fast.FastArmature;
 import dragonBones.fast.FastSlot;
 import dragonBones.Slot;
-import dragonBones.core.dragonBones_internal;
 import dragonBones.display.NativeSlot;
 import dragonBones.textures.ITextureAtlas;
 import dragonBones.textures.NativeTextureAtlas;
 
+import flash.display.DisplayObject;
 import flash.display.MovieClip;
 import flash.display.Shape;
 import flash.display.Sprite;
@@ -78,7 +78,7 @@ public class NativeFactory extends BaseFactory
 	/** @private */
 	protected Object generateDisplay(Object textureAtlas, String fullName, double pivotX, double pivotY)
 	{
-		NativeTextureAtlas nativeTextureAtlas;
+		NativeTextureAtlas nativeTextureAtlas = null;
 		if(textureAtlas instanceof NativeTextureAtlas)
 		{
 			nativeTextureAtlas = (NativeTextureAtlas)textureAtlas;
@@ -101,9 +101,9 @@ public class NativeFactory extends BaseFactory
 				{
 					try
 					{
-						Object displaySWF = movieClip.getChildAt(0);
-						displaySWF.x = 0;
-						displaySWF.y = 0;
+						DisplayObject displaySWF = movieClip.getChildAt(0);
+						displaySWF.setX(0);
+						displaySWF.setY(0);
 						return displaySWF;
 					}
 					catch(Throwable e)
@@ -147,12 +147,12 @@ public class NativeFactory extends BaseFactory
 					_helpMatrix.b = 0;
 					_helpMatrix.c = 0;
 					_helpMatrix.d = 1;
-					_helpMatrix.scale(1 / nativeTextureAtlas.scale, 1 / nativeTextureAtlas.scale);
-					_helpMatrix.tx = -pivotX - subTextureRegion.x;
-					_helpMatrix.ty = -pivotY - subTextureRegion.y;
+					_helpMatrix.scale(1 / nativeTextureAtlas.getScale(), 1 / nativeTextureAtlas.getScale());
+					_helpMatrix.tx = -pivotX - subTextureRegion.getX();
+					_helpMatrix.ty = -pivotY - subTextureRegion.getY();
 
-					displayShape.getGraphics().beginBitmapFill(nativeTextureAtlas.bitmapData, _helpMatrix, false, fillBitmapSmooth);
-					displayShape.getGraphics().drawRect(-pivotX, -pivotY, subTextureRegion.width, subTextureRegion.height);
+					displayShape.getGraphics().beginBitmapFill(nativeTextureAtlas.getBitmapData(), _helpMatrix, false, fillBitmapSmooth);
+					displayShape.getGraphics().drawRect(-pivotX, -pivotY, subTextureRegion.getWidth(), subTextureRegion.getHeight());
 
 					return displayShape;
 				}
