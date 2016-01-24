@@ -11,8 +11,8 @@ import flash.events.Event;
 import flash.events.EventDispatcher;
 import flash.utils.ByteArray;
 
-/** Dispatched after a sucessful call to parseTextureAtlasBytes(). */
-@EventInfo(name="complete", type="flash.events.Event")
+///** Dispatched after a sucessful call to parseTextureAtlasBytes(). */
+//@EventInfo(name="complete", type="flash.events.Event")
 public class DecompressedData extends EventDispatcher
 {
 	/**

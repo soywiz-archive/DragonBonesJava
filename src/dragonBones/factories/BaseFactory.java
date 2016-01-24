@@ -10,11 +10,9 @@ import flash.events.Event;
 import flash.events.EventDispatcher;
 import flash.geom.Matrix;
 import flash.utils.ByteArray;
-import flash.utils.Dictionary;
 
 import dragonBones.Bone;
 import dragonBones.Slot;
-import dragonBones.core.dragonBones_internal;
 import dragonBones.fast.FastArmature;
 import dragonBones.fast.FastBone;
 import dragonBones.fast.FastSlot;
@@ -281,8 +279,23 @@ abstract public class BaseFactory  extends EventDispatcher
 		return generateDisplay(targetTextureAtlas, textureName, pivotX, pivotY);
 	}
 
+	public Armature buildArmature(String armatureName)
+	{
+		return buildArmature(armatureName, null, null, null);
+	}
+
+	public Armature buildArmature(String armatureName, String fromDragonBonesDataName)
+	{
+		return buildArmature(armatureName, fromDragonBonesDataName, null, null);
+	}
+
+	public Armature buildArmature(String armatureName, String fromDragonBonesDataName, String fromTextureAtlasName)
+	{
+		return buildArmature(armatureName, fromDragonBonesDataName, fromTextureAtlasName, null);
+	}
+
 	//一般情况下dragonBonesData和textureAtlas是一对一的，通过相同的key对应。
-	public Armature buildArmature(String armatureName, String fromDragonBonesDataName= null, String fromTextureAtlasName= null, String skinName= null)
+	public Armature buildArmature(String armatureName, String fromDragonBonesDataName, String fromTextureAtlasName, String skinName)
 	{
 		BuildArmatureDataPackage buildArmatureDataPackage = new BuildArmatureDataPackage();
 		fillBuildArmatureDataPackageArmatureInfo(armatureName, fromDragonBonesDataName, buildArmatureDataPackage);
@@ -294,7 +307,7 @@ abstract public class BaseFactory  extends EventDispatcher
 		DragonBonesData dragonBonesData = buildArmatureDataPackage.dragonBonesData;
 		ArmatureData armatureData = buildArmatureDataPackage.armatureData;
 
-		if(!armatureData)
+		if(armatureData == null)
 		{
 			return null;
 		}
@@ -302,7 +315,22 @@ abstract public class BaseFactory  extends EventDispatcher
 		return buildArmatureUsingArmatureDataFromTextureAtlas(dragonBonesData, armatureData, fromTextureAtlasName, skinName);
 	}
 
-	public FastArmature buildFastArmature(String armatureName, String fromDragonBonesDataName = null, String fromTextureAtlasName = null, String skinName = null)
+	public FastArmature buildFastArmature(String armatureName)
+	{
+		return buildFastArmature(armatureName, null ,null, null);
+	}
+
+	public FastArmature buildFastArmature(String armatureName, String fromDragonBonesDataName)
+	{
+		return buildFastArmature(armatureName, fromDragonBonesDataName, null, null);
+	}
+
+	public FastArmature buildFastArmature(String armatureName, String fromDragonBonesDataName, String fromTextureAtlasName)
+	{
+		return buildFastArmature(armatureName, fromDragonBonesDataName, fromTextureAtlasName, null);
+	}
+
+	public FastArmature buildFastArmature(String armatureName, String fromDragonBonesDataName, String fromTextureAtlasName, String skinName)
 	{
 		BuildArmatureDataPackage buildArmatureDataPackage = new BuildArmatureDataPackage();
 		fillBuildArmatureDataPackageArmatureInfo(armatureName, fromDragonBonesDataName, buildArmatureDataPackage);
@@ -321,13 +349,14 @@ abstract public class BaseFactory  extends EventDispatcher
 		return buildFastArmatureUsingArmatureDataFromTextureAtlas(dragonBonesData, armatureData, fromTextureAtlasName, skinName);
 	}
 
-	protected Armature buildArmatureUsingArmatureDataFromTextureAtlas(DragonBonesData dragonBonesData, ArmatureData armatureData, String textureAtlasName, String skinName = null)
+	//protected Armature buildArmatureUsingArmatureDataFromTextureAtlas(DragonBonesData dragonBonesData, ArmatureData armatureData, String textureAtlasName, String skinName = null)
+	protected Armature buildArmatureUsingArmatureDataFromTextureAtlas(DragonBonesData dragonBonesData, ArmatureData armatureData, String textureAtlasName, String skinName)
 	{
 		Armature outputArmature = generateArmature();
 		outputArmature.name = armatureData.name;
 		outputArmature.__dragonBonesData = dragonBonesData;
 		outputArmature._armatureData = armatureData;
-		outputArmature.animation.animationDataList = armatureData.animationDataList;
+		outputArmature.getAnimation().setAnimationDataList(armatureData.getAnimationDataList());
 
 		buildBones(outputArmature);
 
@@ -337,13 +366,14 @@ abstract public class BaseFactory  extends EventDispatcher
 		return outputArmature;
 	}
 
-	protected FastArmature buildFastArmatureUsingArmatureDataFromTextureAtlas(DragonBonesData dragonBonesData, ArmatureData armatureData, String textureAtlasName, String skinName = null)
+	//protected FastArmature buildFastArmatureUsingArmatureDataFromTextureAtlas(DragonBonesData dragonBonesData, ArmatureData armatureData, String textureAtlasName, String skinName = null)
+	protected FastArmature buildFastArmatureUsingArmatureDataFromTextureAtlas(DragonBonesData dragonBonesData, ArmatureData armatureData, String textureAtlasName, String skinName)
 	{
 		FastArmature outputArmature = generateFastArmature();
 		outputArmature.name = armatureData.name;
 		outputArmature.__dragonBonesData = dragonBonesData;
 		outputArmature._armatureData = armatureData;
-		outputArmature.animation.animationDataList = armatureData.animationDataList;
+		outputArmature.getAnimation().setAnimationDataList(armatureData.getAnimationDataList());
 
 		buildFastBones(outputArmature);
 		buildFastSlots(outputArmature, skinName, textureAtlasName);
@@ -354,7 +384,8 @@ abstract public class BaseFactory  extends EventDispatcher
 	}
 
 	//暂时不支持ifRemoveOriginalAnimationList为false的情况
-	public boolean copyAnimationsToArmature(Armature toArmature, String fromArmatreName, String fromDragonBonesDataName = null, boolean ifRemoveOriginalAnimationList = true)
+	//public boolean copyAnimationsToArmature(Armature toArmature, String fromArmatreName, String fromDragonBonesDataName = null, boolean ifRemoveOriginalAnimationList = true)
+	public boolean copyAnimationsToArmature(Armature toArmature, String fromArmatreName, String fromDragonBonesDataName, boolean ifRemoveOriginalAnimationList)
 	{
 		BuildArmatureDataPackage buildArmatureDataPackage = new BuildArmatureDataPackage();
 		if(!fillBuildArmatureDataPackageArmatureInfo(fromArmatreName, fromDragonBonesDataName, buildArmatureDataPackage))
@@ -363,7 +394,7 @@ abstract public class BaseFactory  extends EventDispatcher
 		}
 
 		ArmatureData fromArmatureData = buildArmatureDataPackage.armatureData;
-		toArmature.animation.animationDataList = fromArmatureData.animationDataList;
+		toArmature.getAnimation().setAnimationDataList(fromArmatureData.getAnimationDataList());
 
 	//处理子骨架的复制
 		SkinData fromSkinData = fromArmatureData.getSkinData("");
@@ -371,15 +402,14 @@ abstract public class BaseFactory  extends EventDispatcher
 		DisplayData fromDisplayData;
 
 		ArrayList<Slot> toSlotList = toArmature.getSlots(false);
-		Slot toSlot;
 		ArrayList<Object> toSlotDisplayList;
 		int toSlotDisplayListLength;
 		Object toDisplayObject;
 		Armature toChildArmature;
 
-		for (Object toSlot : toSlotList)
+		for (Slot toSlot : toSlotList)
 		{
-			toSlotDisplayList = toSlot.displayList;
+			toSlotDisplayList = toSlot.getDisplayList();
 			toSlotDisplayListLength = toSlotDisplayList.size();
 			for(int i = 0; i < toSlotDisplayListLength; i++)
 			{
@@ -390,7 +420,7 @@ abstract public class BaseFactory  extends EventDispatcher
 					toChildArmature = (Armature)toDisplayObject;
 
 					fromSlotData = fromSkinData.getSlotData(toSlot.name);
-					fromDisplayData = fromSlotData.displayDataList[i];
+					fromDisplayData = fromSlotData.getDisplayDataList().get(i);
 					if(Objects.equals(fromDisplayData.type, DisplayData.ARMATURE))
 					{
 						copyAnimationsToArmature(toChildArmature, fromDisplayData.name, buildArmatureDataPackage.dragonBonesDataName, ifRemoveOriginalAnimationList);
@@ -413,13 +443,13 @@ abstract public class BaseFactory  extends EventDispatcher
 		}
 		else
 		{
-			for(Object dragonBonesDataName : dragonBonesDataDic)
+			for(String dragonBonesDataName2 : dragonBonesDataDic.keySet())
 			{
-				outputBuildArmatureDataPackage.dragonBonesData = dragonBonesDataDic.get(dragonBonesDataName);
+				outputBuildArmatureDataPackage.dragonBonesData = dragonBonesDataDic.get(dragonBonesDataName2);
 				outputBuildArmatureDataPackage.armatureData = outputBuildArmatureDataPackage.dragonBonesData.getArmatureDataByName(armatureName);
 				if(outputBuildArmatureDataPackage.armatureData != null)
 				{
-					outputBuildArmatureDataPackage.dragonBonesDataName = dragonBonesDataName;
+					outputBuildArmatureDataPackage.dragonBonesDataName = dragonBonesDataName2;
 					return true;
 				}
 			}
@@ -459,7 +489,7 @@ abstract public class BaseFactory  extends EventDispatcher
 	protected void buildBones(Armature armature)
 	{
 		//按照从属关系的顺序建立
-		ArrayList<BoneData> boneDataList = armature.getArmatureData().boneDataList;
+		ArrayList<BoneData> boneDataList = armature.getArmatureData().getBoneDataList();
 
 		BoneData boneData;
 		Bone bone;
@@ -481,7 +511,7 @@ abstract public class BaseFactory  extends EventDispatcher
 	protected void buildFastBones(FastArmature armature)
 	{
 		//按照从属关系的顺序建立
-		ArrayList<BoneData> boneDataList = armature.armatureData.boneDataList;
+		ArrayList<BoneData> boneDataList = armature.getArmatureData().getBoneDataList();
 
 		BoneData boneData;
 		FastBone bone;
@@ -529,7 +559,7 @@ abstract public class BaseFactory  extends EventDispatcher
 
 					case DisplayData.IMAGE:
 					default:
-						displayList[l] = getTextureDisplay(displayData.name, textureAtlasName, displayData.pivot.x, displayData.pivot.y);
+						displayList.set(l, getTextureDisplay(displayData.name, textureAtlasName, displayData.pivot.x, displayData.pivot.y));
 						break;
 
 				}
@@ -553,7 +583,7 @@ abstract public class BaseFactory  extends EventDispatcher
 				}
 			}
 			//==================================================
-			slot.initDisplayList(displayList.clone());
+			slot.initDisplayList((ArrayList<Object>)displayList.clone());
 			armature.addSlot(slot, slotData.parent);
 			slot.changeDisplayIndex(slotData.displayIndex);
 		}
@@ -572,7 +602,7 @@ abstract public class BaseFactory  extends EventDispatcher
 		SlotData slotData;
 		Slot slot;
 		Bone bone;
-		Object skinListObject = { };
+		Map<String, ArrayList<Object>> skinListObject = new HashMap<>();
 		for(int i = 0; i < slotDataList.size(); i++)
 		{
 			displayList.clear();
@@ -625,8 +655,8 @@ abstract public class BaseFactory  extends EventDispatcher
 				}
 			}
 			//==================================================
-			skinListObject[slotData.name] = displayList.clone();
-			slot.displayList = displayList;
+			skinListObject.put(slotData.name, (ArrayList<Object>) displayList.clone());
+			slot.setDisplayList(displayList);
 			slot.changeDisplay(slotData.displayIndex);
 		}
 		armature.addSkinList(skinName, skinListObject);
@@ -643,10 +673,10 @@ abstract public class BaseFactory  extends EventDispatcher
 		ArrayList<Object> displayList = new ArrayList<>();
 		ArrayList<SlotData> slotDataList = armature.getArmatureData().getSlotDataList();
 		SlotData slotData;
-		Slot slot;
+		Slot slot = null;
 		Bone bone;
-		Object skinListData = { };
-		ArrayList<DisplayData> displayDataList;
+		Map<String, ArrayList<Object>> skinListData = new HashMap<>();
+		ArrayList<DisplayData> displayDataList = null;
 
 		for(int i = 0; i < slotDataList.size(); i++)
 		{
@@ -681,8 +711,7 @@ abstract public class BaseFactory  extends EventDispatcher
 
 					case DisplayData.IMAGE:
 					default:
-						// displayList[l] = (displayData.name, textureAtlasName, displayData.pivot.x, displayData.pivot.y);
-						throw new Error("BUG in original code?");
+						displayList.set(l, getTextureDisplay(displayData.name, textureAtlasName, displayData.pivot.x, displayData.pivot.y));
 						break;
 
 				}
@@ -702,9 +731,14 @@ abstract public class BaseFactory  extends EventDispatcher
 				}
 			}
 			//==================================================
-			skinListData[slotData.name] = displayList.clone();
+			skinListData.put(slotData.name, (ArrayList<Object>) displayList.clone());
 		}
 		armature.addSkinList(skinName, skinListData);
+	}
+
+	public void parseData(ByteArray bytes)
+	{
+		parseData(bytes, null);
 	}
 
 	/**
@@ -724,7 +758,7 @@ abstract public class BaseFactory  extends EventDispatcher
 	 * @param dataName String. (optional) The SkeletonData instance name.
 	 * @return A SkeletonData instance.
 	 */
-	public void parseData(ByteArray bytes, String dataName = null)
+	public void parseData(ByteArray bytes, String dataName)
 	{
 		if(bytes == null)
 		{
@@ -741,7 +775,7 @@ abstract public class BaseFactory  extends EventDispatcher
 				DecompressedData decompressedData = (DecompressedData)event.target;
 				decompressedData.removeEventListener(Event.COMPLETE, this);
 
-				Object textureAtlas = generateTextureAtlas(decompressedData.textureAtlas, decompressedData.textureAtlasData);
+				ITextureAtlas textureAtlas = generateTextureAtlas(decompressedData.textureAtlas, decompressedData.textureAtlasData);
 				addTextureAtlas(textureAtlas, decompressedData.name);
 
 				decompressedData.dispose();

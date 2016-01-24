@@ -1,5 +1,5 @@
 package dragonBones.core;
 
-public interface ISetName {
+public interface ISetName extends IName {
 	void setName(String name);
 }

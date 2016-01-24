@@ -20,6 +20,8 @@ import flash.geom.Rectangle;
 import flash.utils.Dictionary;
 import org.w3c.dom.Document;
 
+import java.util.Map;
+
 //use namespace dragonBones_internal;
 
 /**
@@ -29,7 +31,7 @@ final public class XMLDataParser
 {
 	private static DragonBonesData tempDragonBonesData;
 
-	public static function parseTextureAtlasData(rawData:XML, scale:Number = 1):Object
+	public static Map<String, TextureData> parseTextureAtlasData(Document rawData, double scale)
 	{
 		var textureAtlasData:Object = {};
 		textureAtlasData.__name = rawData.@[ConstValues.A_NAME];

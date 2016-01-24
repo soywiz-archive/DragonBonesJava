@@ -13,6 +13,7 @@ import starling.textures.SubTexture;
 import starling.textures.Texture;
 import starling.textures.TextureAtlas;
 
+import java.util.HashMap;
 import java.util.Map;
 //use namespace dragonBones_internal;
 
@@ -49,17 +50,18 @@ public class StarlingTextureAtlas extends TextureAtlas implements ITextureAtlas
 	 * Creates a new StarlingTextureAtlas instance.
 	 * @param texture A texture instance.
 	 * @param textureAtlasRawData A textureAtlas config data
-	 * @param isDifferentXML
+	 * @param isDifferentConfig
 	 */
-	public StarlingTextureAtlas(Texture texture, Object textureAtlasRawData, boolean isDifferentConfig = false)
+	//public StarlingTextureAtlas(Texture texture, Object textureAtlasRawData, boolean isDifferentConfig = false)
+	public StarlingTextureAtlas(Texture texture, Object textureAtlasRawData, boolean isDifferentConfig)
 	{
 		super(texture, null);
-		if (texture)
+		if (texture != null)
 		{
-			_scale = texture.scale;
+			_scale = texture.getScale();
 			_isDifferentConfig = isDifferentConfig;
 		}
-		_subTextureDic = {};
+		_subTextureDic = new HashMap<>();
 		parseData(textureAtlasRawData);
 	}
 	/**
@@ -68,13 +70,13 @@ public class StarlingTextureAtlas extends TextureAtlas implements ITextureAtlas
 	@Override public void dispose()
 	{
 		super.dispose();
-		for (SubTexture subTexture : _subTextureDic)
+		for (Texture subTexture : _subTextureDic.values())
 		{
 			subTexture.dispose();
 		}
 		_subTextureDic = null;
 
-		if (_bitmapData)
+		if (_bitmapData != null)
 		{
 			_bitmapData.dispose();
 		}
@@ -94,7 +96,7 @@ public class StarlingTextureAtlas extends TextureAtlas implements ITextureAtlas
 			texture = super.getTexture(name);
 			if (texture != null)
 			{
-				_subTextureDic[name] = texture;
+				_subTextureDic.put(name, texture);
 			}
 		}
 		return texture;
@@ -104,12 +106,12 @@ public class StarlingTextureAtlas extends TextureAtlas implements ITextureAtlas
 	 */
 	protected void parseData(Object textureAtlasRawData)
 	{
-		Object textureAtlasData = DataParser.parseTextureAtlasData(textureAtlasRawData, _isDifferentConfig ? _scale : 1);
-		_name = textureAtlasData.get("__name");
+		Map<String, TextureData> textureAtlasData = DataParser.parseTextureAtlasData(textureAtlasRawData, _isDifferentConfig ? _scale : 1);
+		_name = (String) (Object)textureAtlasData.get("__name");
 		textureAtlasData.remove("__name");
-		for(String subTextureName : textureAtlasData)
+		for(String subTextureName : textureAtlasData.keySet())
 		{
-			TextureData textureData = textureAtlasData[subTextureName];
+			TextureData textureData = textureAtlasData.get(subTextureName);
 			//, textureData.rotated
 			this.addRegion(subTextureName, textureData.region, textureData.frame);
 		}

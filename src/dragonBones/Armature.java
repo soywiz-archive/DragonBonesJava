@@ -106,7 +106,7 @@ public class Armature extends EventDispatcher implements IArmature
 	private boolean _lockDispose;
 
 	/** @private */
-	private ArmatureData _armatureData;
+	public ArmatureData _armatureData;
 	/**
 	 * ArmatureData.
 	 * @see dragonBones.objects.ArmatureData
@@ -148,7 +148,7 @@ public class Armature extends EventDispatcher implements IArmature
 	 */
 	public Armature(Object display)
 	{
-		super(this);
+		super();
 		_display = display;
 
 		_animation = new Animation(this);
@@ -588,7 +588,7 @@ public class Armature extends EventDispatcher implements IArmature
 		_slotsZOrderChanged = false;
 	}
 
-	void updateAnimationAfterBoneListChanged()
+	public void updateAnimationAfterBoneListChanged()
 	{
 		updateAnimationAfterBoneListChanged(true);
 	}

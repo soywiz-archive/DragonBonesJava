@@ -211,7 +211,7 @@ abstract public class Slot extends DBObject
 	}
 
 	/** @private */
-	void changeDisplay(int displayIndex)
+	public void changeDisplay(int displayIndex)
 	{
 		if (displayIndex < 0)
 		{

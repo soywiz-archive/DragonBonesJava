@@ -31,7 +31,7 @@ public final class ObjectDataParser
 {
 	private static DragonBonesData tempDragonBonesData;
 
-	public static Object parseTextureAtlasData(Object rawData, double scale = 1)
+	public static Map<String, TextureData> parseTextureAtlasData(Object rawData, double scale = 1)
 	{
 		Object textureAtlasData = {};
 		textureAtlasData.__name = rawData[ConstValues.A_NAME];

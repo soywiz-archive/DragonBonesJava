@@ -84,7 +84,7 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
     protected boolean _enableEventDispatch = true;
 
     public DragonBonesData __dragonBonesData;
-    private ArmatureData _armatureData;
+    public ArmatureData _armatureData;
     boolean _slotsZOrderChanged;
 
     private ArrayList<Event> _eventList;
@@ -337,7 +337,7 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
      * @param parentName The parent's name of this Bone instance.
      * @see dragonBones.Bone
      */
-    private void addBone(FastBone bone, String parentName)
+    public void addBone(FastBone bone, String parentName)
     {
         FastBone parentBone = null;
         if(parentName != null)
@@ -357,7 +357,7 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
      * @param parentBoneName bone name
      * @see dragonBones.core.DBObject
      */
-    private void addSlot(FastSlot slot, String parentBoneName)
+    public void addSlot(FastSlot slot, String parentBoneName)
     {
         FastBone bone = getBone(parentBoneName);
         if(bone != null)

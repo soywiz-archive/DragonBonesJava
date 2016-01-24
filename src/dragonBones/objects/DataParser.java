@@ -1,5 +1,6 @@
 package dragonBones.objects;
 
+import dragonBones.textures.TextureData;
 import org.w3c.dom.Document;
 
 import java.util.Map;
@@ -23,7 +24,8 @@ public class DataParser
 		return null;
 	}
 
-	public static Map<String, Object> parseTextureAtlasData(Object textureAtlasData, double scale= 1)
+	//public static Map<String, TextureData> parseTextureAtlasData(Object textureAtlasData, double scale= 1)
+	public static Map<String, TextureData> parseTextureAtlasData(Object textureAtlasData, double scale)
 	{
 		if(textureAtlasData instanceof Document)
 		{
@@ -33,6 +35,5 @@ public class DataParser
 		{
 			return ObjectDataParser.parseTextureAtlasData(textureAtlasData, scale);
 		}
-		return null;
 	}
 }

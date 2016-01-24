@@ -140,7 +140,7 @@ abstract public class FastSlot extends FastDBObject implements ISlotCacheGenerat
 		_global.y += this._parent._tweenPivot.y;
 	}
 
-	void initDisplayList(ArrayList<Object> newDisplayList)
+	public void initDisplayList(ArrayList<Object> newDisplayList)
 	{
 		this._displayList = newDisplayList;
 	}
@@ -165,7 +165,7 @@ abstract public class FastSlot extends FastDBObject implements ISlotCacheGenerat
 	}
 
 	/** @private */
-	void changeDisplayIndex(int displayIndex)
+	public void changeDisplayIndex(int displayIndex)
 	{
 		if(_currentDisplayIndex == displayIndex)
 		{

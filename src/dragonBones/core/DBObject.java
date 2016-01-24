@@ -10,7 +10,7 @@ import dragonBones.utils.TransformUtil;
 
 //use namespace dragonBones_internal;
 
-public class DBObject
+public class DBObject implements ISetName
 {
 	public String name;
 
@@ -154,6 +154,16 @@ public class DBObject
 
 	protected void calculateRelativeParentTransform()
 	{
+	}
+
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	@Override
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	static public class TempOutput {
