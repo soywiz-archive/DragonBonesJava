@@ -23,6 +23,8 @@ import flash.geom.Point;
 import flash.geom.Rectangle;
 import flash.utils.Dictionary;
 
+import java.util.Map;
+
 //use namespace dragonBones_internal;
 
 public final class ObjectDataParser
@@ -424,21 +426,21 @@ public final class ObjectDataParser
 		}
 	}
 
-	private static function parseColorTransform(colorTransformObject:Object, colorTransform:ColorTransform):void
+	private static void parseColorTransform(Object colorTransformObject, ColorTransform colorTransform)
 	{
-		if(colorTransformObject)
+		if(colorTransformObject != null)
 		{
-			if(colorTransform)
+			if(colorTransform != null)
 			{
-				colorTransform.alphaOffset = int(colorTransformObject[ConstValues.A_ALPHA_OFFSET]);
-				colorTransform.redOffset = int(colorTransformObject[ConstValues.A_RED_OFFSET]);
-				colorTransform.greenOffset = int(colorTransformObject[ConstValues.A_GREEN_OFFSET]);
-				colorTransform.blueOffset = int(colorTransformObject[ConstValues.A_BLUE_OFFSET]);
+				colorTransform.alphaOffset = (int)(colorTransformObject[ConstValues.A_ALPHA_OFFSET]);
+				colorTransform.redOffset = (int)(colorTransformObject[ConstValues.A_RED_OFFSET]);
+				colorTransform.greenOffset = (int)(colorTransformObject[ConstValues.A_GREEN_OFFSET]);
+				colorTransform.blueOffset = (int)(colorTransformObject[ConstValues.A_BLUE_OFFSET]);
 
-				colorTransform.alphaMultiplier = int(getNumber(colorTransformObject, ConstValues.A_ALPHA_MULTIPLIER,100)) * 0.01;
-				colorTransform.redMultiplier = int(getNumber(colorTransformObject,ConstValues.A_RED_MULTIPLIER,100)) * 0.01;
-				colorTransform.greenMultiplier = int(getNumber(colorTransformObject,ConstValues.A_GREEN_MULTIPLIER,100)) * 0.01;
-				colorTransform.blueMultiplier = int(getNumber(colorTransformObject,ConstValues.A_BLUE_MULTIPLIER,100)) * 0.01;
+				colorTransform.alphaMultiplier = (int)(getNumber(colorTransformObject, ConstValues.A_ALPHA_MULTIPLIER,100)) * 0.01;
+				colorTransform.redMultiplier = (int)(getNumber(colorTransformObject,ConstValues.A_RED_MULTIPLIER,100)) * 0.01;
+				colorTransform.greenMultiplier = (int)(getNumber(colorTransformObject,ConstValues.A_GREEN_MULTIPLIER,100)) * 0.01;
+				colorTransform.blueMultiplier = (int)(getNumber(colorTransformObject,ConstValues.A_BLUE_MULTIPLIER,100)) * 0.01;
 			}
 		}
 	}
@@ -466,21 +468,22 @@ public final class ObjectDataParser
 		return defaultValue;
 	}
 
-	private static function getNumber(data:Object, key:String, defaultValue:Number):Number
+	private static double getNumber(Map<String, Object> data, String key, double defaultValue)
 	{
-		if(data && key in data)
+		if(data != null && data.containsKey(key))
 		{
-			switch(String(data[key]))
-			{
-				case "NaN":
-				case "":
-				case "false":
-				case "null":
-				case "undefined":
-					return NaN;
-
-				default:
-					return Number(data[key]);
+			Object value = data.get(key);
+			if (value instanceof Double) return (double) value;
+			if (value instanceof String) {
+				switch((String)value)
+				{
+					case "NaN":
+					case "":
+					case "false":
+					case "null":
+					case "undefined":
+						return Double.NaN;
+				}
 			}
 		}
 		return defaultValue;

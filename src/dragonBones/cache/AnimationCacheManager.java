@@ -2,32 +2,38 @@ package dragonBones.cache;
 import dragonBones.core.IAnimationState;
 import dragonBones.core.ICacheUser;
 import dragonBones.core.ICacheableArmature;
-import dragonBones.core.dragonBones_internal;
 import dragonBones.objects.AnimationData;
 import dragonBones.objects.ArmatureData;
+
+import java.util.ArrayList;
 
 //use namespace dragonBones_internal;
 
 public class AnimationCacheManager
 {
-	public var cacheGeneratorArmature:ICacheableArmature
-	public var armatureData:ArmatureData;
-	public var frameRate:Number;
-	public var animationCacheDic:Object = {};
-//		public var boneFrameCacheDic:Object = {};
-	public var slotFrameCacheDic:Object = {};
-	public function AnimationCacheManager()
+	public ICacheableArmature cacheGeneratorArmature
+	public ArmatureData armatureData;
+	public double frameRate;
+	public Object animationCacheDic = {};
+//		public Object boneFrameCacheDic = {};
+	public Object slotFrameCacheDic = {};
+	public AnimationCacheManager()
 	{
 	}
 
-	public static function initWithArmatureData(armatureData:ArmatureData, frameRate:Number = 0):AnimationCacheManager
+	public static AnimationCacheManager initWithArmatureData(ArmatureData armatureData)
 	{
-		var output:AnimationCacheManager = new AnimationCacheManager();
+		return initWithArmatureData(armatureData, 0);
+	}
+
+	public static AnimationCacheManager initWithArmatureData(ArmatureData armatureData, double frameRate)
+	{
+		AnimationCacheManager output = new AnimationCacheManager();
 		output.armatureData = armatureData;
 		if(frameRate<=0)
 		{
-			var animationData:AnimationData = armatureData.animationDataList[0];
-			if(animationData)
+			AnimationData animationData = armatureData.getAnimationDataList().get(0);
+			if(animationData != null)
 			{
 				output.frameRate = animationData.frameRate;
 			}
@@ -40,86 +46,86 @@ public class AnimationCacheManager
 		return output;
 	}
 
-	public function initAllAnimationCache():void
+	public void initAllAnimationCache()
 	{
-		for each(var animationData:AnimationData in armatureData.animationDataList)
+		for (AnimationData animationData : armatureData.getAnimationDataList())
 		{
 			animationCacheDic[animationData.name] = AnimationCache.initWithAnimationData(animationData,armatureData);
 		}
 	}
 
-	public function initAnimationCache(animationName:String):void
+	public void initAnimationCache(String animationName)
 	{
 		animationCacheDic[animationName] = AnimationCache.initWithAnimationData(armatureData.getAnimationData(animationName),armatureData);
 	}
 
-	public function bindCacheUserArmatures(armatures:Array):void
+	public void bindCacheUserArmatures(ArrayList<ICacheableArmature> armatures)
 	{
-		for each(var armature:ICacheableArmature in armatures)
+		for (ICacheableArmature armature : armatures)
 		{
 			bindCacheUserArmature(armature);
 		}
 
 	}
 
-	public function bindCacheUserArmature(armature:ICacheableArmature):void
+	public void bindCacheUserArmature(ICacheableArmature armature)
 	{
 		armature.getAnimation().animationCacheManager = this;
 
-		var slotDic:Object = armature.getSlotDic();
-		var cacheUser:ICacheUser;
+		Object slotDic = armature.getSlotDic();
+		ICacheUser cacheUser;
 //			for each(cacheUser in armature._boneDic)
 //			{
 //				cacheUser.frameCache = boneFrameCacheDic[cacheUser.name];
 //			}
-		for each(cacheUser in slotDic)
+		for (Object cacheUser : slotDic)
 		{
 			cacheUser.frameCache = slotFrameCacheDic[cacheUser.name];
 		}
 	}
 
-	public function setCacheGeneratorArmature(armature:ICacheableArmature):void
+	public void setCacheGeneratorArmature(ICacheableArmature armature)
 	{
 		cacheGeneratorArmature = armature;
 
-		var slotDic:Object = armature.getSlotDic();
-		var cacheUser:ICacheUser;
+		Object slotDic = armature.getSlotDic();
+		ICacheUser cacheUser;
 //			for each(cacheUser in armature._boneDic)
 //			{
 //				boneFrameCacheDic[cacheUser.name] = new FrameCache();
 //			}
-		for each(cacheUser in armature.getSlotDic())
+		for (Object cacheUser : armature.getSlotDic())
 		{
 			slotFrameCacheDic[cacheUser.name] = new SlotFrameCache();
 		}
 
-		for each(var animationCache:AnimationCache in animationCacheDic)
+		for (AnimationCache animationCache in animationCacheDic)
 		{
 //				animationCache.initBoneTimelineCacheDic(armature._boneDic, boneFrameCacheDic);
 			animationCache.initSlotTimelineCacheDic(slotDic, slotFrameCacheDic);
 		}
 	}
 
-	public function generateAllAnimationCache(loop:Boolean):void
+	public void generateAllAnimationCache(boolean loop)
 	{
-		for each(var animationCache:AnimationCache in animationCacheDic)
+		for (AnimationCache animationCache : animationCacheDic)
 		{
 			generateAnimationCache(animationCache.name, loop);
 		}
 	}
 
-	public function generateAnimationCache(animationName:String, loop:Boolean):void
+	public void generateAnimationCache(String animationName, boolean loop)
 	{
-		var temp:Boolean = cacheGeneratorArmature.enableCache;
+		boolean temp = cacheGeneratorArmature.enableCache;
 		cacheGeneratorArmature.enableCache = false;
-		var animationCache:AnimationCache = animationCacheDic[animationName];
+		AnimationCache animationCache = animationCacheDic[animationName];
 		if(!animationCache)
 		{
 			return;
 		}
 
-		var animationState:IAnimationState = cacheGeneratorArmature.getAnimation().animationState;
-		var passTime:Number = 1 / frameRate;
+		IAnimationState animationState = cacheGeneratorArmature.getAnimation().animationState;
+		double passTime = 1 / frameRate;
 
 		if (loop)
 		{
@@ -130,31 +136,31 @@ public class AnimationCacheManager
 			cacheGeneratorArmature.getAnimation().gotoAndPlay(animationName,0,-1,1);
 		}
 
-		var tempEnableEventDispatch:Boolean = cacheGeneratorArmature.enableEventDispatch;
-		cacheGeneratorArmature.enableEventDispatch = false;
-		var lastProgress:Number;
+		boolean tempEnableEventDispatch = cacheGeneratorArmature.getEnableEventDispatch();
+		cacheGeneratorArmature.setEnableEventDispatch(false);
+		double lastProgress;
 		do
 		{
-			lastProgress = animationState.progress;
+			lastProgress = animationState.getProgress();
 			cacheGeneratorArmature.advanceTime(passTime);
 			animationCache.addFrame();
 		}
-		while (animationState.progress >= lastProgress && animationState.progress < 1);
+		while (animationState.getProgress() >= lastProgress && animationState.getProgress() < 1);
 
-		cacheGeneratorArmature.enableEventDispatch = tempEnableEventDispatch;
+		cacheGeneratorArmature.setEnableEventDispatch(tempEnableEventDispatch);
 		resetCacheGeneratorArmature();
-		cacheGeneratorArmature.enableCache = temp;
+		cacheGeneratorArmature.setEnableCache(temp);
 	}
 
 	/**
 	 * 将缓存生成器骨架重置，生成动画缓存后调用。
 	 */
-	public function resetCacheGeneratorArmature():void
+	public void resetCacheGeneratorArmature()
 	{
 		cacheGeneratorArmature.resetAnimation();
 	}
 
-	public function getAnimationCache(animationName:String):AnimationCache
+	public AnimationCache getAnimationCache(String animationName)
 	{
 		return animationCacheDic[animationName];
 	}

@@ -34,7 +34,7 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 	/** @private */
 	protected double _offsetZOrder;
 
-	protected Array _displayList;
+	protected ArrayList<Object> _displayList;
 	protected int _currentDisplayIndex;
 	ColorTransform _colorTransform;
 	boolean _isColorChanged;
@@ -68,10 +68,10 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 
 	public void initWithSlotData(SlotData slotData)
 	{
-		name = slotData.name;
-		blendMode = slotData.blendMode;
+		setName(slotData.name);
+		setBlendMode(slotData.blendMode);
 		_originZOrder = slotData.zOrder;
-		_displayDataList = slotData.displayDataList;
+		_displayDataList = slotData.getDisplayDataList();
 		_originDisplayIndex = slotData.displayIndex;
 	}
 
@@ -278,7 +278,7 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 	/**
 	 * The DisplayObject list belonging to this Slot instance (display or armature). Replace it to implement switch texture.
 	 */
-	public Array getDisplayList()
+	public ArrayList<Object> getDisplayList()
 	{
 		return _displayList;
 	}
@@ -479,7 +479,7 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 	 * @param gMultiplier
 	 * @param bMultiplier
 	 */
-	void updateDisplayColor(
+	public void updateDisplayColor(
 		double aOffset,
 		double rOffset,
 		double gOffset,
@@ -513,7 +513,7 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 	}
 
 	/** @private When slot timeline enter a key frame, call this func*/
-	void arriveAtFrame(Frame frame, FastAnimationState animationState)
+	public void arriveAtFrame(Frame frame, FastAnimationState animationState)
 	{
 		SlotFrame slotFrame = (SlotFrame)frame;
 		int displayIndex = slotFrame.displayIndex;
@@ -565,7 +565,7 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 		return output;
 	}
 
-	void resetToOrigin()
+	public void resetToOrigin()
 	{
 		changeDisplayIndex((int)_originDisplayIndex);
 		updateDisplayColor(0, 0, 0, 0, 1, 1, 1, 1, true);

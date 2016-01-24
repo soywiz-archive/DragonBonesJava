@@ -1,6 +1,7 @@
 package dragonBones.fast.animation;
 
 import dragonBones.objects.CurveData;
+import dragonBones.utils.ArrayListUtils;
 import flash.geom.ColorTransform;
 
 import dragonBones.core.dragonBones_internal;
@@ -12,95 +13,97 @@ import dragonBones.objects.SlotTimeline;
 import dragonBones.utils.ColorTransformUtil;
 import dragonBones.utils.MathUtil;
 
+import java.util.ArrayList;
+
 //use namespace dragonBones_internal;
 
 /** @private */
 public final class FastSlotTimelineState
 {
-	private static const HALF_PI:Number = Math.PI * 0.5;
-	private static const DOUBLE_PI:Number = Math.PI * 2;
+	private static final double HALF_PI = Math.PI * 0.5;
+	private static final double DOUBLE_PI = Math.PI * 2;
 
-	private static var _pool:Vector.<FastSlotTimelineState> = new Vector.<FastSlotTimelineState>;
+	private static ArrayList<FastSlotTimelineState> _pool = new ArrayList<FastSlotTimelineState>();
 
 	/** @private */
-	dragonBones_internal static function borrowObject():FastSlotTimelineState
+	static FastSlotTimelineState borrowObject()
 	{
-		if(_pool.length == 0)
+		if(_pool.size() == 0)
 		{
 			return new FastSlotTimelineState();
 		}
-		return _pool.pop();
+		return ArrayListUtils.pop(_pool);
 	}
 
 	/** @private */
-	dragonBones_internal static function returnObject(timeline:FastSlotTimelineState):void
+	static void returnObject(FastSlotTimelineState timeline)
 	{
 		if(_pool.indexOf(timeline) < 0)
 		{
-			_pool[_pool.length] = timeline;
+			_pool.set(_pool.size(), timeline);
 		}
 
 		timeline.clear();
 	}
 
 	/** @private */
-	dragonBones_internal static function clear():void
+	static void clearStatic()
 	{
-		var i:int = _pool.length;
-		while(i --)
+		int i = _pool.size();
+		while(i -- > 0)
 		{
-			_pool[i].clear();
+			_pool.get(i).clear();
 		}
-		_pool.length = 0;
+		_pool.clear();
 	}
 
 
 
-	public var name:String;
+	public String name;
 
 	/** @private */
-	dragonBones_internal var _weight:Number;
+	double _weight;
 
 	//TO DO 干什么用的
 	/** @private */
-	dragonBones_internal var _blendEnabled:Boolean;
+	boolean _blendEnabled;
 
 	/** @private */
-	dragonBones_internal var _isComplete:Boolean;
+	boolean _isComplete;
 
 	/** @private */
-	dragonBones_internal var _animationState:FastAnimationState;
+	FastAnimationState _animationState;
 
-	private var _totalTime:int; //duration
+	int _totalTime; //duration
 
-	private var _currentTime:int;
-	private var _currentFrameIndex:int;
-	private var _currentFramePosition:int;
-	private var _currentFrameDuration:int;
+	int _currentTime;
+	int _currentFrameIndex;
+	int _currentFramePosition;
+	int _currentFrameDuration;
 
-	private var _tweenEasing:Number;
-	private var _tweenCurve:CurveData;
-	private var _tweenColor:Boolean;
-	private var _colorChanged:Boolean;
+	double _tweenEasing;
+	CurveData _tweenCurve;
+	boolean _tweenColor;
+	boolean _colorChanged;
 
 	//-1: frameLength>1, 0:frameLength==0, 1:frameLength==1
-	private var _updateMode:int;
+	private int _updateMode;
 
-	private var _armature:FastArmature;
-	private var _animation:FastAnimation;
-	private var _slot:FastSlot;
+	private FastArmature _armature;
+	private FastAnimation _animation;
+	private FastSlot _slot;
 
-	private var _timelineData:SlotTimeline;
-	private var _durationColor:ColorTransform;
+	private SlotTimeline _timelineData;
+	private ColorTransform _durationColor;
 
 
 
-	public function FastSlotTimelineState()
+	public FastSlotTimelineState()
 	{
 		_durationColor = new ColorTransform();
 	}
 
-	private function clear():void
+	private void clear()
 	{
 		_slot = null;
 		_armature = null;
@@ -111,11 +114,11 @@ public final class FastSlotTimelineState
 
 //动画开始结束
 	/** @private */
-	dragonBones_internal function fadeIn(slot:FastSlot, animationState:FastAnimationState, timelineData:SlotTimeline):void
+	void fadeIn(FastSlot slot, FastAnimationState animationState, SlotTimeline timelineData)
 	{
 		_slot = slot;
 		_armature = _slot.armature;
-		_animation = _armature.animation as FastAnimation;
+		_animation = (FastAnimation)_armature.animation;
 		_animationState = animationState;
 		_timelineData = timelineData;
 
@@ -128,10 +131,10 @@ public final class FastSlotTimelineState
 		_tweenColor = false;
 		_currentFrameIndex = -1;
 		_currentTime = -1;
-		_tweenEasing = NaN;
+		_tweenEasing = Double.NaN;
 		_weight = 1;
 
-		switch(_timelineData.frameList.length)
+		switch(_timelineData.getFrameList().size())
 		{
 			case 0:
 				_updateMode = 0;
@@ -150,12 +153,12 @@ public final class FastSlotTimelineState
 //动画进行中
 
 	/** @private */
-	dragonBones_internal function updateFade(progress:Number):void
+	void updateFade(double progress)
 	{
 	}
 
 	/** @private */
-	dragonBones_internal function update(progress:Number):void
+	void update(double progress)
 	{
 		if(_updateMode == -1)
 		{
@@ -168,19 +171,20 @@ public final class FastSlotTimelineState
 		}
 	}
 
-	private function updateMultipleFrame(progress:Number):void
+	private void updateMultipleFrame(double progress)
 	{
-		var currentPlayTimes:int = 0;
+		int currentPlayTimes = 0;
 		progress /= _timelineData.scale;
 		progress += _timelineData.offset;
 
-		var currentTime:int = _totalTime * progress;
-		var playTimes:int = _animationState.playTimes;
+		int currentTime = (int)(_totalTime * progress);
+		int playTimes = _animationState.playTimes;
 		if(playTimes == 0)
 		{
 			_isComplete = false;
-			currentPlayTimes = Math.ceil(Math.abs(currentTime) / _totalTime) || 1;
-			currentTime -= int(currentTime / _totalTime) * _totalTime;
+			currentPlayTimes = (int)Math.ceil(Math.abs(currentTime) / _totalTime);
+			if (currentPlayTimes == 0) currentPlayTimes = 1;
+			currentTime -= (int)(currentTime / _totalTime) * _totalTime;
 
 			if(currentTime < 0)
 			{
@@ -189,7 +193,7 @@ public final class FastSlotTimelineState
 		}
 		else
 		{
-			var totalTimes:int = playTimes * _totalTime;
+			int totalTimes = playTimes * _totalTime;
 			if(currentTime >= totalTimes)
 			{
 				currentTime = totalTimes;
@@ -210,14 +214,15 @@ public final class FastSlotTimelineState
 				currentTime += totalTimes;
 			}
 
-			currentPlayTimes = Math.ceil(currentTime / _totalTime) || 1;
+			currentPlayTimes = (int)Math.ceil(currentTime / _totalTime);
+			if (currentPlayTimes == 0) currentPlayTimes = 1;
 			if(_isComplete)
 			{
 				currentTime = _totalTime;
 			}
 			else
 			{
-				currentTime -= int(currentTime / _totalTime) * _totalTime;
+				currentTime -= (int)(currentTime / _totalTime) * _totalTime;
 			}
 		}
 
@@ -225,11 +230,11 @@ public final class FastSlotTimelineState
 		{
 			_currentTime = currentTime;
 
-			var frameList:Vector.<Frame> = _timelineData.frameList;
-			var prevFrame:SlotFrame;
-			var currentFrame:SlotFrame;
+			ArrayList<Frame> frameList = _timelineData.getFrameList();
+			SlotFrame prevFrame = null;
+			SlotFrame currentFrame = null;
 
-			for (var i:int = 0, l:int = _timelineData.frameList.length; i < l; ++i)
+			for (int i = 0, l = _timelineData.getFrameList().size(); i < l; ++i)
 			{
 				if(_currentFrameIndex < 0)
 				{
@@ -238,7 +243,7 @@ public final class FastSlotTimelineState
 				else if(_currentTime < _currentFramePosition || _currentTime >= _currentFramePosition + _currentFrameDuration)
 				{
 					_currentFrameIndex ++;
-					if(_currentFrameIndex >= frameList.length)
+					if(_currentFrameIndex >= frameList.size())
 					{
 						if(_isComplete)
 						{
@@ -255,9 +260,9 @@ public final class FastSlotTimelineState
 				{
 					break;
 				}
-				currentFrame = frameList[_currentFrameIndex] as SlotFrame;
+				currentFrame = (SlotFrame) frameList.get(_currentFrameIndex);
 
-				if(prevFrame)
+				if(prevFrame != null)
 				{
 					_slot.arriveAtFrame(prevFrame, _animationState);
 				}
@@ -267,7 +272,7 @@ public final class FastSlotTimelineState
 				prevFrame = currentFrame;
 			}
 
-			if(currentFrame)
+			if(currentFrame != null)
 			{
 				_slot.arriveAtFrame(currentFrame, _animationState);
 
@@ -278,7 +283,7 @@ public final class FastSlotTimelineState
 				}
 				else
 				{
-					_tweenEasing = NaN;
+					_tweenEasing = Double.NaN;
 					_tweenColor = false;
 				}
 			}
@@ -290,16 +295,16 @@ public final class FastSlotTimelineState
 		}
 	}
 
-	private function updateToNextFrame(currentPlayTimes:int):void
+	private void updateToNextFrame(int currentPlayTimes)
 	{
-		var nextFrameIndex:int = _currentFrameIndex + 1;
-		if(nextFrameIndex >= _timelineData.frameList.length)
+		int nextFrameIndex = _currentFrameIndex + 1;
+		if(nextFrameIndex >= _timelineData.getFrameList().size())
 		{
 			nextFrameIndex = 0;
 		}
-		var currentFrame:SlotFrame = _timelineData.frameList[_currentFrameIndex] as SlotFrame;
-		var nextFrame:SlotFrame = _timelineData.frameList[nextFrameIndex] as SlotFrame;
-		var tweenEnabled:Boolean = false;
+		SlotFrame currentFrame = (SlotFrame) _timelineData.getFrameList().get(_currentFrameIndex);
+		SlotFrame nextFrame = (SlotFrame) _timelineData.getFrameList().get(nextFrameIndex);
+		boolean tweenEnabled = false;
 		if(nextFrameIndex == 0 &&
 			(
 				_animationState.playTimes &&
@@ -308,22 +313,22 @@ public final class FastSlotTimelineState
 			)
 		)
 		{
-			_tweenEasing = NaN;
+			_tweenEasing = Double.NaN;
 			tweenEnabled = false;
 		}
 		else if(currentFrame.displayIndex < 0 || nextFrame.displayIndex < 0)
 		{
-			_tweenEasing = NaN;
+			_tweenEasing = Double.NaN;
 			tweenEnabled = false;
 		}
 		else if(_animationState.autoTween)
 		{
 			_tweenEasing = _animationState.animationData.tweenEasing;
-			if(isNaN(_tweenEasing))
+			if(Double.isNaN(_tweenEasing))
 			{
 				_tweenEasing = currentFrame.tweenEasing;
 				_tweenCurve = currentFrame.curve;
-				if(isNaN(_tweenEasing))    //frame no tween
+				if(Double.isNaN(_tweenEasing))    //frame no tween
 				{
 					tweenEnabled = false;
 				}
@@ -347,9 +352,9 @@ public final class FastSlotTimelineState
 		{
 			_tweenEasing = currentFrame.tweenEasing;
 			_tweenCurve = currentFrame.curve;
-			if(isNaN(_tweenEasing) || _tweenEasing == 10)    //frame no tween
+			if(Double.isNaN(_tweenEasing) || _tweenEasing == 10)    //frame no tween
 			{
-				_tweenEasing = NaN;
+				_tweenEasing = Double.NaN;
 				tweenEnabled = false;
 			}
 			else
@@ -361,7 +366,7 @@ public final class FastSlotTimelineState
 
 		if(tweenEnabled)
 		{
-			if(currentFrame.color || nextFrame.color)
+			if(currentFrame.color != null || nextFrame.color != null)
 			{
 				ColorTransformUtil.minus(nextFrame.color || ColorTransformUtil.originalColor, currentFrame.color ||ColorTransformUtil.originalColor, _durationColor);
 				_tweenColor = 	_durationColor.alphaOffset ||
@@ -385,8 +390,8 @@ public final class FastSlotTimelineState
 
 		if(!_tweenColor)
 		{
-			var targetColor:ColorTransform;
-			var colorChanged:Boolean;
+			ColorTransform targetColor;
+			boolean colorChanged;
 
 			if(currentFrame.colorChanged)
 			{
@@ -418,13 +423,13 @@ public final class FastSlotTimelineState
 		}
 	}
 
-	private function updateTween():void
+	private void updateTween()
 	{
-		var currentFrame:SlotFrame = _timelineData.frameList[_currentFrameIndex] as SlotFrame;
+		SlotFrame currentFrame = _timelineData.frameList[_currentFrameIndex] as SlotFrame;
 
 		if(_tweenColor)
 		{
-			var progress:Number = (_currentTime - _currentFramePosition) / _currentFrameDuration;
+			double progress = (_currentTime - _currentFramePosition) / _currentFrameDuration;
 			if (_tweenCurve != null)
 			{
 				progress = _tweenCurve.getValueByProgress(progress);
@@ -433,7 +438,7 @@ public final class FastSlotTimelineState
 			{
 				progress = MathUtil.getEaseValue(progress, _tweenEasing);
 			}
-			if(currentFrame.color)
+			if(currentFrame.color != null)
 			{
 				_slot.updateDisplayColor(
 					currentFrame.color.alphaOffset 		+ _durationColor.alphaOffset 		* progress,
@@ -464,19 +469,19 @@ public final class FastSlotTimelineState
 		}
 	}
 
-	private function updateSingleFrame():void
+	private void updateSingleFrame()
 	{
-		var currentFrame:SlotFrame = _timelineData.frameList[0] as SlotFrame;
+		SlotFrame currentFrame = (SlotFrame) _timelineData.getFrameList().get(0);
 		_slot.arriveAtFrame(currentFrame, _animationState);
 		_isComplete = true;
-		_tweenEasing = NaN;
+		_tweenEasing = Double.NaN;
 		_tweenColor = false;
 
 		_blendEnabled = currentFrame.displayIndex >= 0;
 		if(_blendEnabled)
 		{
-			var targetColor:ColorTransform;
-			var colorChanged:Boolean;
+			ColorTransform targetColor;
+			boolean colorChanged;
 			if(currentFrame.colorChanged)
 			{
 				targetColor = currentFrame.color;

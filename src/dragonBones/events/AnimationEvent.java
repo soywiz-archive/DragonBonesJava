@@ -90,9 +90,14 @@ public class AnimationEvent extends Event
 	 * @param type
 	 * @param cancelable
 	 */
-	public AnimationEvent(String type, boolean cancelable = false)
+	public AnimationEvent(String type, boolean cancelable)
 	{
 		super(type, false, cancelable);
+	}
+
+	public AnimationEvent(String type)
+	{
+		this(type, false);
 	}
 
 	/**

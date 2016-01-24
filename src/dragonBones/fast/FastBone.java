@@ -121,7 +121,7 @@ public class FastBone extends FastDBObject
 	}
 
 	/** @private */
-	void hideSlots()
+	public void hideSlots()
 	{
 		for (FastSlot childSlot : slotList)
 		{

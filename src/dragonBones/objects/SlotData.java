@@ -1,5 +1,10 @@
 package dragonBones.objects;
 
+import flash.errors.ArgumentError;
+
+import java.util.ArrayList;
+import java.util.Objects;
+
 /** @private */
 public final class SlotData
 {
@@ -13,27 +18,24 @@ public final class SlotData
 
 	public SlotData()
 	{
-		_displayDataList = new ArrayList<DisplayData>(0, true);
+		_displayDataList = new ArrayList<DisplayData>();
 		zOrder = 0;
 	}
 
 	public void dispose()
 	{
-		_displayDataList.fixed = false;
-		_displayDataList.length = 0;
+		_displayDataList.clear();
 	}
 
 	public void addDisplayData(DisplayData displayData)
 	{
-		if(!displayData)
+		if(displayData == null)
 		{
 			throw new ArgumentError();
 		}
 		if (_displayDataList.indexOf(displayData) < 0)
 		{
-			_displayDataList.fixed = false;
-			_displayDataList[_displayDataList.length] = displayData;
-			_displayDataList.fixed = true;
+			_displayDataList.set(_displayDataList.size(), displayData);
 		}
 		else
 		{
@@ -46,9 +48,9 @@ public final class SlotData
 		int i = _displayDataList.size();
 		while(i -- > 0)
 		{
-			if(_displayDataList[i].name == displayName)
+			if(Objects.equals(_displayDataList.get(i).name, displayName))
 			{
-				return _displayDataList[i];
+				return _displayDataList.get(i);
 			}
 		}
 

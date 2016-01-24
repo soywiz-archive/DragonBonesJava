@@ -1,5 +1,7 @@
 package dragonBones.objects;
 
+import java.util.Map;
+
 public class DataParser
 {
 	public DataParser()
@@ -19,7 +21,7 @@ public class DataParser
 		return null;
 	}
 
-	public static Object parseTextureAtlasData(Object textureAtlasData, double scale = 1)
+	public static Map<String, Object> parseTextureAtlasData(Object textureAtlasData, double scale= 1)
 	{
 		if(textureAtlasData instanceof XML)
 		{

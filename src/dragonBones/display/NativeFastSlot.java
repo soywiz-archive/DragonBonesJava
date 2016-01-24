@@ -4,7 +4,6 @@ import flash.display.BlendMode;
 import flash.display.DisplayObject;
 import flash.display.DisplayObjectContainer;
 
-import dragonBones.core.dragonBones_internal;
 import dragonBones.fast.FastSlot;
 
 //use namespace dragonBones_internal;
@@ -39,9 +38,9 @@ public class NativeFastSlot extends FastSlot
 	/** @private */
 	@Override private int getDisplayIndex()
 	{
-		if(_nativeDisplay && _nativeDisplay.parent)
+		if(_nativeDisplay != null && _nativeDisplay.getParent() != null)
 		{
-			return _nativeDisplay.parent.getChildIndex(_nativeDisplay);
+			return _nativeDisplay.getParent().getChildIndex(_nativeDisplay);
 		}
 		return -1;
 	}
@@ -50,8 +49,8 @@ public class NativeFastSlot extends FastSlot
 	@Override
 	private void addDisplayToContainer(Object container, int index = -1)
 	{
-		var nativeContainer:DisplayObjectContainer = container as DisplayObjectContainer;
-		if(_nativeDisplay && nativeContainer)
+		DisplayObjectContainer nativeContainer = (DisplayObjectContainer)container;
+		if(_nativeDisplay != null && nativeContainer != null)
 		{
 			if (index < 0)
 			{
@@ -60,7 +59,7 @@ public class NativeFastSlot extends FastSlot
 			}
 			else
 			{
-				nativeContainer.addChildAt(_nativeDisplay, Math.min(index, nativeContainer.numChildren));
+				nativeContainer.addChildAt(_nativeDisplay, Math.min(index, nativeContainer.getNumChildren()));
 			}
 		}
 	}
@@ -69,9 +68,9 @@ public class NativeFastSlot extends FastSlot
 	@Override
 	private void removeDisplayFromContainer()
 	{
-		if(_nativeDisplay && _nativeDisplay.parent)
+		if(_nativeDisplay != null && _nativeDisplay.getParent() != null)
 		{
-			_nativeDisplay.parent.removeChild(_nativeDisplay);
+			_nativeDisplay.getParent().removeChild(_nativeDisplay);
 		}
 	}
 
@@ -79,7 +78,7 @@ public class NativeFastSlot extends FastSlot
 	@Override
 	private void updateTransform()
 	{
-		if(_nativeDisplay)
+		if(_nativeDisplay != null)
 		{
 			_nativeDisplay.transform.matrix = this._globalTransformMatrix;
 		}
@@ -109,7 +108,7 @@ public class NativeFastSlot extends FastSlot
 		boolean colorChanged = false
 	)
 	{
-		if(_nativeDisplay)
+		if(_nativeDisplay != null)
 		{
 			super.updateDisplayColor(aOffset, rOffset, gOffset, bOffset, aMultiplier, rMultiplier, gMultiplier, bMultiplier,colorChanged);
 
@@ -122,7 +121,7 @@ public class NativeFastSlot extends FastSlot
 	@Override
 	private void updateDisplayBlendMode(String value)
 	{
-		if(_nativeDisplay)
+		if(_nativeDisplay != null)
 		{
 			switch(blendMode)
 			{

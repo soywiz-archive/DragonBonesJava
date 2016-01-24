@@ -1,5 +1,5 @@
 package dragonBones.core;
-public interface IAnimationState
-{
+
+public interface IAnimationState {
 	double getProgress();
 }

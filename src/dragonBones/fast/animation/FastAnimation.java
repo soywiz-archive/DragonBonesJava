@@ -7,6 +7,8 @@ import dragonBones.fast.FastArmature;
 import dragonBones.fast.FastSlot;
 import dragonBones.objects.AnimationData;
 
+import java.util.ArrayList;
+
 //use namespace dragonBones_internal;
 
 /**
@@ -14,21 +16,21 @@ import dragonBones.objects.AnimationData;
  */
 public class FastAnimation
 {
-	public var animationList:Vector.<String>;
-	public var animationState:FastAnimationState = new FastAnimationState();
-	public var animationCacheManager:AnimationCacheManager;
+	public ArrayList<String> animationList;
+	public FastAnimationState animationState = new FastAnimationState();
+	public AnimationCacheManager animationCacheManager;
 
-	private var _armature:FastArmature;
-	private var _animationDataList:Vector.<AnimationData>;
-	private var _animationDataObj:Object;
-	private var _isPlaying:Boolean;
-	private var _timeScale:Number;
+	private FastArmature _armature;
+	private ArrayList<AnimationData> _animationDataList;
+	private Object _animationDataObj;
+	private boolean _isPlaying;
+	private double _timeScale;
 
-	public function FastAnimation(armature:FastArmature)
+	public FastAnimation(FastArmature armature)
 	{
 		_armature = armature;
 		animationState._armature = armature;
-		animationList = new Vector.<String>;
+		animationList = new ArrayList<String>();
 		_animationDataObj = {};
 
 		_isPlaying = false;
@@ -38,9 +40,9 @@ public class FastAnimation
 	/**
 	 * Qualifies all resources used by this Animation instance for garbage collection.
 	 */
-	public function dispose():void
+	public void dispose()
 	{
-		if(!_armature)
+		if(_armature == null)
 		{
 			return;
 		}
@@ -51,20 +53,25 @@ public class FastAnimation
 		animationState = null;
 	}
 
-	public function gotoAndPlay( animationName:String, fadeInTime:Number = -1, duration:Number = -1, playTimes:Number = NaN):FastAnimationState
+	public FastAnimationState gotoAndPlay(String animationName)
 	{
-		if (!_animationDataList)
+		return gotoAndPlay(animationName, -1, -1, Double.NaN);
+	}
+
+	public FastAnimationState gotoAndPlay(String animationName, double fadeInTime, double duration, double playTimes)
+	{
+		if (_animationDataList == null)
 		{
 			return null;
 		}
-		var animationData:AnimationData = _animationDataObj[animationName];
-		if (!animationData)
+		AnimationData animationData = _animationDataObj[animationName];
+		if (animationData == null)
 		{
 			return null;
 		}
 		_isPlaying = true;
 		fadeInTime = fadeInTime < 0?(animationData.fadeTime < 0?0.3:animationData.fadeTime):fadeInTime;
-		var durationScale:Number;
+		double durationScale;
 		if(duration < 0)
 		{
 			durationScale = animationData.scale < 0?1:animationData.scale;
@@ -73,7 +80,7 @@ public class FastAnimation
 		{
 			durationScale = duration * 1000 / animationData.duration;
 		}
-		playTimes = isNaN(playTimes)?animationData.playTimes:playTimes;
+		playTimes = Double.isNaN(playTimes)?animationData.playTimes:playTimes;
 
 		//播放新动画
 
@@ -84,12 +91,12 @@ public class FastAnimation
 			animationState.animationCache = animationCacheManager.getAnimationCache(animationName);
 		}
 
-		var i:int = _armature.slotHasChildArmatureList.length;
-		while(i--)
+		int i = _armature.slotHasChildArmatureList.size();
+		while(i-- > 0)
 		{
-			var slot:FastSlot = _armature.slotHasChildArmatureList[i];
-			var childArmature:IArmature = slot.childArmature as IArmature;
-			if(childArmature)
+			FastSlot slot = _armature.slotHasChildArmatureList[i];
+			IArmature childArmature = (IArmature)slot.getChildArmature();
+			if(childArmature != null)
 			{
 				childArmature.getAnimation().gotoAndPlay(animationName);
 			}
@@ -104,20 +111,17 @@ public class FastAnimation
 	 * @param normalizedTime
 	 * @param fadeInTime A fade time to apply (>= 0), -1 means use xml data's fadeInTime.
 	 * @param duration The duration of that Animation. -1 means use xml data's duration.
-	 * @param layer The layer of the animation.
-	 * @param group The group of the animation.
-	 * @param fadeOutMode Fade out mode (none, sameLayer, sameGroup, sameLayerAndGroup, all).
 	 * @return AnimationState.
-	 * @see dragonBones.objects.AnimationData.
-	 * @see dragonBones.animation.AnimationState.
+	 * @see dragonBones.objects.AnimationData
+	 * @see dragonBones.animation.AnimationState
 	 */
-	public function gotoAndStop(
-		animationName:String,
-		time:Number,
-		normalizedTime:Number = -1,
-		fadeInTime:Number = 0,
-		duration:Number = -1
-	):FastAnimationState
+	public FastAnimationState gotoAndStop(
+		String animationName,
+		double time,
+		double normalizedTime = -1,
+		double fadeInTime = 0,
+		double duration = -1
+	)
 	{
 		if(!animationState.name != animationName)
 		{
@@ -140,15 +144,15 @@ public class FastAnimation
 	/**
 	 * Play the animation from the current position.
 	 */
-	public function play():void
+	public void play()
 	{
-		if(!_animationDataList)
+		if(_animationDataList == null)
 		{
 			return;
 		}
-		if(!animationState.name)
+		if(animationState.name == null)
 		{
-			gotoAndPlay(_animationDataList[0].name);
+			gotoAndPlay(_animationDataList.get(0).name);
 		}
 		else if (!_isPlaying)
 		{
@@ -160,13 +164,13 @@ public class FastAnimation
 		}
 	}
 
-	public function stop():void
+	public void stop()
 	{
 		_isPlaying = false;
 	}
 
 	/** @private */
-	dragonBones_internal function advanceTime(passedTime:Number):void
+	void advanceTime(double passedTime)
 	{
 		if(!_isPlaying)
 		{
@@ -179,9 +183,9 @@ public class FastAnimation
 	/**
 	 * check if contains a AnimationData by name.
 	 * @return Boolean.
-	 * @see dragonBones.animation.AnimationData.
+	 * @see dragonBones.animation.AnimationData
 	 */
-	public function hasAnimation(animationName:String):Boolean
+	public boolean hasAnimation(String animationName)
 	{
 		return _animationDataObj[animationName] != null;
 	}
@@ -189,11 +193,11 @@ public class FastAnimation
 	/**
 	 * The amount by which passed time should be scaled. Used to slow down or speed up animations. Defaults to 1.
 	 */
-	public function get timeScale():Number
+	public double getTimeScale()
 	{
 		return _timeScale;
 	}
-	public function set timeScale(value:Number):void
+	public void setTimeScale(double value)
 	{
 		if(isNaN(value) || value < 0)
 		{
@@ -224,7 +228,7 @@ public class FastAnimation
 	/**
 	 * Unrecommended API. Recommend use animationList.
 	 */
-	public function get movementList():Vector.<String>
+	public ArrayList<String> getMovementList()
 	{
 		return animationList;
 	}
@@ -232,43 +236,43 @@ public class FastAnimation
 	/**
 	 * Unrecommended API. Recommend use lastAnimationName.
 	 */
-	public function get movementID():String
+	public String getMovementID()
 	{
 		return lastAnimationName;
 	}
 
 	/**
 	 * Is the animation playing.
-	 * @see dragonBones.animation.AnimationState.
+	 * @see dragonBones.animation.AnimationState
 	 */
-	public function get isPlaying():Boolean
+	public boolean isPlaying()
 	{
-		return _isPlaying && !isComplete;
+		return _isPlaying && !isComplete();
 	}
 
 	/**
 	 * Is animation complete.
-	 * @see dragonBones.animation.AnimationState.
+	 * @see dragonBones.animation.AnimationState
 	 */
-	public function get isComplete():Boolean
+	public boolean isComplete()
 	{
 		return animationState.isComplete;
 	}
 
 	/**
 	 * The last AnimationState this Animation played.
-	 * @see dragonBones.objects.AnimationData.
+	 * @see dragonBones.objects.AnimationData
 	 */
-	public function get lastAnimationState():FastAnimationState
+	public FastAnimationState getLastAnimationState()
 	{
 		return animationState;
 	}
 	/**
 	 * The name of the last AnimationData played.
-	 * @see dragonBones.objects.AnimationData.
+	 * @see dragonBones.objects.AnimationData
 	 */
-	public function get lastAnimationName():String
+	public String getLastAnimationName()
 	{
-		return animationState?animationState.name:null;
+		return animationState!= null?animationState.name:null;
 	}
 }

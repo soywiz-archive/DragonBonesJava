@@ -432,7 +432,7 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
 
 
     /** @private When AnimationState enter a key frame, call this func*/
-    private void arriveAtFrame(Frame frame, FastAnimationState animationState)
+    public void arriveAtFrame(Frame frame, FastAnimationState animationState)
     {
         if(frame.event && this.hasEventListener(FrameEvent.ANIMATION_FRAME_EVENT))
         {
@@ -540,11 +540,11 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
         return _slotDic;
     }
 
-    private void addEvent(Event event)
+    public void addEvent(Event event)
     {
         if (_enableEventDispatch)
         {
-            _eventList.push(event);
+            _eventList.add(event);
         }
     }
 }

@@ -36,7 +36,7 @@ public class Animation
 	private AnimationState _lastAnimationState;
 
 	/** @private */
-	private boolean _isFading;
+	public boolean _isFading;
 
 	/** @private */
 	private int _animationStateCount;
@@ -78,7 +78,7 @@ public class Animation
 		_animationStateList = null;
 	}
 
-	private void resetAnimationStateList()
+	public void resetAnimationStateList()
 	{
 		int i = _animationStateList.size();
 		AnimationState animationState;
@@ -220,10 +220,10 @@ public class Animation
 
 	//控制子骨架播放同名动画
 		ArrayList<Slot> slotList = _armature.getSlots(false);
-		i = slotList.length;
+		i = slotList.size();
 		while(i -- > 0)
 		{
-			Slot slot = slotList[i];
+			Slot slot = slotList.get(i);
 			if(slot.childArmature)
 			{
 				slot.childArmature.animation.gotoAndPlay(animationName, fadeInTime);
@@ -247,8 +247,8 @@ public class Animation
 	 * @param group The group of the animation.
 	 * @param fadeOutMode Fade out mode (none, sameLayer, sameGroup, sameLayerAndGroup, all).
 	 * @return AnimationState.
-	 * @see dragonBones.objects.AnimationData.
-	 * @see dragonBones.animation.AnimationState.
+	 * @see dragonBones.objects.AnimationData
+	 * @see dragonBones.animation.AnimationState
 	 */
 	public AnimationState gotoAndStop(
 		String animationName,
@@ -312,14 +312,14 @@ public class Animation
 	/**
 	 * Returns the AnimationState named name.
 	 * @return A AnimationState instance.
-	 * @see dragonBones.animation.AnimationState.
+	 * @see dragonBones.animation.AnimationState
 	 */
 	public AnimationState getState(String name, int layer = 0)
 	{
 		int i = _animationStateList.length;
 		while(i -- > 0)
 		{
-			var animationState:AnimationState = _animationStateList[i];
+			AnimationState animationState = _animationStateList[i];
 			if(animationState.name == name && animationState.layer == layer)
 			{
 				return animationState;
@@ -331,14 +331,14 @@ public class Animation
 	/**
 	 * check if contains a AnimationData by name.
 	 * @return Boolean.
-	 * @see dragonBones.animation.AnimationData.
+	 * @see dragonBones.animation.AnimationData
 	 */
 	public boolean hasAnimation(String animationName)
 	{
 		int i = _animationDataList.size();
 		while(i -- > 0)
 		{
-			if(_animationDataList.get(i).name == animationName)
+			if(Objects.equals(_animationDataList.get(i).name, animationName))
 			{
 				return true;
 			}
@@ -348,7 +348,7 @@ public class Animation
 	}
 
 	/** @private */
-	private void advanceTime(double passedTime)
+	public void advanceTime(double passedTime)
 	{
 		if(!_isPlaying)
 		{
@@ -377,7 +377,7 @@ public class Animation
 
 	/** @private */
 	//当动画播放过程中Bonelist改变时触发
-	private void updateAnimationStates()
+	public void updateAnimationStates()
 	{
 		var i:int = _animationStateList.length;
 		while(i --)
@@ -442,7 +442,7 @@ public class Animation
 
 	/**
 	 * The last AnimationState this Animation played.
-	 * @see dragonBones.objects.AnimationData.
+	 * @see dragonBones.objects.AnimationData
 	 */
 	public AnimationState getLastAnimationState()
 	{
@@ -450,7 +450,7 @@ public class Animation
 	}
 	/**
 	 * The name of the last AnimationData played.
-	 * @see dragonBones.objects.AnimationData.
+	 * @see dragonBones.objects.AnimationData
 	 */
 	public String getLastAnimationName()
 	{
@@ -460,7 +460,7 @@ public class Animation
 
 	/**
 	 * An vector containing all AnimationData names the Animation can play.
-	 * @see dragonBones.objects.AnimationData.
+	 * @see dragonBones.objects.AnimationData
 	 */
 	public ArrayList<String> getAnimationList()
 	{
@@ -470,7 +470,7 @@ public class Animation
 
 	/**
 	 * Is the animation playing.
-	 * @see dragonBones.animation.AnimationState.
+	 * @see dragonBones.animation.AnimationState
 	 */
 	public boolean getIsPlaying()
 	{
@@ -479,7 +479,7 @@ public class Animation
 
 	/**
 	 * Is animation complete.
-	 * @see dragonBones.animation.AnimationState.
+	 * @see dragonBones.animation.AnimationState
 	 */
 	public boolean getIsComplete()
 	{
@@ -521,7 +521,7 @@ public class Animation
 
 	/**
 	 * The AnimationData list associated with this Animation instance.
-	 * @see dragonBones.objects.AnimationData.
+	 * @see dragonBones.objects.AnimationData
 	 */
 	public ArrayList<AnimationData> getAnimationDataList()
 	{
@@ -530,10 +530,10 @@ public class Animation
 	public void setAnimationDataList(ArrayList<AnimationData> value)
 	{
 		_animationDataList = value;
-		_animationList.length = 0;
+		_animationList.clear();
 		for (AnimationData animationData : _animationDataList)
 		{
-			_animationList[_animationList.size()] = animationData.name;
+			_animationList.set(_animationList.size(), animationData.name);
 		}
 	}
 

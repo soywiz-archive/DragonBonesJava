@@ -6,44 +6,47 @@ import dragonBones.objects.SlotData;
 import dragonBones.objects.SlotTimeline;
 import dragonBones.objects.TransformTimeline;
 
+import java.util.ArrayList;
+import java.util.Objects;
+
 public class AnimationCache
 {
-	public var name:String;
+	public String name;
 //		public var boneTimelineCacheList:Vector.<BoneTimelineCache> = new Vector.<BoneTimelineCache>();
-	public var slotTimelineCacheList:Vector.<SlotTimelineCache> = new Vector.<SlotTimelineCache>();
+	public ArrayList<SlotTimelineCache> slotTimelineCacheList = new ArrayList<SlotTimelineCache>();
 //		public var boneTimelineCacheDic:Object = {};
-	public var slotTimelineCacheDic:Object = {};
-	public var frameNum:int = 0;
-	public function AnimationCache()
+	public Object slotTimelineCacheDic = {};
+	public int frameNum = 0;
+	public AnimationCache()
 	{
 	}
 
-	public static function initWithAnimationData(animationData:AnimationData,armatureData:ArmatureData):AnimationCache
+	public static AnimationCache initWithAnimationData(AnimationData animationData,ArmatureData armatureData)
 	{
-		var output:AnimationCache = new AnimationCache();
+		AnimationCache output = new AnimationCache();
 		output.name = animationData.name;
 
-		var boneTimelineList:Vector.<TransformTimeline> = animationData.timelineList;
-		var boneName:String;
-		var boneData:BoneData;
-		var slotData:SlotData;
-		var slotTimelineCache:SlotTimelineCache;
-		var slotName:String;
+		ArrayList<TransformTimeline> boneTimelineList = animationData.getTimelineList();
+		String boneName;
+		BoneData boneData;
+		SlotData slotData;
+		SlotTimelineCache slotTimelineCache;
+		String slotName;
 
-		for(var i:int = 0, length:int = boneTimelineList.length; i < length; i++)
+		for(int i = 0, length = boneTimelineList.size(); i < length; i++)
 		{
-			boneName = boneTimelineList[i].name;
-			for (var j:int = 0, jlen:int = armatureData.slotDataList.length; j < jlen; j++)
+			boneName = boneTimelineList.get(i).name;
+			for (int j = 0, jlen = armatureData.getSlotDataList().size(); j < jlen; j++)
 			{
-				slotData = armatureData.slotDataList[j];
+				slotData = armatureData.getSlotDataList().get(j);
 				slotName = slotData.name;
-				if (slotData.parent == boneName)
+				if (Objects.equals(slotData.parent, boneName))
 				{
 					if (output.slotTimelineCacheDic[slotName] == null)
 					{
 						slotTimelineCache = new SlotTimelineCache();
 						slotTimelineCache.name = slotName;
-						output.slotTimelineCacheList.push(slotTimelineCache);
+						output.slotTimelineCacheList.add(slotTimelineCache);
 						output.slotTimelineCacheDic[slotName] = slotTimelineCache;
 					}
 
@@ -64,10 +67,10 @@ public class AnimationCache
 //			}
 //		}
 
-	public function initSlotTimelineCacheDic(slotCacheGeneratorDic:Object, slotFrameCacheDic:Object):void
+	public void initSlotTimelineCacheDic(Object slotCacheGeneratorDic, Object slotFrameCacheDic)
 	{
-		var name:String;
-		for each(var slotTimelineCache:SlotTimelineCache in slotTimelineCacheDic)
+		String name;
+		for (SlotTimelineCache slotTimelineCache : slotTimelineCacheDic)
 		{
 			name = slotTimelineCache.name;
 			slotTimelineCache.cacheGenerator = slotCacheGeneratorDic[name];
@@ -83,15 +86,15 @@ public class AnimationCache
 //			}
 //		}
 
-	public function bindCacheUserSlotDic(slotDic:Object):void
+	public void bindCacheUserSlotDic(Object slotDic)
 	{
-		for(var name:String in slotDic)
+		for(String name : slotDic)
 		{
-			(slotTimelineCacheDic[name] as SlotTimelineCache).bindCacheUser(slotDic[name]);
+			((SlotTimelineCache)slotTimelineCacheDic[name]).bindCacheUser(slotDic[name]);
 		}
 	}
 
-	public function addFrame():void
+	public void addFrame()
 	{
 		frameNum++;
 //			var boneTimelineCache:BoneTimelineCache;
@@ -101,10 +104,10 @@ public class AnimationCache
 //				boneTimelineCache.addFrame();
 //			}
 
-		var slotTimelineCache:SlotTimelineCache;
-		for(var i:int = 0, length:int = slotTimelineCacheList.length; i < length; i++)
+		SlotTimelineCache slotTimelineCache;
+		for(int i = 0, length = slotTimelineCacheList.size(); i < length; i++)
 		{
-			slotTimelineCache = slotTimelineCacheList[i];
+			slotTimelineCache = slotTimelineCacheList.get(i);
 			slotTimelineCache.addFrame();
 		}
 	}
@@ -122,9 +125,9 @@ public class AnimationCache
 //			}
 
 		SlotTimelineCache slotTimelineCache;
-		for(int i = 0, length = slotTimelineCacheList.length; i < length; i++)
+		for(int i = 0, length = slotTimelineCacheList.size(); i < length; i++)
 		{
-			slotTimelineCache = slotTimelineCacheList[i];
+			slotTimelineCache = slotTimelineCacheList.get(i);
 			slotTimelineCache.update(frameIndex);
 		}
 	}

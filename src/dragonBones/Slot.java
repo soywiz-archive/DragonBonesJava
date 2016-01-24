@@ -1,5 +1,7 @@
 ﻿package dragonBones;
 
+import dragonBones.utils.ArrayListUtils;
+import flash.errors.ArgumentError;
 import flash.errors.IllegalOperationError;
 import flash.geom.ColorTransform;
 import flash.geom.Matrix;
@@ -16,6 +18,7 @@ import dragonBones.objects.SlotFrame;
 import dragonBones.utils.TransformUtil;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 //import dragonBones.objects.FrameCached;
 //import dragonBones.objects.TimelineCached;
@@ -41,7 +44,7 @@ public class Slot extends DBObject
 	//TO DO: 以后把这两个属性变成getter
 	//另外还要处理 isShowDisplay 和 visible的矛盾
 	protected Object _currentDisplay;
-	private boolean _isShowDisplay;
+	boolean _isShowDisplay;
 
 	//protected var _childArmature:Armature;
 	protected String _blendMode;
@@ -163,7 +166,7 @@ public class Slot extends DBObject
 
 //动画
 	/** @private */
-	private void update()
+	void update()
 	{
 		if(this._parent._needUpdate <= 0 && !_needUpdate)
 		{
@@ -345,10 +348,10 @@ public class Slot extends DBObject
 		{
 			_currentDisplayIndex = 0;
 		}
-		int i = _displayList.length = value.size();
+		int i = ArrayListUtils.setLength(_displayList, value.size(), null);
 		while(i -- > 0)
 		{
-			_displayList[i] = value[i];
+			_displayList.set(i, value.get(i));
 		}
 
 		//在index不改变的情况下强制刷新 TO DO需要修改
@@ -404,7 +407,7 @@ public class Slot extends DBObject
 	}
 	public void setZOrder(double value)
 	{
-		if(zOrder != value)
+		if(getZOrder() != value)
 		{
 			_offsetZOrder = value - _originZOrder - _tweenZOrder;
 			if(this._armature != null)
@@ -424,7 +427,7 @@ public class Slot extends DBObject
 	}
 	public void setBlendMode(String value)
 	{
-		if(_blendMode != value)
+		if(!Objects.equals(_blendMode, value))
 		{
 			_blendMode = value;
 			updateDisplayBlendMode(_blendMode);
@@ -449,13 +452,18 @@ public class Slot extends DBObject
 		throw new IllegalOperationError("Abstract method needs to be implemented in subclass!");
 	}
 
+	void addDisplayToContainer(Object container)
+	{
+		addDisplayToContainer(container, -1);
+	}
+
 	/**
 	 * @private
 	 * Adds the original display object to another display object.
 	 * @param container
 	 * @param index
 	 */
-	private void addDisplayToContainer(Object container, int index = -1)
+	private void addDisplayToContainer(Object container, int index)
 	{
 		throw new IllegalOperationError("Abstract method needs to be implemented in subclass!");
 	}
@@ -493,14 +501,14 @@ public class Slot extends DBObject
 	/**
 	 * @private
 	 * Updates the color of the display object.
-	 * @param a
-	 * @param r
-	 * @param g
-	 * @param b
-	 * @param aM
-	 * @param rM
-	 * @param gM
-	 * @param bM
+	 * @param aOffset
+	 * @param rOffset
+	 * @param gOffset
+	 * @param bOffset
+	 * @param aMultiplier
+	 * @param rMultiplier
+	 * @param gMultiplier
+	 * @param bMultiplier
 	 */
 	public void updateDisplayColor(
 		double aOffset,
@@ -562,9 +570,9 @@ public class Slot extends DBObject
 			//后续会扩展更多的action，目前只有gotoAndPlay的含义
 			if(frame.action != null)
 			{
-				if (childArmature)
+				if (getChildArmature())
 				{
-					childArmature.animation.gotoAndPlay(frame.action);
+					getChildArmature().getAnimation().gotoAndPlay(frame.action);
 				}
 			}
 		}

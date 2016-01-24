@@ -1,5 +1,7 @@
 package dragonBones.objects;
 
+import flash.errors.ArgumentError;
+
 import java.util.ArrayList;
 
 public class Timeline
@@ -11,7 +13,7 @@ public class Timeline
 
 	public Timeline()
 	{
-		_frameList = new ArrayList<Frame>(0, true);
+		_frameList = new ArrayList<Frame>();
 		duration = 0;
 		scale = 1;
 	}
@@ -21,25 +23,22 @@ public class Timeline
 		int i = _frameList.size();
 		while(i -- > 0)
 		{
-			_frameList[i].dispose();
+			_frameList.get(i).dispose();
 		}
-		_frameList.fixed = false;
-		_frameList.length = 0;
+		_frameList.clear();
 		_frameList = null;
 	}
 
 	public void addFrame(Frame frame)
 	{
-		if(!frame)
+		if(frame == null)
 		{
 			throw new ArgumentError();
 		}
 
 		if(_frameList.indexOf(frame) < 0)
 		{
-			_frameList.fixed = false;
-			_frameList[_frameList.length] = frame;
-			_frameList.fixed = true;
+			_frameList.set(_frameList.size(), frame);
 		}
 		else
 		{

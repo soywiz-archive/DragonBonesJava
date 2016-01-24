@@ -343,7 +343,7 @@ public class Bone extends DBObject
 	}
 
 		/** @private */
-	private void update(boolean needUpdate)
+		void update(boolean needUpdate)
 	{
 		_needUpdate --;
 		if(needUpdate || _needUpdate > 0 || (this._parent && this._parent._needUpdate > 0))
@@ -490,7 +490,7 @@ public class Bone extends DBObject
 	}
 
 	/** @private */
-	private void removeAllStates()
+	void removeAllStates()
 	{
 		_timelineStateList.clear();
 	}

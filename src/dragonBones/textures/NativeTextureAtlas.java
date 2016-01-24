@@ -10,8 +10,9 @@ import flash.display.BitmapData;
 import flash.display.MovieClip;
 import flash.geom.Rectangle;
 
-import dragonBones.core.dragonBones_internal;
 import dragonBones.objects.DataParser;
+
+import java.util.Map;
 
 //use namespace dragonBones_internal;
 
@@ -23,7 +24,7 @@ public class NativeTextureAtlas implements ITextureAtlas
 	/**
 	 * @private
 	 */
-	protected Object _subTextureDataDic;
+	protected Map<String, Object> _subTextureDataDic;
 	/**
 	 * @private
 	 */
@@ -66,6 +67,12 @@ public class NativeTextureAtlas implements ITextureAtlas
 	{
 		return _scale;
 	}
+
+	public NativeTextureAtlas(Object texture, Object textureAtlasRawData)
+	{
+	this(texture, textureAtlasRawData, 1, false);
+	}
+
 	/**
 	 * Creates a new NativeTextureAtlas instance.
 	 * @param texture A MovieClip or Bitmap.
@@ -73,7 +80,7 @@ public class NativeTextureAtlas implements ITextureAtlas
 	 * @param textureScale A scale value (x and y axis)
 	 * @param isDifferentConfig
 	 */
-	public NativeTextureAtlas(Object texture, Object textureAtlasRawData, double textureScale = 1, boolean isDifferentConfig = false)
+	public NativeTextureAtlas(Object texture, Object textureAtlasRawData, double textureScale, boolean isDifferentConfig)
 	{
 		_scale = textureScale;
 		_isDifferentConfig = isDifferentConfig;
@@ -94,7 +101,7 @@ public class NativeTextureAtlas implements ITextureAtlas
 	public void dispose()
 	{
 		_movieClip = null;
-		if (_bitmapData)
+		if (_bitmapData != null)
 		{
 			_bitmapData.dispose();
 		}
@@ -107,8 +114,8 @@ public class NativeTextureAtlas implements ITextureAtlas
 	 */
 	public Rectangle getRegion(String name)
 	{
-		TextureData textureData = (TextureData)_subTextureDataDic[name];
-		if(textureData)
+		TextureData textureData = (TextureData)_subTextureDataDic.get(name);
+		if(textureData != null)
 		{
 			return textureData.region;
 		}
@@ -118,8 +125,8 @@ public class NativeTextureAtlas implements ITextureAtlas
 
 	public Rectangle getFrame(String name)
 	{
-		TextureData textureData = (TextureData)_subTextureDataDic[name];
-		if(textureData)
+		TextureData textureData = (TextureData)_subTextureDataDic.get(name);
+		if(textureData != null)
 		{
 			return textureData.frame;
 		}
@@ -130,24 +137,24 @@ public class NativeTextureAtlas implements ITextureAtlas
 	protected void parseData(Object textureAtlasRawData)
 	{
 		_subTextureDataDic = DataParser.parseTextureAtlasData(textureAtlasRawData, _isDifferentConfig ? _scale : 1);
-		_name = _subTextureDataDic.__name;
+		_name = (String)_subTextureDataDic.get("__name");
 
-		delete _subTextureDataDic.__name;
+		_subTextureDataDic.remove("__name");
 	}
 
 	private void movieClipToBitmapData()
 	{
-		if (!_bitmapData && _movieClip)
+		if (_bitmapData == null && _movieClip != null)
 		{
 			_movieClip.gotoAndStop(1);
-			_bitmapData = new BitmapData(getNearest2N(_movieClip.width), getNearest2N(_movieClip.height), true, 0xFF00FF);
+			_bitmapData = new BitmapData(getNearest2N(_movieClip.getWidth()), getNearest2N(_movieClip.getHeight()), true, 0xFF00FF);
 			_bitmapData.draw(_movieClip);
-			_movieClip.gotoAndStop(_movieClip.totalFrames);
+			_movieClip.gotoAndStop(_movieClip.getTotalFrames());
 		}
 	}
 
 	private int getNearest2N(int _n)
 	{
-		return _n & _n - 1?1 << _n.toString(2).length:_n;
+		return (_n & _n - 1) != 0?1 << Integer.toString(_n, 2).length():_n;
 	}
 }
