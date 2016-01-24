@@ -60,7 +60,7 @@ public class DBTransform
 	}
 	/**
 	 * Copy all properties from this DBTransform instance to the passed DBTransform instance.
-	 * @param node
+	 * @param transform
 	 */
 	public void copy(DBTransform transform)
 	{

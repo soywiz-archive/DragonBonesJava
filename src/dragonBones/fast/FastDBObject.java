@@ -4,7 +4,6 @@ import flash.geom.Matrix;
 
 import dragonBones.cache.FrameCache;
 import dragonBones.core.DBObject;
-import dragonBones.core.dragonBones_internal;
 import dragonBones.objects.DBTransform;
 import dragonBones.utils.TransformUtil;
 
@@ -13,55 +12,55 @@ import dragonBones.utils.TransformUtil;
 
 public class FastDBObject
 {
-	private var _name:String;
+	private String _name;
 
 	/**
 	 * An object that can contain any user extra data.
 	 */
-	public var userData:Object;
+	public Object userData;
 
 	/**
 	 *
 	 */
-	public var inheritRotation:Boolean;
+	public boolean inheritRotation;
 
 	/**
 	 *
 	 */
-	public var inheritScale:Boolean;
+	public boolean inheritScale;
 
 	/**
 	 *
 	 */
-	public var inheritTranslation:Boolean;
+	public boolean inheritTranslation;
 
 
 
 	/** @private */
-	dragonBones_internal var _global:DBTransform;
+	DBTransform _global;
 	/** @private */
-	dragonBones_internal var _globalTransformMatrix:Matrix;
+	Matrix _globalTransformMatrix;
 
 	/** @private */
-	dragonBones_internal var _globalBackup:DBTransform;
+	DBTransform _globalBackup;
 	/** @private */
-	dragonBones_internal var _globalTransformMatrixBackup:Matrix;
+	Matrix _globalTransformMatrixBackup;
 
-	dragonBones_internal static var _tempParentGlobalTransform:DBTransform = new DBTransform();
+	static DBTransform _tempParentGlobalTransform = new DBTransform();
 
-	dragonBones_internal var _frameCache:FrameCache;
+	FrameCache _frameCache;
 
 	/** @private */
-	dragonBones_internal function updateByCache():void
+	void updateByCache()
 	{
 		_global = _frameCache.globalTransform;
 		_globalTransformMatrix = _frameCache.globalTransformMatrix;
 	}
 
 	/** @private */
-	dragonBones_internal function switchTransformToBackup():void
+	void switchTransformToBackup()
 	{
-		if(!_globalBackup)
+		if(_globalBackup == null)
 		{
 			_globalBackup = new DBTransform();
 			_globalTransformMatrixBackup = new Matrix();
@@ -73,24 +72,24 @@ public class FastDBObject
 	/**
 	 * The armature this DBObject instance belongs to.
 	 */
-	public var armature:FastArmature;
+	public FastArmature armature;
 
 	/** @private */
-	protected var _origin:DBTransform;
+	protected DBTransform _origin;
 
 	/** @private */
-	protected var _visible:Boolean;
+	protected boolean _visible;
 
 	/** @private */
-	dragonBones_internal var _parent:FastBone;
+	FastBone _parent;
 
 	/** @private */
-	dragonBones_internal function setParent(value:FastBone):void
+	void setParent(FastBone value)
 	{
 		_parent = value;
 	}
 
-	public function FastDBObject()
+	public FastDBObject()
 	{
 		_globalTransformMatrix = new Matrix();
 
@@ -112,7 +111,7 @@ public class FastDBObject
 	/**
 	 * Cleans up any resources used by this DBObject instance.
 	 */
-	public function dispose():void
+	public void dispose()
 	{
 		userData = null;
 
@@ -124,13 +123,13 @@ public class FastDBObject
 		_parent = null;
 	}
 
-	static private var tempOutputObj:Object = {};
-	protected function calculateParentTransform():Object
+	static private DBObject.TempOutput tempOutputObj = new DBObject.TempOutput();
+	protected DBObject.TempOutput calculateParentTransform()
 	{
-		if(this.parent && (this.inheritTranslation || this.inheritRotation || this.inheritScale))
+		if(this.getParent() != null && (this.inheritTranslation || this.inheritRotation || this.inheritScale))
 		{
-			var parentGlobalTransform:DBTransform = this._parent._global;
-			var parentGlobalTransformMatrix:Matrix = this._parent._globalTransformMatrix;
+			DBTransform parentGlobalTransform = this._parent._global;
+			Matrix parentGlobalTransformMatrix = this._parent._globalTransformMatrix;
 
 			if(	!this.inheritTranslation && (parentGlobalTransform.x != 0 || parentGlobalTransform.y != 0) ||
 				!this.inheritRotation && (parentGlobalTransform.skewX != 0 || parentGlobalTransform.skewY != 0) ||
@@ -164,18 +163,18 @@ public class FastDBObject
 		return null;
 	}
 
-	protected function updateGlobal():Object
+	protected Object updateGlobal()
 	{
 		calculateRelativeParentTransform();
-		var output:Object = calculateParentTransform();
+		DBObject.TempOutput output = calculateParentTransform();
 		if(output != null)
 		{
 			//计算父骨头绝对坐标
-			var parentMatrix:Matrix = output.parentGlobalTransformMatrix;
-			var parentGlobalTransform:DBTransform = output.parentGlobalTransform;
+			Matrix parentMatrix = output.parentGlobalTransformMatrix;
+			DBTransform parentGlobalTransform = output.parentGlobalTransform;
 			//计算绝对坐标
-			var x:Number = _global.x;
-			var y:Number = _global.y;
+			double x = _global.x;
+			double y = _global.y;
 
 			_global.x = parentMatrix.a * x + parentMatrix.c * y + parentMatrix.tx;
 			_global.y = parentMatrix.d * y + parentMatrix.b * x + parentMatrix.ty;
@@ -196,15 +195,15 @@ public class FastDBObject
 		return output;
 	}
 
-	protected function calculateRelativeParentTransform():void
+	protected void calculateRelativeParentTransform()
 	{
 	}
 
-	public function get name():String
+	public String getName()
 	{
 		return _name;
 	}
-	public function set name(value:String):void
+	public void setName(String value)
 	{
 		_name = value;
 	}
@@ -213,13 +212,13 @@ public class FastDBObject
 	 * This DBObject instance global transform instance.
 	 * @see dragonBones.objects.DBTransform
 	 */
-	public function get global():DBTransform
+	public DBTransform getGlobal()
 	{
 		return _global;
 	}
 
 
-	public function get globalTransformMatrix():Matrix
+	public Matrix getGlobalTransformMatrix()
 	{
 		return _globalTransformMatrix;
 	}
@@ -228,7 +227,7 @@ public class FastDBObject
 	 * This DBObject instance related to parent transform instance.
 	 * @see dragonBones.objects.DBTransform
 	 */
-	public function get origin():DBTransform
+	public DBTransform getOrigin()
 	{
 		return _origin;
 	}
@@ -236,23 +235,23 @@ public class FastDBObject
 	/**
 	 * Indicates the Bone instance that directly contains this DBObject instance if any.
 	 */
-	public function get parent():FastBone
+	public FastBone getParent()
 	{
 		return _parent;
 	}
 
 	/** @private */
 
-	public function get visible():Boolean
+	public boolean getVisible()
 	{
 		return _visible;
 	}
-	public function set visible(value:Boolean):void
+	public void setVisible(boolean value)
 	{
 		_visible = value;
 	}
 
-	public function set frameCache(cache:FrameCache):void
+	public void setFrameCache(FrameCache cache)
 	{
 		_frameCache = cache;
 	}

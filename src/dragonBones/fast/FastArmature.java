@@ -1,6 +1,7 @@
 package dragonBones.fast;
 
 import dragonBones.events.EventInfo;
+import dragonBones.utils.ArrayListUtils;
 import flash.events.Event;
 import flash.events.EventDispatcher;
 
@@ -16,6 +17,8 @@ import dragonBones.fast.animation.FastAnimationState;
 import dragonBones.objects.ArmatureData;
 import dragonBones.objects.DragonBonesData;
 import dragonBones.objects.Frame;
+
+import java.util.ArrayList;
 
 //use namespace dragonBones_internal;
 
@@ -81,7 +84,7 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
 
     private DragonBonesData __dragonBonesData;
     private ArmatureData _armatureData;
-    private boolean _slotsZOrderChanged;
+    boolean _slotsZOrderChanged;
 
     private ArrayList<Object> _eventList;
     private boolean _delayDispose;
@@ -95,11 +98,11 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
         _slotsZOrderChanged = false;
         _armatureData = null;
 
-        boneList = new Vector.<FastBone>;
+        boneList = new ArrayList<>();
         _boneDic = {};
-        slotList = new Vector.<FastSlot>;
+        slotList = new ArrayList<FastSlot>();
         _slotDic = {};
-        slotHasChildArmatureList = new Vector.<FastSlot>;
+        slotHasChildArmatureList = new ArrayList<>();
 
         _eventList = [];
 
@@ -122,21 +125,19 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
         userData = null;
 
         _animation.dispose();
-        var i:int = slotList.length;
-        while(i --)
+        int i = slotList.size();
+        while(i -- > 0)
         {
-            slotList[i].dispose();
+            slotList.get(i).dispose();
         }
-        i = boneList.length;
-        while(i --)
+        i = boneList.size();
+        while(i -- > 0)
         {
-            boneList[i].dispose();
+            boneList.get(i).dispose();
         }
 
-        slotList.fixed = false;
-        slotList.length = 0;
-        boneList.fixed = false;
-        boneList.length = 0;
+        slotList.clear();
+        boneList.clear();
 
         _armatureData = null;
         _animation = null;
@@ -148,7 +149,7 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
 
     /**
      * Update the animation using this method typically in an ENTERFRAME Event or with a Timer.
-     * @param The amount of second to move the playhead ahead.
+     * @param passedTime The amount of second to move the playhead ahead.
      */
 
     public void advanceTime(double passedTime)
@@ -165,10 +166,10 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
             {
                 useCache = true;
             }
-            i = slotList.length;
-            while(i --)
+            i = slotList.size();
+            while(i -- > 0)
             {
-                slot = slotList[i];
+                slot = slotList.get(i);
                 slot.updateByCache();
             }
         }
@@ -177,35 +178,35 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
             if(useCache)
             {
                 useCache = false;
-                i = slotList.length;
-                while(i --)
+                i = slotList.size();
+                while(i -- > 0)
                 {
-                    slot = slotList[i];
+                    slot = slotList.get(i);
                     slot.switchTransformToBackup();
                 }
             }
 
-            i = boneList.length;
-            while(i --)
+            i = boneList.size();
+            while(i -- > 0)
             {
-                bone = boneList[i];
+                bone = boneList.get(i);
                 bone.update();
             }
 
-            i = slotList.length;
-            while(i --)
+            i = slotList.size();
+            while(i -- > 0)
             {
-                slot = slotList[i];
+                slot = slotList.get(i);
                 slot.update();
             }
         }
 
-        i = slotHasChildArmatureList.length;
-        while(i--)
+        i = slotHasChildArmatureList.size();
+        while(i-- > 0)
         {
-            slot = slotHasChildArmatureList[i];
-            var childArmature:IArmature = slot.childArmature as IArmature;
-            if(childArmature)
+            slot = slotHasChildArmatureList.get(i);
+            IArmature childArmature = (IArmature)slot.childArmature;
+            if(childArmature != null)
             {
                 childArmature.advanceTime(passedTime);
             }
@@ -216,9 +217,9 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
             updateSlotsZOrder();
         }
 
-        while(_eventList.length > 0)
+        while(_eventList.size() > 0)
         {
-            this.dispatchEvent(_eventList.shift());
+            this.dispatchEvent(ArrayListUtils.shift(_eventList));
         }
 
         _lockDispose = false;
@@ -228,12 +229,17 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
         }
     }
 
-    public AnimationCacheManager enableAnimationCache(int frameRate, ArrayList<?> animationList = null, boolean loop = true)
+    public AnimationCacheManager enableAnimationCache(int frameRate)
+    {
+        return enableAnimationCache(frameRate, null, true);
+    }
+
+        public AnimationCacheManager enableAnimationCache(int frameRate, ArrayList<?> animationList, boolean loop)
     {
         AnimationCacheManager animationCacheManager = AnimationCacheManager.initWithArmatureData(armatureData,frameRate);
-        if(animationList)
+        if(animationList != null)
         {
-            for each(var animationName:String in animationList)
+            for (String animationName : animationList)
             {
                 animationCacheManager.initAnimationCache(animationName);
             }
@@ -261,25 +267,25 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
 
     /**
      * Gets the Bone associated with this DisplayObject.
-     * @param Instance type of this object varies from flash.display.DisplayObject to startling.display.DisplayObject and subclasses.
+     * @param display Instance type of this object varies from flash.display.DisplayObject to startling.display.DisplayObject and subclasses.
      * @return A Bone instance or null if no Bone with that DisplayObject exist..
      * @see dragonBones.Bone
      */
     public FastBone getBoneByDisplay(Object display)
     {
         FastSlot slot = getSlotByDisplay(display);
-        return slot?slot.parent:null;
+        return slot != null ?slot.parent:null;
     }
 
     /**
      * Gets the Slot associated with this DisplayObject.
-     * @param Instance type of this object varies from flash.display.DisplayObject to startling.display.DisplayObject and subclasses.
+     * @param displayObj Instance type of this object varies from flash.display.DisplayObject to startling.display.DisplayObject and subclasses.
      * @return A Slot instance or null if no Slot with that DisplayObject exist.
      * @see dragonBones.Slot
      */
     public FastSlot getSlotByDisplay(Object displayObj)
     {
-        if(displayObj)
+        if(displayObj != null)
         {
             for (FastSlot slot : slotList)
             {

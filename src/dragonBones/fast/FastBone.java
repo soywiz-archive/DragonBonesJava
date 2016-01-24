@@ -1,7 +1,6 @@
 package dragonBones.fast;
 
 import dragonBones.animation.TimelineState;
-import dragonBones.core.dragonBones_internal;
 import dragonBones.events.FrameEvent;
 import dragonBones.fast.animation.FastAnimationState;
 import dragonBones.fast.animation.FastBoneTimelineState;
@@ -10,7 +9,7 @@ import dragonBones.objects.DBTransform;
 import dragonBones.objects.Frame;
 import flash.geom.Point;
 
-use namespace dragonBones_internal;
+import java.util.ArrayList;
 
 /**
  * 不保存子骨骼列表和子插槽列表
@@ -18,29 +17,29 @@ use namespace dragonBones_internal;
  */
 public class FastBone extends FastDBObject
 {
-	public static function initWithBoneData(boneData:BoneData):FastBone
+	public static FastBone initWithBoneData(BoneData boneData)
 	{
-		var outputBone:FastBone = new FastBone();
+		FastBone outputBone = new FastBone();
 
-		outputBone.name = boneData.name;
+		outputBone.setName(boneData.name);
 		outputBone.inheritRotation = boneData.inheritRotation;
 		outputBone.inheritScale = boneData.inheritScale;
-		outputBone.origin.copy(boneData.transform);
+		outputBone.getOrigin().copy(boneData.transform);
 
 		return outputBone;
 	}
 
-	public var slotList:Vector.<FastSlot> = new Vector.<FastSlot>();
-	public var boneList:Vector.<FastBone> = new Vector.<FastBone>();
+	public ArrayList<FastSlot> slotList = new ArrayList<>();
+	public ArrayList<FastBone> boneList = new ArrayList<>();
 	/** @private */
-	dragonBones_internal var _timelineState:FastBoneTimelineState;
+	FastBoneTimelineState _timelineState;
 
 	/** @private */
-	dragonBones_internal var _needUpdate:int;
+	int _needUpdate;
 	/** @private */
-	dragonBones_internal var _tweenPivot:Point;
+	Point _tweenPivot;
 
-	public function FastBone()
+	public FastBone()
 	{
 		super();
 		_needUpdate = 2;
@@ -52,9 +51,9 @@ public class FastBone extends FastDBObject
 	 * @return A Vector.&lt;Slot&gt; instance.
 	 * @see dragonBones.Slot
 	 */
-	public function getBones(returnCopy:Boolean = true):Vector.<FastBone>
+	public ArrayList<FastBone> getBones(boolean returnCopy = true)
 	{
-		return returnCopy?boneList.concat():boneList;
+		return returnCopy? (ArrayList<FastBone>) boneList.clone() :boneList;
 	}
 
 	/**
@@ -62,15 +61,15 @@ public class FastBone extends FastDBObject
 	 * @return A Vector.&lt;Slot&gt; instance.
 	 * @see dragonBones.Slot
 	 */
-	public function getSlots(returnCopy:Boolean = true):Vector.<FastSlot>
+	public ArrayList<FastSlot> getSlots(boolean returnCopy = true)
 	{
-		return returnCopy?slotList.concat():slotList;
+		return returnCopy? (ArrayList<FastSlot>) slotList.clone() :slotList;
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	override public function dispose():void
+	@Override public void dispose()
 	{
 		super.dispose();
 		_timelineState = null;
@@ -81,22 +80,23 @@ public class FastBone extends FastDBObject
 	/**
 	 * Force update the bone in next frame even if the bone is not moving.
 	 */
-	public function invalidUpdate():void
+	public void invalidUpdate()
 	{
 		_needUpdate = 2;
 	}
 
-	override protected function calculateRelativeParentTransform():void
+	@Override
+	protected void calculateRelativeParentTransform()
 	{
 		_global.copy(this._origin);
-		if(_timelineState)
+		if(_timelineState != null)
 		{
 			_global.add(_timelineState._transform);
 		}
 	}
 
 	/** @private */
-	override dragonBones_internal function updateByCache():void
+	@Override void updateByCache()
 	{
 		super.updateByCache();
 		_global = _frameCache.globalTransform;
@@ -104,7 +104,7 @@ public class FastBone extends FastDBObject
 	}
 
 	/** @private */
-	dragonBones_internal function update(needUpdate:Boolean = false):void
+	void update(boolean needUpdate = false)
 	{
 		_needUpdate --;
 		if(needUpdate || _needUpdate > 0 || (this._parent && this._parent._needUpdate > 0))
@@ -121,21 +121,21 @@ public class FastBone extends FastDBObject
 	}
 
 	/** @private */
-	dragonBones_internal function hideSlots():void
+	void hideSlots()
 	{
-		for each(var childSlot:FastSlot in slotList)
+		for (FastSlot childSlot : slotList)
 		{
 			childSlot.hideSlots();
 		}
 	}
 
 	/** @private When bone timeline enter a key frame, call this func*/
-	dragonBones_internal function arriveAtFrame(frame:Frame, animationState:FastAnimationState):void
+	void arriveAtFrame(Frame frame, FastAnimationState animationState)
 	{
-		var childSlot:FastSlot;
-		if(frame.event && this.armature.hasEventListener(FrameEvent.BONE_FRAME_EVENT))
+		FastSlot childSlot;
+		if(frame.event != null && this.armature.hasEventListener(FrameEvent.BONE_FRAME_EVENT))
 		{
-			var frameEvent:FrameEvent = new FrameEvent(FrameEvent.BONE_FRAME_EVENT);
+			FrameEvent frameEvent = new FrameEvent(FrameEvent.BONE_FRAME_EVENT);
 			frameEvent.bone = this;
 			frameEvent.animationState = animationState;
 			frameEvent.frameLabel = frame.event;
@@ -143,9 +143,9 @@ public class FastBone extends FastDBObject
 		}
 	}
 
-	private function blendingTimeline():void
+	private void blendingTimeline()
 	{
-		if(_timelineState)
+		if(_timelineState != null)
 		{
 			_tweenPivot.x = _timelineState._pivot.x;
 			_tweenPivot.y = _timelineState._pivot.y;
@@ -155,10 +155,10 @@ public class FastBone extends FastDBObject
 	/**
 	 * Unrecommended API. Recommend use slot.childArmature.
 	 */
-	public function get childArmature():Object
+	public Object getChildArmature()
 	{
-		var s:FastSlot = slot;
-		if(s)
+		FastSlot s = slot;
+		if(s != null)
 		{
 			return s.childArmature;
 		}
@@ -168,33 +168,33 @@ public class FastBone extends FastDBObject
 	/**
 	 * Unrecommended API. Recommend use slot.display.
 	 */
-	public function get display():Object
+	public Object getDisplay()
 	{
-		var s:FastSlot = slot;
-		if(s)
+		FastSlot s = slot;
+		if(s != null)
 		{
-			return s.display;
+			return s.getDisplay();
 		}
 		return null;
 	}
-	public function set display(value:Object):void
+	public void setDisplay(Object value)
 	{
-		var s:FastSlot = slot;
-		if(s)
+		FastSlot s = slot;
+		if(s != null)
 		{
-			s.display = value;
+			s.setDisplay(value);
 		}
 	}
 
 	/** @private */
-	override public function set visible(value:Boolean):void
+	@Override public void setVisible(boolean value)
 	{
 		if(this._visible != value)
 		{
 			this._visible = value;
-			for each(var childSlot:FastSlot in armature.slotList)
+			for (FastSlot childSlot : armature.slotList)
 			{
-				if(childSlot.parent == this)
+				if(childSlot.getParent() == this)
 				{
 					childSlot.updateDisplayVisible(this._visible);
 				}
@@ -202,8 +202,8 @@ public class FastBone extends FastDBObject
 		}
 	}
 
-	public function get slot():FastSlot
+	public FastSlot getSlot()
 	{
-		return slotList.length > 0? slotList[0]:null;
+		return slotList.size() > 0? slotList.get(0) :null;
 	}
 }

@@ -1,6 +1,7 @@
 package dragonBones.core;
 
 import dragonBones.Armature;
+import dragonBones.fast.FastDBObject;
 import flash.geom.Matrix;
 
 import dragonBones.Bone;
@@ -38,7 +39,7 @@ public class DBObject
 	/** @private */
 	private Matrix _globalTransformMatrix;
 
-	private static Matrix _tempParentGlobalTransformMatrix = new Matrix();
+	public static Matrix _tempParentGlobalTransformMatrix = new Matrix();
 	private static DBTransform _tempParentGlobalTransform = new DBTransform();
 
 
@@ -155,7 +156,20 @@ public class DBObject
 	{
 	}
 
-	protected Object calculateParentTransform()
+	static public class TempOutput {
+		public DBTransform parentGlobalTransform;
+		public Matrix parentGlobalTransformMatrix;
+		public TempOutput() {
+		}
+
+		public TempOutput(DBTransform parentGlobalTransform, Matrix parentGlobalTransformMatrix) {
+			this.parentGlobalTransform = parentGlobalTransform;
+			this.parentGlobalTransformMatrix = parentGlobalTransformMatrix;
+		}
+	}
+
+
+	protected DBObject.TempOutput calculateParentTransform()
 	{
 		if(this.getParent() != null && (this.inheritTranslation || this.inheritRotation || this.inheritScale))
 		{
@@ -186,7 +200,7 @@ public class DBObject
 				TransformUtil.transformToMatrix(parentGlobalTransform, parentGlobalTransformMatrix);
 			}
 
-			return {parentGlobalTransform:parentGlobalTransform, parentGlobalTransformMatrix:parentGlobalTransformMatrix};
+			return new TempOutput(parentGlobalTransform, parentGlobalTransformMatrix);
 		}
 		return null;
 	}
@@ -194,7 +208,7 @@ public class DBObject
 	protected Object updateGlobal()
 	{
 		calculateRelativeParentTransform();
-		Object output = calculateParentTransform();
+		DBObject.TempOutput output = calculateParentTransform();
 		if(output != null)
 		{
 			//计算父骨头绝对坐标

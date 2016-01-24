@@ -1,5 +1,6 @@
 package dragonBones.fast;
 
+import dragonBones.core.DBObject;
 import flash.errors.IllegalOperationError;
 import flash.geom.ColorTransform;
 import flash.geom.Matrix;
@@ -7,7 +8,6 @@ import flash.geom.Matrix;
 import dragonBones.cache.SlotFrameCache;
 import dragonBones.core.IArmature;
 import dragonBones.core.ISlotCacheGenerator;
-import dragonBones.core.dragonBones_internal;
 import dragonBones.fast.animation.FastAnimationState;
 import dragonBones.objects.DisplayData;
 import dragonBones.objects.Frame;
@@ -16,31 +16,34 @@ import dragonBones.objects.SlotFrame;
 import dragonBones.utils.ColorTransformUtil;
 import dragonBones.utils.TransformUtil;
 
+import java.util.ArrayList;
+import java.util.Objects;
+
 //use namespace dragonBones_internal;
 
 public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 {
 	/** @private Need to keep the reference of DisplayData. When slot switch displayObject, it need to restore the display obect's origional pivot. */
-	dragonBones_internal var _displayDataList:Vector.<DisplayData>;
+	ArrayList<DisplayData> _displayDataList;
 	/** @private */
-	dragonBones_internal var _originZOrder:Number;
+	double _originZOrder;
 	/** @private */
-	dragonBones_internal var _tweenZOrder:Number;
+	double _tweenZOrder;
 	/** @private */
-	dragonBones_internal var _originDisplayIndex:Number;
+	double _originDisplayIndex;
 	/** @private */
-	protected var _offsetZOrder:Number;
+	protected double _offsetZOrder;
 
-	protected var _displayList:Array;
-	protected var _currentDisplayIndex:int;
-	dragonBones_internal var _colorTransform:ColorTransform;
-	dragonBones_internal var _isColorChanged:Boolean;
-	protected var _currentDisplay:Object;
+	protected Array _displayList;
+	protected int _currentDisplayIndex;
+	ColorTransform _colorTransform;
+	boolean _isColorChanged;
+	protected Object _currentDisplay;
 
-	protected var _blendMode:String;
+	protected String _blendMode;
 
-	public var hasChildArmature:Boolean;
-	public function FastSlot(self:FastSlot)
+	public boolean hasChildArmature;
+	public FastSlot(FastSlot self)
 	{
 		super();
 
@@ -63,7 +66,7 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 		this.inheritScale = true;
 	}
 
-	public function initWithSlotData(slotData:SlotData):void
+	public void initWithSlotData(SlotData slotData)
 	{
 		name = slotData.name;
 		blendMode = slotData.blendMode;
@@ -75,9 +78,10 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 	/**
 	 * @inheritDoc
 	 */
-	override public function dispose():void
+	@Override
+	public void dispose()
 	{
-		if(!_displayList)
+		if(_displayList == null)
 		{
 			return;
 		}
@@ -91,13 +95,14 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 
 	//动画
 	/** @private */
-	override dragonBones_internal function updateByCache():void
+	@Override
+	void updateByCache()
 	{
 		super.updateByCache();
 		updateTransform();
 	//颜色
-		var cacheColor:ColorTransform = (this._frameCache as SlotFrameCache).colorTransform;
-		var cacheColorChanged:Boolean = cacheColor != null;
+		ColorTransform cacheColor = ((SlotFrameCache)this._frameCache).colorTransform;
+		boolean cacheColorChanged = cacheColor != null;
 		if(	this.colorChanged != cacheColorChanged ||
 			(this.colorChanged && cacheColorChanged && !ColorTransformUtil.isEqual(_colorTransform, cacheColor)))
 		{
@@ -114,11 +119,11 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 		}
 
 	//displayIndex
-		changeDisplayIndex((this._frameCache as SlotFrameCache).displayIndex);
+		changeDisplayIndex(((SlotFrameCache)this._frameCache).displayIndex);
 	}
 
 	/** @private */
-	dragonBones_internal function update():void
+	void update()
 	{
 		if(this._parent._needUpdate <= 0)
 		{
@@ -129,23 +134,23 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 		updateTransform();
 	}
 
-	override protected function calculateRelativeParentTransform():void
+	@Override protected void calculateRelativeParentTransform()
 	{
 		_global.copy(this._origin);
 		_global.x += this._parent._tweenPivot.x;
 		_global.y += this._parent._tweenPivot.y;
 	}
 
-	dragonBones_internal function initDisplayList(newDisplayList:Array):void
+	void initDisplayList(Array newDisplayList)
 	{
 		this._displayList = newDisplayList;
 	}
 
-	private function clearCurrentDisplay():int
+	private int clearCurrentDisplay()
 	{
 		if(hasChildArmature)
 		{
-			var targetArmature:IArmature = this.childArmature as IArmature;
+			IArmature targetArmature = (IArmature)this.childArmature;
 			if(targetArmature)
 			{
 				targetArmature.resetAnimation()
@@ -155,20 +160,20 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 		{
 			updateDisplayColor(0, 0, 0, 0, 1, 1, 1, 1, true);
 		}
-		var slotIndex:int = getDisplayIndex();
+		int slotIndex = getDisplayIndex();
 		removeDisplayFromContainer();
 		return slotIndex;
 	}
 
 	/** @private */
-	dragonBones_internal function changeDisplayIndex(displayIndex:int):void
+	void changeDisplayIndex(int displayIndex)
 	{
 		if(_currentDisplayIndex == displayIndex)
 		{
 			return;
 		}
 
-		var slotIndex:int = -1;
+		int slotIndex = -1;
 
 		if(_currentDisplayIndex >=0)
 		{
@@ -185,21 +190,21 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 	}
 
 	//currentDisplayIndex不变，改变内容，必须currentDisplayIndex >=0
-	private function changeSlotDisplay(value:Object):void
+	private void changeSlotDisplay(Object value)
 	{
-		var slotIndex:int = clearCurrentDisplay();
+		int slotIndex = clearCurrentDisplay();
 		_displayList[_currentDisplayIndex] = value;
 		this.initCurrentDisplay(slotIndex);
 	}
 
-	private function initCurrentDisplay(slotIndex:int):void
+	private void initCurrentDisplay(int slotIndex)
 	{
-		var display:Object = _displayList[_currentDisplayIndex];
-		if (display)
+		Object display = _displayList[_currentDisplayIndex];
+		if (display != null)
 		{
-			if(display is FastArmature)
+			if(display instanceof FastArmature)
 			{
-				_currentDisplay = (display as FastArmature).display;
+				_currentDisplay = ((FastArmature)display).getDisplay();
 			}
 			else
 			{
@@ -212,19 +217,19 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 		}
 
 		updateDisplay(_currentDisplay);
-		if(_currentDisplay)
+		if(_currentDisplay != null)
 		{
 			if(slotIndex != -1)
 			{
-				addDisplayToContainer(this.armature.display, slotIndex);
+				addDisplayToContainer(this.armature.getDisplay(), slotIndex);
 			}
 			else
 			{
 				this.armature._slotsZOrderChanged = true;
-				addDisplayToContainer(this.armature.display);
+				addDisplayToContainer(this.armature.getDisplay());
 			}
 
-			if(_blendMode)
+			if(_blendMode != null)
 			{
 				updateDisplayBlendMode(_blendMode);
 			}
@@ -242,9 +247,9 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 			}
 			updateTransform();
 
-			if(display is FastArmature)
+			if(display instanceof FastArmature)
 			{
-				var targetArmature:FastArmature = display as FastArmature;
+				FastArmature targetArmature = (FastArmature)display;
 
 				if(	this.armature &&
 					this.armature.animation.animationState &&
@@ -261,7 +266,7 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 	}
 
 	/** @private */
-	override public function set visible(value:Boolean):void
+	@Override public void setVisible(boolean value)
 	{
 		if(this._visible != value)
 		{
@@ -273,20 +278,20 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 	/**
 	 * The DisplayObject list belonging to this Slot instance (display or armature). Replace it to implement switch texture.
 	 */
-	public function get displayList():Array
+	public Array getDisplayList()
 	{
 		return _displayList;
 	}
-	public function set displayList(value:Array):void
+	public void setDisplayList(Array value)
 	{
 		//todo: 考虑子骨架变化的各种情况
-		if(!value)
+		if(value == null)
 		{
 			throw new ArgumentError();
 		}
 
-		var newDisplay:Object = value[_currentDisplayIndex];
-		var displayChanged:Boolean = _currentDisplayIndex >= 0 && _displayList[_currentDisplayIndex] != newDisplay;
+		Object newDisplay = value[_currentDisplayIndex];
+		boolean displayChanged = _currentDisplayIndex >= 0 && _displayList[_currentDisplayIndex] != newDisplay;
 
 		_displayList = value;
 
@@ -299,11 +304,11 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 	/**
 	 * The DisplayObject belonging to this Slot instance. Instance type of this object varies from flash.display.DisplayObject to startling.display.DisplayObject and subclasses.
 	 */
-	public function get display():Object
+	public Object getDisplay()
 	{
 		return _currentDisplay;
 	}
-	public function set display(value:Object):void
+	public void setDisplay(Object value)
 	{
 		//todo: 考虑子骨架变化的各种情况进行进一步测试
 		if (_currentDisplayIndex < 0)
@@ -321,12 +326,12 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 	/**
 	 * The sub-armature of this Slot instance.
 	 */
-	public function get childArmature():Object
+	public Object getChildArmature()
 	{
-		return _displayList[_currentDisplayIndex] is IArmature ? _displayList[_currentDisplayIndex] : null;
+		return _displayList[_currentDisplayIndex] instanceof IArmature ? (IArmature)_displayList[_currentDisplayIndex] : null;
 	}
 
-	public function set childArmature(value:Object):void
+	public void setChildArmature(Object value)
 	{
 		display = value;
 	}
@@ -334,11 +339,11 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 	 * zOrder. Support decimal for ensure dynamically added slot work toghther with animation controled slot.
 	 * @return zOrder.
 	 */
-	public function get zOrder():Number
+	public double getZOrder()
 	{
 		return _originZOrder + _tweenZOrder + _offsetZOrder;
 	}
-	public function set zOrder(value:Number):void
+	public void setZOrder(double value)
 	{
 		if(zOrder != value)
 		{
@@ -354,13 +359,13 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 	 * blendMode
 	 * @return blendMode.
 	 */
-	public function get blendMode():String
+	public String getBlendMode()
 	{
 		return _blendMode;
 	}
-	public function set blendMode(value:String):void
+	public void setBlendMode(String value)
 	{
-		if(_blendMode != value)
+		if(!Objects.equals(_blendMode, value))
 		{
 			_blendMode = value;
 			updateDisplayBlendMode(_blendMode);
@@ -370,17 +375,17 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 	/**
 	 * Indicates the Bone instance that directly contains this DBObject instance if any.
 	 */
-	public function get colorTransform():ColorTransform
+	public ColorTransform getColorTransform()
 	{
 		return _colorTransform;
 	}
 
-	public function get displayIndex():int
+	public int getDisplayIndex()
 	{
 		return _currentDisplayIndex;
 	}
 
-	public function get colorChanged():Boolean
+	public boolean getColorChanged()
 	{
 		return _isColorChanged;
 	}
@@ -389,7 +394,7 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 	/**
 	 * @private
 	 */
-	dragonBones_internal function updateDisplay(value:Object):void
+	void updateDisplay(Object value)
 	{
 		throw new IllegalOperationError("Abstract method needs to be implemented in subclass!");
 	}
@@ -397,9 +402,15 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 	/**
 	 * @private
 	 */
-	dragonBones_internal function getDisplayIndex():int
+	@Override
+	public int getDisplayIndex()
 	{
 		throw new IllegalOperationError("Abstract method needs to be implemented in subclass!");
+	}
+
+	void addDisplayToContainer(Object container)
+	{
+		addDisplayToContainer(container, -1);
 	}
 
 	/**
@@ -408,7 +419,7 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 	 * @param container
 	 * @param index
 	 */
-	dragonBones_internal function addDisplayToContainer(container:Object, index:int = -1):void
+	void addDisplayToContainer(Object container, int index)
 	{
 		throw new IllegalOperationError("Abstract method needs to be implemented in subclass!");
 	}
@@ -417,7 +428,7 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 	 * @private
 	 * remove the original display object from its parent.
 	 */
-	dragonBones_internal function removeDisplayFromContainer():void
+	void removeDisplayFromContainer()
 	{
 		throw new IllegalOperationError("Abstract method needs to be implemented in subclass!");
 	}
@@ -426,7 +437,7 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 	 * @private
 	 * Updates the transform of the slot.
 	 */
-	dragonBones_internal function updateTransform():void
+	void updateTransform()
 	{
 		throw new IllegalOperationError("Abstract method needs to be implemented in subclass!");
 	}
@@ -434,7 +445,7 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 	/**
 	 * @private
 	 */
-	dragonBones_internal function updateDisplayVisible(value:Boolean):void
+	void updateDisplayVisible(boolean value)
 	{
 		/**
 		 * bone.visible && slot.visible && updateVisible
@@ -443,29 +454,42 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 		throw new IllegalOperationError("Abstract method needs to be implemented in subclass!");
 	}
 
+	void updateDisplayColor(
+		double aOffset,
+		double rOffset,
+		double gOffset,
+		double bOffset,
+		double aMultiplier,
+		double rMultiplier,
+		double gMultiplier,
+		double bMultiplier
+	) {
+		updateDisplayColor(aOffset, rOffset, gOffset, bOffset, aMultiplier, rMultiplier, gMultiplier, bMultiplier, false);
+	}
+
 	/**
 	 * @private
 	 * Updates the color of the display object.
-	 * @param a
-	 * @param r
-	 * @param g
-	 * @param b
-	 * @param aM
-	 * @param rM
-	 * @param gM
-	 * @param bM
+	 * @param aOffset
+	 * @param rOffset
+	 * @param gOffset
+	 * @param bOffset
+	 * @param aMultiplier
+	 * @param rMultiplier
+	 * @param gMultiplier
+	 * @param bMultiplier
 	 */
-	dragonBones_internal function updateDisplayColor(
-		aOffset:Number,
-		rOffset:Number,
-		gOffset:Number,
-		bOffset:Number,
-		aMultiplier:Number,
-		rMultiplier:Number,
-		gMultiplier:Number,
-		bMultiplier:Number,
-		colorChanged:Boolean = false
-	):void
+	void updateDisplayColor(
+		double aOffset,
+		double rOffset,
+		double gOffset,
+		double bOffset,
+		double aMultiplier,
+		double rMultiplier,
+		double gMultiplier,
+		double bMultiplier,
+		boolean colorChanged
+	)
 	{
 		_colorTransform.alphaOffset = aOffset;
 		_colorTransform.redOffset = rOffset;
@@ -483,21 +507,21 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 	 * Update the blend mode of the display object.
 	 * @param value The blend mode to use.
 	 */
-	dragonBones_internal function updateDisplayBlendMode(value:String):void
+	void updateDisplayBlendMode(String value)
 	{
 		throw new IllegalOperationError("Abstract method needs to be implemented in subclass!");
 	}
 
 	/** @private When slot timeline enter a key frame, call this func*/
-	dragonBones_internal function arriveAtFrame(frame:Frame, animationState:FastAnimationState):void
+	void arriveAtFrame(Frame frame, FastAnimationState animationState)
 	{
-		var slotFrame:SlotFrame = frame as SlotFrame;
-		var displayIndex:int = slotFrame.displayIndex;
+		SlotFrame slotFrame = (SlotFrame)frame;
+		int displayIndex = slotFrame.displayIndex;
 		changeDisplayIndex(displayIndex);
 		updateDisplayVisible(slotFrame.visible);
 		if(displayIndex >= 0)
 		{
-			if(!isNaN(slotFrame.zOrder) && slotFrame.zOrder != _tweenZOrder)
+			if(!Double.isNaN(slotFrame.zOrder) && slotFrame.zOrder != _tweenZOrder)
 			{
 				_tweenZOrder = slotFrame.zOrder;
 				this.armature._slotsZOrderChanged = true;
@@ -505,10 +529,10 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 		}
 		//[TODO]currently there is only gotoAndPlay belongs to frame action. In future, there will be more.
 		//后续会扩展更多的action，目前只有gotoAndPlay的含义
-		if(frame.action)
+		if(frame.action != null)
 		{
-			var targetArmature:IArmature = childArmature as IArmature;
-			if (targetArmature)
+			IArmature targetArmature = (IArmature)getChildArmature();
+			if (targetArmature != null)
 			{
 				targetArmature.getAnimation().gotoAndPlay(frame.action);
 			}
@@ -516,34 +540,34 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 	}
 
 			/** @private */
-	dragonBones_internal function hideSlots():void
+	void hideSlots()
 	{
 		changeDisplayIndex( -1);
 		removeDisplayFromContainer();
-		if (_frameCache)
+		if (_frameCache != null)
 		{
 			this._frameCache.clear();
 		}
 	}
 
-	override protected function updateGlobal():Object
+	protected Object updateGlobal()
 	{
 		calculateRelativeParentTransform();
 		TransformUtil.transformToMatrix(_global, _globalTransformMatrix);
-		var output:Object = calculateParentTransform();
+		DBObject.TempOutput output = calculateParentTransform();
 		if(output != null)
 		{
 			//计算父骨头绝对坐标
-			var parentMatrix:Matrix = output.parentGlobalTransformMatrix;
+			Matrix parentMatrix = output.parentGlobalTransformMatrix;
 			_globalTransformMatrix.concat(parentMatrix);
 		}
 		TransformUtil.matrixToTransform(_globalTransformMatrix,_global,true,true);
 		return output;
 	}
 
-	dragonBones_internal function resetToOrigin():void
+	void resetToOrigin()
 	{
-		changeDisplayIndex(_originDisplayIndex);
+		changeDisplayIndex((int)_originDisplayIndex);
 		updateDisplayColor(0, 0, 0, 0, 1, 1, 1, 1, true);
 	}
 }

@@ -7,7 +7,6 @@ import dragonBones.animation.Animation;
 import dragonBones.animation.AnimationState;
 import dragonBones.animation.TimelineState;
 import dragonBones.core.IArmature;
-import dragonBones.core.dragonBones_internal;
 import dragonBones.objects.ArmatureData;
 import dragonBones.objects.DragonBonesData;
 import dragonBones.objects.Frame;
@@ -110,7 +109,7 @@ public class Armature extends EventDispatcher implements IArmature
 	private ArmatureData _armatureData;
 	/**
 	 * ArmatureData.
-	 * @see dragonBones.objects.ArmatureData.
+	 * @see dragonBones.objects.ArmatureData
 	 */
 	public ArmatureData getArmatureData()
 	{
@@ -133,6 +132,7 @@ public class Armature extends EventDispatcher implements IArmature
 	 * An Animation instance
 	 * @see dragonBones.animation.Animation
 	 */
+	@Override
 	public Animation getAnimation()
 	{
 		return _animation;

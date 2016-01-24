@@ -8,6 +8,7 @@ import dragonBones.objects.AnimationData;
 import dragonBones.objects.Frame;
 import dragonBones.objects.SlotTimeline;
 import dragonBones.objects.TransformTimeline;
+import dragonBones.utils.ArrayListUtils;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -28,7 +29,7 @@ final public class AnimationState
 		{
 			return new AnimationState();
 		}
-		return _pool.pop();
+		return ArrayListUtils.pop(_pool);
 	}
 
 	/** @private */
@@ -38,12 +39,12 @@ final public class AnimationState
 
 		if(_pool.indexOf(animationState) < 0)
 		{
-			_pool[_pool.length] = animationState;
+			_pool.set(_pool.size(), animationState);
 		}
 	}
 
 	/** @private */
-	private static void clear()
+	private static void clearStatic()
 	{
 		int i = _pool.size();
 		while(i -- > 0)
@@ -52,7 +53,7 @@ final public class AnimationState
 		}
 		_pool.clear();
 
-		TimelineState.clear();
+		TimelineState.clearStatic();
 	}
 
 	/**
@@ -141,7 +142,7 @@ final public class AnimationState
 	{
 		resetTimelineStateList();
 
-		_boneMasks.length = 0;
+		_boneMasks.clear();
 
 		_armature = null;
 		_clip = null;
@@ -152,14 +153,14 @@ final public class AnimationState
 		int i = _timelineStateList.size();
 		while(i -- > 0)
 		{
-			TimelineState.returnObject(_timelineStateList[i]);
+			TimelineState.returnObject(_timelineStateList.get(i));
 		}
 		_timelineStateList.clear();
 
 		i = _slotTimelineStateList.size();
 		while(i -- > 0)
 		{
-			SlotTimelineState.returnObject(_slotTimelineStateList[i]);
+			SlotTimelineState.returnObject(_slotTimelineStateList.get(i));
 		}
 		_slotTimelineStateList.clear();
 	}
@@ -201,12 +202,17 @@ final public class AnimationState
 		return this;
 	}
 
+	public AnimationState removeBoneMask(String boneName)
+	{
+		removeBoneMask(boneName, true);
+	}
+
 	/**
 	 * Removes a bone which was supposed be animated.
 	 * @param boneName Bone's timeline name.
 	 * @param ifInvolveChildBones If involved child bone's timeline.
 	 */
-	public AnimationState removeBoneMask(String boneName, boolean ifInvolveChildBones = true)
+	public AnimationState removeBoneMask(String boneName, boolean ifInvolveChildBones)
 	{
 		removeBoneFromBoneMask(boneName);
 
@@ -264,7 +270,7 @@ final public class AnimationState
 		while(i -- > 0)
 		{
 			timelineState = _timelineStateList.get(i);
-			if(!_armature.getBone(timelineState.name))
+			if(_armature.getBone(timelineState.name) == null)
 			{
 				removeTimelineState(timelineState);
 			}
@@ -274,7 +280,7 @@ final public class AnimationState
 		while (i -- > 0)
 		{
 			slotTimelineState = _slotTimelineStateList.get(i);
-			if (!_armature.getSlot(slotTimelineState.name))
+			if (_armature.getSlot(slotTimelineState.name) == null)
 			{
 				removeSlotTimelineState(slotTimelineState);
 			}
@@ -299,13 +305,13 @@ final public class AnimationState
 		}
 		else
 		{
-			for (TransformTimeline timeline : _clip.timelineList)
+			for (TransformTimeline timeline : _clip.getTimelineList())
 			{
 				addTimelineState(timeline.name);
 			}
 		}
 
-		for (SlotTimeline slotTimeline : _clip.slotTimelineList)
+		for (SlotTimeline slotTimeline : _clip.getSlotTimelineList())
 		{
 			addSlotTimelineState(slotTimeline.name);
 		}
@@ -325,39 +331,37 @@ final public class AnimationState
 			}
 			TimelineState timelineState = TimelineState.borrowObject();
 			timelineState.fadeIn(bone, this, _clip.getTimeline(timelineName));
-			_timelineStateList.push(timelineState);
+			_timelineStateList.add(timelineState);
 		}
 	}
 
 	private void removeTimelineState(TimelineState timelineState)
 	{
-		int index = _timelineStateList.indexOf(timelineState);
-		_timelineStateList.splice(index, 1);
+		_timelineStateList.remove(timelineState);
 		TimelineState.returnObject(timelineState);
 	}
 
 	private void addSlotTimelineState(String timelineName)
 	{
 		Slot slot = _armature.getSlot(timelineName);
-		if(slot && slot.displayList.length > 0)
+		if(slot != null && slot.getDisplayList().size() > 0)
 		{
 			for (SlotTimelineState eachState : _slotTimelineStateList)
 			{
-				if(eachState.name == timelineName)
+				if(Objects.equals(eachState.name, timelineName))
 				{
 					return;
 				}
 			}
 			SlotTimelineState timelineState = SlotTimelineState.borrowObject();
 			timelineState.fadeIn(slot, this, _clip.getSlotTimeline(timelineName));
-			_slotTimelineStateList.push(timelineState);
+			_slotTimelineStateList.add(timelineState);
 		}
 	}
 
 	private void removeSlotTimelineState(SlotTimelineState timelineState)
 	{
-		int index = _slotTimelineStateList.indexOf(timelineState);
-		_slotTimelineStateList.splice(index, 1);
+		_slotTimelineStateList.remove(timelineState);
 		SlotTimelineState.returnObject(timelineState);
 	}
 
@@ -381,7 +385,7 @@ final public class AnimationState
 	}
 
 	/** @private */
-	private AnimationState fadeIn(Armature armature, AnimationData clip, double fadeTotalTime, double timeScale, double playTimes, boolean pausePlayhead)
+	private AnimationState fadeIn(Armature armature, AnimationData clip, double fadeTotalTime, double timeScale, int playTimes, boolean pausePlayhead)
 	{
 		_armature = armature;
 		_clip = clip;
@@ -399,7 +403,7 @@ final public class AnimationState
 		_isComplete = false;
 		_currentFrameIndex = -1;
 		_currentPlayTimes = -1;
-		if(Math.round(_totalTime * _clip.frameRate * 0.001) < 2 || timeScale == Infinity)
+		if(Math.round(_totalTime * _clip.frameRate * 0.001) < 2 || timeScale == Double.POSITIVE_INFINITY)
 		{
 			_currentTime = _totalTime;
 		}
@@ -433,12 +437,12 @@ final public class AnimationState
 
 	/**
 	 * Fade out the animation state
-	 * @param fadeOutTime
-	 * @param pauseBeforeFadeOutComplete pause the animation before fade out complete
+	 * @param fadeTotalTime
+	 * @param pausePlayhead pause the animation before fade out complete
 	 */
 	public AnimationState fadeOut(double fadeTotalTime, boolean pausePlayhead)
 	{
-		if(!_armature)
+		if(_armature == null)
 		{
 			return null;
 		}
@@ -488,7 +492,7 @@ final public class AnimationState
 
 		advanceFadeTime(passedTime);
 
-		if(_fadeWeight)
+		if(_fadeWeight != 0)
 		{
 			advanceTimelinesTime(passedTime);
 		}
@@ -922,7 +926,7 @@ final public class AnimationState
 
 	/**
 	 * The clip that is being played by this animation state.
-	 * @see dragonBones.objects.AnimationData.
+	 * @see dragonBones.objects.AnimationData
 	 */
 	public AnimationData getClip()
 	{
