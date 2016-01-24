@@ -1,4 +1,4 @@
-﻿package dragonBones;
+package dragonBones;
 
 import dragonBones.utils.ArrayListUtils;
 import flash.errors.ArgumentError;

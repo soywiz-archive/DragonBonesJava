@@ -9,6 +9,5 @@ public class ExampleTest {
 		NativeFactory factory = new NativeFactory();
 		byte[] bytes = InputStreamUtils.readAllBytes(ExampleTest.class.getResourceAsStream("DragonWithClothes.png"));
 		factory.parseData(new ByteArray(bytes));
-
 	}
 }

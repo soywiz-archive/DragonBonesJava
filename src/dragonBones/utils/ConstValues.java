@@ -1,4 +1,4 @@
-﻿package dragonBones.utils;
+package dragonBones.utils;
 
 /** @private */
 final public class ConstValues

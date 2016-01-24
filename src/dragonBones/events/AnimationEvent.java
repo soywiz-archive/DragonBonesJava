@@ -1,4 +1,4 @@
-﻿package dragonBones.events;
+package dragonBones.events;
 
 /**
 * Copyright 2012-2013. DragonBones. All Rights Reserved.

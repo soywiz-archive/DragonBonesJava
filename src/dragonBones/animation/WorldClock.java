@@ -1,4 +1,4 @@
-﻿package dragonBones.animation;
+package dragonBones.animation;
 import dragonBones.utils.ArrayListUtils;
 
 import java.util.ArrayList;

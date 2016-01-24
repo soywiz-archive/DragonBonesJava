@@ -1,4 +1,4 @@
-﻿package dragonBones;
+package dragonBones;
 
 import flash.errors.ArgumentError;
 import flash.geom.Matrix;

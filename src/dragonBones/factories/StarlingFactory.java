@@ -1,4 +1,4 @@
-﻿package dragonBones.factories;
+package dragonBones.factories;
 
 /**
 * Copyright 2012-2013. DragonBones. All Rights Reserved.

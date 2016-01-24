@@ -1,4 +1,4 @@
-﻿package dragonBones.factories;
+package dragonBones.factories;
 
 import dragonBones.Armature;
 import dragonBones.display.NativeFastSlot;

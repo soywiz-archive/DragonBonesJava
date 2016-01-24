@@ -1,4 +1,4 @@
-﻿package dragonBones.textures;
+package dragonBones.textures;
 /**
 * Copyright 2012-2013. DragonBones. All Rights Reserved.
 * @playerversion Flash 10.0, Flash 10
