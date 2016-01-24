@@ -474,7 +474,7 @@ public class Bone extends DBObject
 	}
 
 	/** @private */
-	private void addState(TimelineState timelineState)
+	public void addState(TimelineState timelineState)
 	{
 		if(_timelineStateList.indexOf(timelineState) < 0)
 		{

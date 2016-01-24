@@ -15,4 +15,8 @@ public class ArrayListUtils {
 			}
 		}
 	}
+
+	static public <T> T pop(ArrayList<T> array) {
+		return array.get(array.size() - 1);
+	}
 }

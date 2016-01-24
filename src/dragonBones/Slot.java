@@ -47,7 +47,7 @@ public class Slot extends DBObject
 	protected String _blendMode;
 
 	/** @private */
-	private boolean _isColorChanged;
+	public boolean _isColorChanged;
 	private boolean _needUpdate;
 	/** @private */
 //		protected var _timelineStateList:Vector.<SlotTimelineState>;
@@ -502,7 +502,7 @@ public class Slot extends DBObject
 	 * @param gM
 	 * @param bM
 	 */
-	private void updateDisplayColor(
+	public void updateDisplayColor(
 		double aOffset,
 		double rOffset,
 		double gOffset,
@@ -511,7 +511,7 @@ public class Slot extends DBObject
 		double rMultiplier,
 		double gMultiplier,
 		double bMultiplier,
-		boolean colorChanged = false
+		boolean colorChanged=false
 	)
 	{
 		_colorTransform.alphaOffset = aOffset;
@@ -537,7 +537,7 @@ public class Slot extends DBObject
 	}
 
 	/** @private When slot timeline enter a key frame, call this func*/
-	private void arriveAtFrame(Frame frame, SlotTimelineState timelineState, AnimationState animationState, boolean isCross)
+	public void arriveAtFrame(Frame frame, SlotTimelineState timelineState, AnimationState animationState, boolean isCross)
 	{
 		boolean displayControl = animationState.displayControl &&
 									 animationState.containsBoneMask(getParent().name);

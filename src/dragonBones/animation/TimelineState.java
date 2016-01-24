@@ -1,10 +1,10 @@
 package dragonBones.animation;
 import dragonBones.Armature;
 import dragonBones.objects.CurveData;
+import dragonBones.utils.ArrayListUtils;
 import flash.geom.Point;
 
 import dragonBones.Bone;
-import dragonBones.core.dragonBones_internal;
 import dragonBones.objects.DBTransform;
 import dragonBones.objects.Frame;
 import dragonBones.objects.TransformFrame;
@@ -31,7 +31,7 @@ public final class TimelineState
 		{
 			return new TimelineState();
 		}
-		return _pool.pop();
+		return ArrayListUtils.pop(_pool);
 	}
 
 	/** @private */
@@ -39,19 +39,19 @@ public final class TimelineState
 	{
 		if(_pool.indexOf(timeline) < 0)
 		{
-			_pool[_pool.size()] = timeline;
+			_pool.set(_pool.size(), timeline);
 		}
 
 		timeline.clear();
 	}
 
 	/** @private */
-	static void clear()
+	static public void clearStatic()
 	{
 		int i = _pool.size();
 		while(i -- > 0)
 		{
-			_pool[i].clear();
+			_pool.get(i).clear();
 		}
 		_pool.clear();
 	}
@@ -112,7 +112,7 @@ public final class TimelineState
 		_durationPivot = new Point();
 	}
 
-	private void clear()
+	public void clear()
 	{
 		if(_bone != null)
 		{
