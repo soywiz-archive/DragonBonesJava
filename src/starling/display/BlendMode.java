@@ -1,6 +1,8 @@
-package flash.display;
+package starling.display;
 
 public class BlendMode {
+	public static final String NONE = "none";
+	public static final String AUTO = "auto";
 	public static final String ADD = "add";
 	public static final String ALPHA = "alpha";
 	public static final String DARKEN = "darken";

@@ -6,7 +6,6 @@ import flash.display.DisplayObjectContainer;
 import flash.geom.ColorTransform;
 
 import dragonBones.Slot;
-import dragonBones.core.dragonBones_internal;
 
 //use namespace dragonBones_internal;
 
@@ -32,26 +31,31 @@ public class NativeSlot extends Slot
 	//Abstract method
 
 	/** @private */
-	@Override private void updateDisplay(Object value)
+	private void updateDisplay(Object value)
 	{
 		_nativeDisplay = (DisplayObject)value;
 	}
 
 	/** @private */
-	@Override private int getDisplayIndex()
+	private int getDisplayIndex()
 	{
-		if(_nativeDisplay && _nativeDisplay.parent)
+		if(_nativeDisplay != null && _nativeDisplay.getParent() != null)
 		{
-			return _nativeDisplay.parent.getChildIndex(_nativeDisplay);
+			return _nativeDisplay.getParent().getChildIndex(_nativeDisplay);
 		}
 		return -1;
 	}
 
-	/** @private */
-	@Override private void addDisplayToContainer(Object container, int index = -1)
+	private void addDisplayToContainer(Object container)
+	{
+		addDisplayToContainer(container, -1);
+	}
+
+		/** @private */
+	private void addDisplayToContainer(Object container, int index)
 	{
 		DisplayObjectContainer nativeContainer = (DisplayObjectContainer)container;
-		if(_nativeDisplay && nativeContainer)
+		if(_nativeDisplay != null && nativeContainer != null)
 		{
 			if (index < 0)
 			{
@@ -59,40 +63,41 @@ public class NativeSlot extends Slot
 			}
 			else
 			{
-				nativeContainer.addChildAt(_nativeDisplay, Math.min(index, nativeContainer.numChildren));
+				nativeContainer.addChildAt(_nativeDisplay, Math.min(index, nativeContainer.getNumChildren()));
 			}
 		}
 	}
 
 	/** @private */
-	@Override private void removeDisplayFromContainer()
+	private void removeDisplayFromContainer()
 	{
-		if(_nativeDisplay && _nativeDisplay.parent)
+		if(_nativeDisplay != null && _nativeDisplay.getParent() != null)
 		{
-			_nativeDisplay.parent.removeChild(_nativeDisplay);
+			_nativeDisplay.getParent().removeChild(_nativeDisplay);
 		}
 	}
 
 	/** @private */
-	@Override private void updateTransform()
+	private void updateTransform()
 	{
-		if(_nativeDisplay)
+		if(_nativeDisplay != null)
 		{
-			_nativeDisplay.transform.matrix = this._globalTransformMatrix;
+			_nativeDisplay.getTransform().setMatrix(this._globalTransformMatrix);
 		}
 	}
 
 	/** @private */
-	@Override private void updateDisplayVisible(boolean value)
+	private void updateDisplayVisible(boolean value)
 	{
-		if(_nativeDisplay)
+		if(_nativeDisplay != null)
 		{
-			_nativeDisplay.visible = this._parent.visible && this._visible && value;
+			_nativeDisplay.setVisible(this._parent.getVisible() && this._visible && value);
 		}
 	}
 
 	/** @private */
-	@Override private void updateDisplayColor(
+	@Override
+	public void updateDisplayColor(
 		double aOffset,
 		double rOffset,
 		double gOffset,
@@ -101,24 +106,24 @@ public class NativeSlot extends Slot
 		double rMultiplier,
 		double gMultiplier,
 		double bMultiplier,
-		boolean colorChanged = false
+		boolean colorChanged
 	)
 	{
-		if(_nativeDisplay)
+		if(_nativeDisplay != null)
 		{
 			super.updateDisplayColor(aOffset, rOffset, gOffset, bOffset, aMultiplier, rMultiplier, gMultiplier, bMultiplier,colorChanged);
 
 
-			_nativeDisplay.transform.colorTransform = _colorTransform;
+			_nativeDisplay.getTransform().setColorTransform(_colorTransform);
 		}
 	}
 
 	/** @private */
-	@Override private void updateDisplayBlendMode(String value)
+	private void updateDisplayBlendMode(String value)
 	{
-		if(_nativeDisplay)
+		if(_nativeDisplay != null)
 		{
-			switch(blendMode)
+			switch(getBlendMode())
 			{
 				case BlendMode.ADD:
 				case BlendMode.ALPHA:
@@ -135,7 +140,7 @@ public class NativeSlot extends Slot
 				case BlendMode.SCREEN:
 				case BlendMode.SHADER:
 				case BlendMode.SUBTRACT:
-					_nativeDisplay.blendMode = blendMode;
+					_nativeDisplay.setBlendMode(getBlendMode());
 					break;
 
 				default:

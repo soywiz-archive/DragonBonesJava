@@ -39,7 +39,7 @@ public class FastDBObject
 	/** @private */
 	DBTransform _global;
 	/** @private */
-	Matrix _globalTransformMatrix;
+	protected Matrix _globalTransformMatrix;
 
 	/** @private */
 	DBTransform _globalBackup;

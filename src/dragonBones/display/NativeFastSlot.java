@@ -29,14 +29,13 @@ public class NativeFastSlot extends FastSlot
 	//Abstract method
 
 	/** @private */
-	@Override
 	private void updateDisplay(Object value)
 	{
 		_nativeDisplay = (DisplayObject)value;
 	}
 
 	/** @private */
-	@Override private int getDisplayIndex()
+	public int getDisplayIndex()
 	{
 		if(_nativeDisplay != null && _nativeDisplay.getParent() != null)
 		{
@@ -45,9 +44,13 @@ public class NativeFastSlot extends FastSlot
 		return -1;
 	}
 
-	/** @private */
-	@Override
-	private void addDisplayToContainer(Object container, int index = -1)
+	private void addDisplayToContainer(Object container)
+	{
+		addDisplayToContainer(container, -1);
+	}
+
+		/** @private */
+	private void addDisplayToContainer(Object container, int index)
 	{
 		DisplayObjectContainer nativeContainer = (DisplayObjectContainer)container;
 		if(_nativeDisplay != null && nativeContainer != null)
@@ -65,7 +68,6 @@ public class NativeFastSlot extends FastSlot
 	}
 
 	/** @private */
-	@Override
 	private void removeDisplayFromContainer()
 	{
 		if(_nativeDisplay != null && _nativeDisplay.getParent() != null)
@@ -75,17 +77,15 @@ public class NativeFastSlot extends FastSlot
 	}
 
 	/** @private */
-	@Override
 	private void updateTransform()
 	{
 		if(_nativeDisplay != null)
 		{
-			_nativeDisplay.transform.matrix = this._globalTransformMatrix;
+			_nativeDisplay.getTransform().setMatrix(this.getGlobalTransformMatrix());
 		}
 	}
 
 	/** @private */
-	@Override
 	private void updateDisplayVisible(boolean value)
 	{
 		//if(_nativeDisplay)
@@ -96,7 +96,7 @@ public class NativeFastSlot extends FastSlot
 
 	/** @private */
 	@Override
-	private void updateDisplayColor(
+	public void updateDisplayColor(
 		double aOffset,
 		double rOffset,
 		double gOffset,
@@ -105,7 +105,7 @@ public class NativeFastSlot extends FastSlot
 		double rMultiplier,
 		double gMultiplier,
 		double bMultiplier,
-		boolean colorChanged = false
+		boolean colorChanged
 	)
 	{
 		if(_nativeDisplay != null)
@@ -113,17 +113,16 @@ public class NativeFastSlot extends FastSlot
 			super.updateDisplayColor(aOffset, rOffset, gOffset, bOffset, aMultiplier, rMultiplier, gMultiplier, bMultiplier,colorChanged);
 
 
-			_nativeDisplay.transform.colorTransform = _colorTransform;
+			_nativeDisplay.getTransform().setColorTransform(_colorTransform);
 		}
 	}
 
 	/** @private */
-	@Override
 	private void updateDisplayBlendMode(String value)
 	{
 		if(_nativeDisplay != null)
 		{
-			switch(blendMode)
+			switch(getBlendMode())
 			{
 				case BlendMode.ADD:
 				case BlendMode.ALPHA:
@@ -140,7 +139,7 @@ public class NativeFastSlot extends FastSlot
 				case BlendMode.SCREEN:
 				case BlendMode.SHADER:
 				case BlendMode.SUBTRACT:
-					_nativeDisplay.blendMode = blendMode;
+					_nativeDisplay.setBlendMode(getBlendMode());
 					break;
 
 				default:

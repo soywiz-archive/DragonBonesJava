@@ -1,13 +1,11 @@
 package dragonBones.display;
 
-import flash.display.BlendMode;
+import starling.display.BlendMode;
 import flash.geom.Matrix;
 
-import dragonBones.core.dragonBones_internal;
 import dragonBones.fast.FastArmature;
 import dragonBones.fast.FastSlot;
 
-import starling.display.BlendMode;
 import starling.display.DisplayObject;
 import starling.display.DisplayObjectContainer;
 import starling.display.Quad;
@@ -50,7 +48,7 @@ public class StarlingFastSlot extends FastSlot
 	}
 
 	/** @private */
-	@Override private void  updateDisplay(Object value)
+	private void  updateDisplay(Object value)
 	{
 		_starlingDisplay = (DisplayObject)value;
 	}
@@ -59,20 +57,25 @@ public class StarlingFastSlot extends FastSlot
 	//Abstract method
 
 	/** @private */
-	@Override private int getDisplayIndex()
+	public int getDisplayIndex()
 	{
-		if(_starlingDisplay && _starlingDisplay.parent)
+		if(_starlingDisplay != null && _starlingDisplay.getParent() != null)
 		{
-			return _starlingDisplay.parent.getChildIndex(_starlingDisplay);
+			return _starlingDisplay.getParent().getChildIndex(_starlingDisplay);
 		}
 		return -1;
 	}
 
-	/** @private */
-	@Override private void addDisplayToContainer(Object container, int index = -1)
+	public void addDisplayToContainer(Object container)
+	{
+		addDisplayToContainer(container, -1);
+	}
+
+		/** @private */
+	public void addDisplayToContainer(Object container, int index)
 	{
 		DisplayObjectContainer starlingContainer = (DisplayObjectContainer)container;
-		if(_starlingDisplay && starlingContainer)
+		if(_starlingDisplay != null && starlingContainer != null)
 		{
 			if (index < 0)
 			{
@@ -80,48 +83,48 @@ public class StarlingFastSlot extends FastSlot
 			}
 			else
 			{
-				starlingContainer.addChildAt(_starlingDisplay, Math.min(index, starlingContainer.numChildren));
+				starlingContainer.addChildAt(_starlingDisplay, Math.min(index, starlingContainer.getNumChildren()));
 			}
 		}
 	}
 
 	/** @private */
-	@Override private void removeDisplayFromContainer()
+	public void removeDisplayFromContainer()
 	{
-		if(_starlingDisplay && _starlingDisplay.parent)
+		if(_starlingDisplay != null && _starlingDisplay.getParent() != null)
 		{
-			_starlingDisplay.parent.removeChild(_starlingDisplay);
+			_starlingDisplay.getParent().removeChild(_starlingDisplay);
 		}
 	}
 
 	/** @private */
-	@Override private void updateTransform()
+	private void updateTransform()
 	{
-		if(_starlingDisplay)
+		if(_starlingDisplay != null)
 		{
-			double pivotX = _starlingDisplay.pivotX;
-			double pivotY = _starlingDisplay.pivotY;
+			double pivotX = _starlingDisplay.getPivotX();
+			double pivotY = _starlingDisplay.getPivotY();
 
 
 			if(updateMatrix)
 			{
 				//_starlingDisplay.transformationMatrix setter 比较慢暂时走下面
-				_starlingDisplay.transformationMatrix = _globalTransformMatrix;
-				if(pivotX || pivotY)
+				_starlingDisplay.setTransformationMatrix(_globalTransformMatrix);
+				if(pivotX != 0 || pivotY != 0)
 				{
-					_starlingDisplay.pivotX = pivotX;
-					_starlingDisplay.pivotY = pivotY;
+					_starlingDisplay.setPivotX(pivotX);
+					_starlingDisplay.setPivotY(pivotY);
 				}
 			}
 			else
 			{
-				Matrix displayMatrix = _starlingDisplay.transformationMatrix;
+				Matrix displayMatrix = _starlingDisplay.getTransformationMatrix();
 				displayMatrix.a = _globalTransformMatrix.a;
 				displayMatrix.b = _globalTransformMatrix.b;
 				displayMatrix.c = _globalTransformMatrix.c;
 				displayMatrix.d = _globalTransformMatrix.d;
 				//displayMatrix.copyFrom(_globalTransformMatrix);
-				if(pivotX || pivotY)
+				if(pivotX != 0 || pivotY != 0)
 				{
 					displayMatrix.tx = _globalTransformMatrix.tx - (displayMatrix.a * pivotX + displayMatrix.c * pivotY);
 					displayMatrix.ty = _globalTransformMatrix.ty - (displayMatrix.b * pivotX + displayMatrix.d * pivotY);
@@ -136,7 +139,7 @@ public class StarlingFastSlot extends FastSlot
 	}
 
 	/** @private */
-	@Override private void updateDisplayVisible(boolean value)
+	private void updateDisplayVisible(boolean value)
 	{
 //			if(_starlingDisplay && this._parent)
 //			{
@@ -145,7 +148,8 @@ public class StarlingFastSlot extends FastSlot
 	}
 
 	/** @private */
-	@Override private void updateDisplayColor(
+	@Override
+	public void updateDisplayColor(
 		double aOffset,
 		double rOffset,
 		double gOffset,
@@ -154,67 +158,47 @@ public class StarlingFastSlot extends FastSlot
 		double rMultiplier,
 		double gMultiplier,
 		double bMultiplier,
-		boolean colorChanged = false
+		boolean colorChanged
 	)
 	{
-		if(_starlingDisplay)
+		if(_starlingDisplay != null)
 		{
 			super.updateDisplayColor(aOffset, rOffset, gOffset, bOffset, aMultiplier, rMultiplier, gMultiplier, bMultiplier,colorChanged);
-			_starlingDisplay.alpha = aMultiplier;
+			_starlingDisplay.setAlpha(aMultiplier);
 			if (_starlingDisplay instanceof Quad)
 			{
-				((Quad)_starlingDisplay).color = (uint(rMultiplier * 0xff) << 16) + (uint(gMultiplier * 0xff) << 8) + uint(bMultiplier * 0xff);
+				((Quad)_starlingDisplay).setColor(((int)(rMultiplier * 0xff) << 16) | ((int)(gMultiplier * 0xff) << 8) | (int)(bMultiplier * 0xff));
 			}
 		}
 	}
 
 	/** @private */
-	@Override private void updateDisplayBlendMode(String value)
+	private void updateDisplayBlendMode(String value)
 	{
-		if(_starlingDisplay)
+		if(_starlingDisplay != null)
 		{
-			switch(blendMode)
+			switch(getBlendMode())
 			{
-				case starling.display.BlendMode.NONE:
-				case starling.display.BlendMode.AUTO:
-				case starling.display.BlendMode.ADD:
-				case starling.display.BlendMode.ERASE:
-				case starling.display.BlendMode.MULTIPLY:
-				case starling.display.BlendMode.NORMAL:
-				case starling.display.BlendMode.SCREEN:
-					_starlingDisplay.blendMode = blendMode;
+				case BlendMode.NONE:
+				case BlendMode.AUTO:
+				case BlendMode.ADD:
+				case BlendMode.ERASE:
+				case BlendMode.MULTIPLY:
+				case BlendMode.NORMAL:
+				case BlendMode.SCREEN:
+					_starlingDisplay.setBlendMode(getBlendMode());
 					break;
 
-				case flash.display.BlendMode.ADD:
-					_starlingDisplay.blendMode = starling.display.BlendMode.ADD;
-					break;
-
-				case flash.display.BlendMode.ERASE:
-					_starlingDisplay.blendMode = starling.display.BlendMode.ERASE;
-					break;
-
-				case flash.display.BlendMode.MULTIPLY:
-					_starlingDisplay.blendMode = starling.display.BlendMode.MULTIPLY;
-					break;
-
-				case flash.display.BlendMode.NORMAL:
-					_starlingDisplay.blendMode = starling.display.BlendMode.NORMAL;
-					break;
-
-				case flash.display.BlendMode.SCREEN:
-					_starlingDisplay.blendMode = starling.display.BlendMode.SCREEN;
-					break;
-
-				case flash.display.BlendMode.ALPHA:
-				case flash.display.BlendMode.DARKEN:
-				case flash.display.BlendMode.DIFFERENCE:
-				case flash.display.BlendMode.HARDLIGHT:
-				case flash.display.BlendMode.INVERT:
-				case flash.display.BlendMode.LAYER:
-				case flash.display.BlendMode.LIGHTEN:
-				case flash.display.BlendMode.OVERLAY:
-				case flash.display.BlendMode.SHADER:
-				case flash.display.BlendMode.SUBTRACT:
+				case BlendMode.ALPHA:
+				case BlendMode.DARKEN:
+				case BlendMode.DIFFERENCE:
+				case BlendMode.HARDLIGHT:
+				case BlendMode.INVERT:
+				case BlendMode.LAYER:
+				case BlendMode.LIGHTEN:
+				case BlendMode.OVERLAY:
+				case BlendMode.SHADER:
+				case BlendMode.SUBTRACT:
 					break;
 
 				default:

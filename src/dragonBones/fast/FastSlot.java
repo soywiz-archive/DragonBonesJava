@@ -36,7 +36,7 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 
 	protected ArrayList<Object> _displayList;
 	protected int _currentDisplayIndex;
-	ColorTransform _colorTransform;
+	protected ColorTransform _colorTransform;
 	boolean _isColorChanged;
 	protected Object _currentDisplay;
 
