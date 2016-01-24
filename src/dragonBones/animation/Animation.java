@@ -2,6 +2,8 @@ package dragonBones.animation;
 
 import dragonBones.Armature;
 import dragonBones.Slot;
+import dragonBones.cache.AnimationCacheManager;
+import dragonBones.core.IAnimation;
 import dragonBones.core.IAnimationState;
 import dragonBones.objects.AnimationData;
 import dragonBones.utils.ArrayListUtils;
@@ -15,7 +17,7 @@ import java.util.Objects;
  * @see Animation
  * @see dragonBones.animation.AnimationState
  */
-public class Animation extends BaseAnimation
+public class Animation implements IAnimation
 {
 	public static final String NONE = "none";
 	public static final String SAME_LAYER = "sameLayer";
@@ -43,6 +45,13 @@ public class Animation extends BaseAnimation
 	/** @private */
 	private int _animationStateCount;
 
+
+	public AnimationCacheManager animationCacheManager;
+	public IAnimationState ianimationState;
+
+	public IAnimationState gotoAndPlay(String animationName, double fadeInTime, double duration) {
+		return gotoAndPlay(animationName, fadeInTime, duration, Double.NaN);
+	}
 
 	/**
 	 * Creates a new Animation instance and attaches it to the passed Armature.
@@ -103,6 +112,11 @@ public class Animation extends BaseAnimation
 
 	public IAnimationState gotoAndPlay(String animationName, double fadeInTime, double duration, double playTimes) {
 		return gotoAndPlay(animationName, fadeInTime, duration, playTimes, 0, null, SAME_LAYER_AND_GROUP, true, true);
+	}
+
+	@Override
+	public void setAnimationCacheManager(AnimationCacheManager animationCacheManager) {
+		this.animationCacheManager = animationCacheManager;
 	}
 
 	/**
@@ -368,6 +382,11 @@ public class Animation extends BaseAnimation
 		}
 
 		return false;
+	}
+
+	@Override
+	public IAnimationState getAnimationState() {
+		return this.getLastAnimationState();
 	}
 
 	/** @private */

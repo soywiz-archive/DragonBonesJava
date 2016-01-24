@@ -9,7 +9,6 @@ import flash.display.BitmapData;
 
 import dragonBones.objects.DataParser;
 
-import starling.textures.SubTexture;
 import starling.textures.Texture;
 import starling.textures.TextureAtlas;
 
@@ -106,12 +105,11 @@ public class StarlingTextureAtlas extends TextureAtlas implements ITextureAtlas
 	 */
 	protected void parseData(Object textureAtlasRawData)
 	{
-		Map<String, TextureData> textureAtlasData = DataParser.parseTextureAtlasData(textureAtlasRawData, _isDifferentConfig ? _scale : 1);
-		_name = (String) (Object)textureAtlasData.get("__name");
-		textureAtlasData.remove("__name");
-		for(String subTextureName : textureAtlasData.keySet())
+		TextureDataMap textureAtlasData = DataParser.parseTextureAtlasData(textureAtlasRawData, _isDifferentConfig ? _scale : 1);
+		_name = textureAtlasData.name;
+		for(String subTextureName : textureAtlasData.data.keySet())
 		{
-			TextureData textureData = textureAtlasData.get(subTextureName);
+			TextureData textureData = textureAtlasData.data.get(subTextureName);
 			//, textureData.rotated
 			this.addRegion(subTextureName, textureData.region, textureData.frame);
 		}

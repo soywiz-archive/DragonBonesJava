@@ -1,6 +1,5 @@
 package dragonBones.fast.animation;
 
-import dragonBones.animation.BaseAnimation;
 import dragonBones.cache.AnimationCacheManager;
 import dragonBones.core.IAnimation;
 import dragonBones.core.IAnimationState;
@@ -115,6 +114,11 @@ public class FastAnimation implements IAnimation
 			}
 		}
 		return animationState;
+	}
+
+	@Override
+	public void setAnimationCacheManager(AnimationCacheManager animationCacheManager) {
+		this.animationCacheManager = animationCacheManager;
 	}
 
 	public FastAnimationState gotoAndStop(

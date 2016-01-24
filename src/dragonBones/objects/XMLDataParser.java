@@ -33,7 +33,7 @@ final public class XMLDataParser
 	public static TextureDataMap parseTextureAtlasData(XML rawData, double scale)
 	{
 		TextureDataMap textureAtlasData = new TextureDataMap();
-		textureAtlasData.__name = getString(rawData, ConstValues.A_NAME);
+		textureAtlasData.name = getString(rawData, ConstValues.A_NAME);
 		Rectangle subTextureFrame;
 		for (XML subTextureXML : rawData.children(ConstValues.SUB_TEXTURE))
 		{

@@ -5,6 +5,11 @@ public class ByteArray {
 	private int length;
 	private int position;
 
+	public ByteArray() {
+		this(new byte[0], 0, 0);
+	}
+
+
 	public ByteArray(byte[] bytes) {
 		this(bytes, 0, bytes.length);
 	}

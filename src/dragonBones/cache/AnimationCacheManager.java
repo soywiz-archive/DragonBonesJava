@@ -73,7 +73,7 @@ public class AnimationCacheManager
 
 	public void bindCacheUserArmature(ICacheableArmature armature)
 	{
-		armature.getAnimation().animationCacheManager = this;
+		armature.getAnimation().setAnimationCacheManager(this);
 
 		Map<String, ISlotCacheGenerator> slotDic = armature.getSlotDic();
 //			for each(cacheUser in armature._boneDic)
@@ -126,7 +126,7 @@ public class AnimationCacheManager
 			return;
 		}
 
-		IAnimationState animationState = cacheGeneratorArmature.getAnimation().ianimationState;
+		IAnimationState animationState = cacheGeneratorArmature.getAnimation().getAnimationState();
 		double passTime = 1 / frameRate;
 
 		if (loop)

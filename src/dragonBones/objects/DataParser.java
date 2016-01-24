@@ -1,6 +1,8 @@
 package dragonBones.objects;
 
 import dragonBones.textures.TextureData;
+import dragonBones.textures.TextureDataMap;
+import flash.XML;
 import org.w3c.dom.Document;
 
 import java.util.Map;
@@ -13,26 +15,28 @@ public class DataParser
 
 	public static DragonBonesData parseData(Object rawData)
 	{
-		if(rawData instanceof Document)
+		if(rawData instanceof XML)
 		{
-			return XMLDataParser.parseDragonBonesData((Document)rawData);
+			return XMLDataParser.parseDragonBonesData((XML)rawData);
 		}
 		else
 		{
-			return ObjectDataParser.parseDragonBonesData(rawData);
+			throw new Error("Not supported JSON/Object parsing");
+			//return ObjectDataParser.parseDragonBonesData(rawData);
 		}
 	}
 
 	//public static Map<String, TextureData> parseTextureAtlasData(Object textureAtlasData, double scale= 1)
-	public static Map<String, TextureData> parseTextureAtlasData(Object textureAtlasData, double scale)
+	public static TextureDataMap parseTextureAtlasData(Object textureAtlasData, double scale)
 	{
-		if(textureAtlasData instanceof Document)
+		if(textureAtlasData instanceof XML)
 		{
-			return XMLDataParser.parseTextureAtlasData((Document)textureAtlasData, scale);
+			return XMLDataParser.parseTextureAtlasData((XML)textureAtlasData, scale);
 		}
 		else
 		{
-			return ObjectDataParser.parseTextureAtlasData(textureAtlasData, scale);
+			//return ObjectDataParser.parseTextureAtlasData(textureAtlasData, scale);
+			throw new Error("Not supported JSON/Object parsing");
 		}
 	}
 }

@@ -12,8 +12,6 @@ import flash.geom.Rectangle;
 
 import dragonBones.objects.DataParser;
 
-import java.util.Map;
-
 //use namespace dragonBones_internal;
 
 /**
@@ -24,7 +22,7 @@ public class NativeTextureAtlas implements ITextureAtlas
 	/**
 	 * @private
 	 */
-	protected Map<String, Object> _subTextureDataDic;
+	protected TextureDataMap _subTextureDataDic;
 	/**
 	 * @private
 	 */
@@ -114,7 +112,7 @@ public class NativeTextureAtlas implements ITextureAtlas
 	 */
 	public Rectangle getRegion(String name)
 	{
-		TextureData textureData = (TextureData)_subTextureDataDic.get(name);
+		TextureData textureData = (TextureData)_subTextureDataDic.data.get(name);
 		if(textureData != null)
 		{
 			return textureData.region;
@@ -125,7 +123,7 @@ public class NativeTextureAtlas implements ITextureAtlas
 
 	public Rectangle getFrame(String name)
 	{
-		TextureData textureData = (TextureData)_subTextureDataDic.get(name);
+		TextureData textureData = (TextureData)_subTextureDataDic.data.get(name);
 		if(textureData != null)
 		{
 			return textureData.frame;
@@ -137,9 +135,7 @@ public class NativeTextureAtlas implements ITextureAtlas
 	protected void parseData(Object textureAtlasRawData)
 	{
 		_subTextureDataDic = DataParser.parseTextureAtlasData(textureAtlasRawData, _isDifferentConfig ? _scale : 1);
-		_name = (String)_subTextureDataDic.get("__name");
-
-		_subTextureDataDic.remove("__name");
+		_name = (String)_subTextureDataDic.name;
 	}
 
 	public void movieClipToBitmapData()
