@@ -10,6 +10,7 @@ import dragonBones.objects.SlotTimeline;
 import dragonBones.objects.TransformTimeline;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 //use namespace dragonBones_internal;
 /**
@@ -181,13 +182,13 @@ final public class AnimationState
 		if(ifInvolveChildBones)
 		{
 			Bone currentBone = _armature.getBone(boneName);
-			if(currentBone)
+			if(currentBone != null)
 			{
 				ArrayList<Bone> boneList = _armature.getBones(false);
-				int i = boneList.length;
+				int i = boneList.size();
 				while(i-- > 0)
 				{
-					Bone tempBone = boneList[i];
+					Bone tempBone = boneList.get(i);
 					if(currentBone.contains(tempBone))
 					{
 						addBoneToBoneMask(tempBone.name);
@@ -212,13 +213,13 @@ final public class AnimationState
 		if(ifInvolveChildBones)
 		{
 			Bone currentBone = _armature.getBone(boneName);
-			if(currentBone)
+			if(currentBone != null)
 			{
-				var boneList:Vector.<Bone> = _armature.getBones(false);
+				ArrayList<Bone> boneList = _armature.getBones(false);
 				int i = boneList.size();
 				while(i-- > 0)
 				{
-					Bone tempBone = boneList[i];
+					Bone tempBone = boneList.get(i);
 					if(currentBone.contains(tempBone))
 					{
 						removeBoneFromBoneMask(tempBone.name);
@@ -233,7 +234,7 @@ final public class AnimationState
 
 	public AnimationState removeAllMixingTransform()
 	{
-		_boneMasks.length = 0;
+		_boneMasks.clear();
 		updateTimelineStates();
 		return this;
 	}
@@ -242,17 +243,13 @@ final public class AnimationState
 	{
 		if(_clip.getTimeline(boneName) != null && _boneMasks.indexOf(boneName)<0)
 		{
-			_boneMasks.push(boneName);
+			_boneMasks.add(boneName);
 		}
 	}
 
 	private void removeBoneFromBoneMask(String boneName)
 	{
-		int index = _boneMasks.indexOf(boneName);
-		if(index >= 0)
-		{
-			_boneMasks.splice(index, 1);
-		}
+		_boneMasks.remove(boneName);
 	}
 
 	/**
@@ -266,7 +263,7 @@ final public class AnimationState
 		int i = _timelineStateList.size();
 		while(i -- > 0)
 		{
-			timelineState = _timelineStateList[i];
+			timelineState = _timelineStateList.get(i);
 			if(!_armature.getBone(timelineState.name))
 			{
 				removeTimelineState(timelineState);
@@ -276,7 +273,7 @@ final public class AnimationState
 		i = _slotTimelineStateList.size();
 		while (i -- > 0)
 		{
-			slotTimelineState = _slotTimelineStateList[i];
+			slotTimelineState = _slotTimelineStateList.get(i);
 			if (!_armature.getSlot(slotTimelineState.name))
 			{
 				removeSlotTimelineState(slotTimelineState);
@@ -288,7 +285,7 @@ final public class AnimationState
 			i = _timelineStateList.size();
 			while(i -- > 0)
 			{
-				timelineState = _timelineStateList[i];
+				timelineState = _timelineStateList.get(i);
 				if(_boneMasks.indexOf(timelineState.name) < 0)
 				{
 					removeTimelineState(timelineState);
@@ -321,7 +318,7 @@ final public class AnimationState
 		{
 			for (TimelineState eachState : _timelineStateList)
 			{
-				if(eachState.name == timelineName)
+				if(Objects.equals(eachState.name, timelineName))
 				{
 					return;
 				}
@@ -662,9 +659,10 @@ final public class AnimationState
 				currentTime += totalTimes;
 			}
 
-			currentPlayTimes = Math.ceil(currentTime / _totalTime) || 1;
+			currentPlayTimes = (int)Math.ceil(currentTime / _totalTime);
+			if (currentPlayTimes == 0) currentPlayTimes = 1;
 			//currentTime -= Math.floor(currentTime / _totalTime) * _totalTime;
-			currentTime -= int(currentTime / _totalTime) * _totalTime;
+			currentTime -= (int)(currentTime / _totalTime) * _totalTime;
 
 			if(isThisComplete)
 			{
@@ -756,11 +754,11 @@ final public class AnimationState
 
 	private void updateMainTimeline(boolean isThisComplete)
 	{
-		ArrayList<Frame> frameList = _clip.frameList;
+		ArrayList<Frame> frameList = _clip.getFrameList();
 		if(frameList.size() > 0)
 		{
-			Frame prevFrame;
-			Frame currentFrame;
+			Frame prevFrame = null;
+			Frame currentFrame = null;
 			for (int i = 0, l = _clip.getFrameList().size(); i < l; ++i)
 			{
 				if(_currentFrameIndex < 0)
@@ -788,9 +786,9 @@ final public class AnimationState
 				{
 					break;
 				}
-				currentFrame = frameList[_currentFrameIndex];
+				currentFrame = frameList.get(_currentFrameIndex);
 
-				if(prevFrame)
+				if(prevFrame != null)
 				{
 					_armature.arriveAtFrame(prevFrame, null, this, true);
 				}
@@ -800,7 +798,7 @@ final public class AnimationState
 				prevFrame = currentFrame;
 			}
 
-			if(currentFrame)
+			if(currentFrame != null)
 			{
 				_armature.arriveAtFrame(currentFrame, null, this, false);
 			}
@@ -812,7 +810,7 @@ final public class AnimationState
 		for (String timelineName : _clip.hideTimelineNameMap)
 		{
 			Bone bone = _armature.getBone(timelineName);
-			if(bone)
+			if(bone != null)
 			{
 				bone.hideSlots();
 			}
@@ -869,7 +867,7 @@ final public class AnimationState
 			value = 0;
 		}
 		_time = value;
-		_currentTime = _time * 1000;
+		_currentTime = (int)(_time * 1000);
 		return this;
 	}
 

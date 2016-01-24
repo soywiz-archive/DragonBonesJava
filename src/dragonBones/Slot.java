@@ -15,6 +15,8 @@ import dragonBones.objects.SlotData;
 import dragonBones.objects.SlotFrame;
 import dragonBones.utils.TransformUtil;
 
+import java.util.ArrayList;
+
 //import dragonBones.objects.FrameCached;
 //import dragonBones.objects.TimelineCached;
 
@@ -23,34 +25,34 @@ import dragonBones.utils.TransformUtil;
 public class Slot extends DBObject
 {
 	/** @private Need to keep the reference of DisplayData. When slot switch displayObject, it need to restore the display obect's origional pivot. */
-	dragonBones_internal var _displayDataList:Vector.<DisplayData>;
+	private ArrayList<DisplayData> _displayDataList;
 	/** @private */
-	dragonBones_internal var _originZOrder:Number;
+	private double _originZOrder;
 	/** @private */
-	dragonBones_internal var _tweenZOrder:Number;
+	private double _tweenZOrder;
 	/** @private */
-	dragonBones_internal var _originDisplayIndex:Number;
+	private double _originDisplayIndex;
 	/** @private */
-	protected var _offsetZOrder:Number;
+	protected double _offsetZOrder;
 
-	protected var _displayList:Array;
-	protected var _currentDisplayIndex:int;
-	protected var _colorTransform:ColorTransform;
+	protected ArrayList<Object> _displayList;
+	protected int _currentDisplayIndex;
+	protected ColorTransform _colorTransform;
 	//TO DO: 以后把这两个属性变成getter
 	//另外还要处理 isShowDisplay 和 visible的矛盾
-	protected var _currentDisplay:Object;
-	dragonBones_internal var _isShowDisplay:Boolean;
+	protected Object _currentDisplay;
+	private boolean _isShowDisplay;
 
 	//protected var _childArmature:Armature;
-	protected var _blendMode:String;
+	protected String _blendMode;
 
 	/** @private */
-	dragonBones_internal var _isColorChanged:Boolean;
-	dragonBones_internal var _needUpdate:Boolean;
+	private boolean _isColorChanged;
+	private boolean _needUpdate;
 	/** @private */
 //		protected var _timelineStateList:Vector.<SlotTimelineState>;
 
-	public function Slot(self:Slot)
+	public Slot(Slot self)
 	{
 		super();
 
@@ -77,7 +79,7 @@ public class Slot extends DBObject
 		this.inheritScale = true;
 	}
 
-	public function initWithSlotData(slotData:SlotData):void
+	public void initWithSlotData(SlotData slotData)
 	{
 		name = slotData.name;
 		blendMode = slotData.blendMode;
@@ -89,16 +91,17 @@ public class Slot extends DBObject
 	/**
 	 * @inheritDoc
 	 */
-	override public function dispose():void
+	@Override
+	public void dispose()
 	{
-		if(!_displayList)
+		if(_displayList == null)
 		{
 			return;
 		}
 
 		super.dispose();
 
-		_displayList.length = 0;
+		_displayList.clear();
 //			_timelineStateList.length = 0;
 
 		_displayDataList = null;
@@ -135,18 +138,18 @@ public class Slot extends DBObject
 
 //骨架装配
 	/** @private */
-	override dragonBones_internal function setArmature(value:Armature):void
+	@Override dragonBones_internal void setArmature(Armature value)
 	{
 		if(_armature == value)
 		{
 			return;
 		}
-		if(_armature)
+		if(_armature != null)
 		{
 			_armature.removeSlotFromSlotList(this);
 		}
 		_armature = value;
-		if(_armature)
+		if(_armature != null)
 		{
 			_armature.addSlotToSlotList(this);
 			_armature._slotsZOrderChanged = true;
@@ -160,7 +163,7 @@ public class Slot extends DBObject
 
 //动画
 	/** @private */
-	dragonBones_internal function update():void
+	private void update()
 	{
 		if(this._parent._needUpdate <= 0 && !_needUpdate)
 		{
@@ -172,7 +175,7 @@ public class Slot extends DBObject
 		_needUpdate = false;
 	}
 
-	override protected function calculateRelativeParentTransform():void
+	@Override protected void calculateRelativeParentTransform()
 	{
 		_global.scaleX = this._origin.scaleX * this._offset.scaleX;
 		_global.scaleY = this._origin.scaleY * this._offset.scaleY;
@@ -182,7 +185,7 @@ public class Slot extends DBObject
 		_global.y = this._origin.y + this._offset.y + this._parent._tweenPivot.y;
 	}
 
-	private function updateChildArmatureAnimation():void
+	private void updateChildArmatureAnimation()
 	{
 		if(childArmature)
 		{
@@ -210,7 +213,7 @@ public class Slot extends DBObject
 	}
 
 	/** @private */
-	dragonBones_internal function changeDisplay(displayIndex:int):void
+	private void changeDisplay(int displayIndex)
 	{
 		if (displayIndex < 0)
 		{
@@ -221,9 +224,9 @@ public class Slot extends DBObject
 				updateChildArmatureAnimation();
 			}
 		}
-		else if (_displayList.length > 0)
+		else if (_displayList.size() > 0)
 		{
-			var length:uint = _displayList.length;
+			int length = _displayList.size();
 			if(displayIndex >= length)
 			{
 				displayIndex = length - 1;
@@ -237,19 +240,19 @@ public class Slot extends DBObject
 				//updateTransform();//解决当时间和bone不统一时会换皮肤时会跳的bug
 				updateChildArmatureAnimation();
 				if(
-					_displayDataList &&
-					_displayDataList.length > 0 &&
-					_currentDisplayIndex < _displayDataList.length
+					_displayDataList != null &&
+					_displayDataList.size() > 0 &&
+					_currentDisplayIndex < _displayDataList.size()
 				)
 				{
-					this._origin.copy(_displayDataList[_currentDisplayIndex].transform);
+					this._origin.copy(_displayDataList.get(_currentDisplayIndex).transform);
 				}
 				_needUpdate = true;
 			}
 			else if(!_isShowDisplay)
 			{
 				_isShowDisplay = true;
-				if(this._armature)
+				if(this._armature != null)
 				{
 					this._armature._slotsZOrderChanged = true;
 					addDisplayToContainer(this._armature.display);
@@ -263,21 +266,21 @@ public class Slot extends DBObject
 	/** @private
 	 * Updates the display of the slot.
 	 */
-	dragonBones_internal function updateSlotDisplay():void
+	private void updateSlotDisplay()
 	{
-		var currentDisplayIndex:int = -1;
-		if(_currentDisplay)
+		int currentDisplayIndex = -1;
+		if(_currentDisplay != null)
 		{
 			currentDisplayIndex = getDisplayIndex();
 			removeDisplayFromContainer();
 		}
-		var displayObj:Object = _displayList[_currentDisplayIndex];
-		if (displayObj)
+		Object displayObj = _displayList[_currentDisplayIndex];
+		if (displayObj != null)
 		{
-			if(displayObj is Armature)
+			if(displayObj instanceof Armature)
 			{
 				//_childArmature = display as Armature;
-				_currentDisplay = (displayObj as Armature).display;
+				_currentDisplay = ((Armature)displayObj).getDisplay();
 			}
 			else
 			{
@@ -291,18 +294,18 @@ public class Slot extends DBObject
 			//_childArmature = null;
 		}
 		updateDisplay(_currentDisplay);
-		if(_currentDisplay)
+		if(_currentDisplay != null)
 		{
-			if(this._armature && _isShowDisplay)
+			if(this._armature != null && _isShowDisplay)
 			{
 				if(currentDisplayIndex < 0)
 				{
 					this._armature._slotsZOrderChanged = true;
-					addDisplayToContainer(this._armature.display);
+					addDisplayToContainer(this._armature.getDisplay());
 				}
 				else
 				{
-					addDisplayToContainer(this._armature.display, currentDisplayIndex);
+					addDisplayToContainer(this._armature.getDisplay(), currentDisplayIndex);
 				}
 			}
 			updateDisplayBlendMode(_blendMode);
@@ -314,7 +317,7 @@ public class Slot extends DBObject
 	}
 
 	/** @private */
-	override public function set visible(value:Boolean):void
+	@Override public void setVisible(boolean value)
 	{
 		if(this._visible != value)
 		{
@@ -326,13 +329,13 @@ public class Slot extends DBObject
 	/**
 	 * The DisplayObject list belonging to this Slot instance (display or armature). Replace it to implement switch texture.
 	 */
-	public function get displayList():Array
+	public ArrayList<Object> getDisplayList()
 	{
 		return _displayList;
 	}
-	public function set displayList(value:Array):void
+	public void setDisplayList(ArrayList<Object> value)
 	{
-		if(!value)
+		if(value == null)
 		{
 			throw new ArgumentError();
 		}
@@ -342,14 +345,14 @@ public class Slot extends DBObject
 		{
 			_currentDisplayIndex = 0;
 		}
-		var i:int = _displayList.length = value.length;
-		while(i --)
+		int i = _displayList.length = value.size();
+		while(i -- > 0)
 		{
 			_displayList[i] = value[i];
 		}
 
 		//在index不改变的情况下强制刷新 TO DO需要修改
-		var displayIndexBackup:int = _currentDisplayIndex;
+		int displayIndexBackup = _currentDisplayIndex;
 		_currentDisplayIndex = -1;
 		changeDisplay(displayIndexBackup);
 		updateTransform();
@@ -358,21 +361,21 @@ public class Slot extends DBObject
 	/**
 	 * The DisplayObject belonging to this Slot instance. Instance type of this object varies from flash.display.DisplayObject to startling.display.DisplayObject and subclasses.
 	 */
-	public function get display():Object
+	public Object getDisplay()
 	{
 		return _currentDisplay;
 	}
-	public function set display(value:Object):void
+	public void setDisplay(Object value)
 	{
 		if (_currentDisplayIndex < 0)
 		{
 			_currentDisplayIndex = 0;
 		}
-		if(_displayList[_currentDisplayIndex] == value)
+		if(_displayList.get(_currentDisplayIndex) == value)
 		{
 			return;
 		}
-		_displayList[_currentDisplayIndex] = value;
+		_displayList.set(_currentDisplayIndex, value);
 		updateSlotDisplay();
 		updateChildArmatureAnimation();
 		updateTransform();//是否可以延迟更新？
@@ -381,30 +384,30 @@ public class Slot extends DBObject
 	/**
 	 * The sub-armature of this Slot instance.
 	 */
-	public function get childArmature():Armature
+	public Armature getChildArmature()
 	{
-		return _displayList[_currentDisplayIndex] is Armature ? _displayList[_currentDisplayIndex] : null;
+		return (_displayList.get(_currentDisplayIndex) instanceof Armature) ? (Armature)_displayList.get(_currentDisplayIndex) : null;
 	}
-	public function set childArmature(value:Armature):void
+	public void setChildArmature(Armature value)
 	{
 		//设计的不好，要修改
-		display = value;
+		setDisplay(value);
 	}
 
 	/**
 	 * zOrder. Support decimal for ensure dynamically added slot work toghther with animation controled slot.
 	 * @return zOrder.
 	 */
-	public function get zOrder():Number
+	public double  getZOrder()
 	{
 		return _originZOrder + _tweenZOrder + _offsetZOrder;
 	}
-	public function set zOrder(value:Number):void
+	public void setZOrder(double value)
 	{
 		if(zOrder != value)
 		{
 			_offsetZOrder = value - _originZOrder - _tweenZOrder;
-			if(this._armature)
+			if(this._armature != null)
 			{
 				this._armature._slotsZOrderChanged = true;
 			}
@@ -415,11 +418,11 @@ public class Slot extends DBObject
 	 * blendMode
 	 * @return blendMode.
 	 */
-	public function get blendMode():String
+	public String getBlendMode()
 	{
 		return _blendMode;
 	}
-	public function set blendMode(value:String):void
+	public void setBlendMode(String value)
 	{
 		if(_blendMode != value)
 		{
@@ -433,7 +436,7 @@ public class Slot extends DBObject
 	/**
 	 * @private
 	 */
-	dragonBones_internal function updateDisplay(value:Object):void
+	private void updateDisplay(Object value)
 	{
 		throw new IllegalOperationError("Abstract method needs to be implemented in subclass!");
 	}
@@ -441,7 +444,7 @@ public class Slot extends DBObject
 	/**
 	 * @private
 	 */
-	dragonBones_internal function getDisplayIndex():int
+	private int getDisplayIndex()
 	{
 		throw new IllegalOperationError("Abstract method needs to be implemented in subclass!");
 	}
@@ -452,7 +455,7 @@ public class Slot extends DBObject
 	 * @param container
 	 * @param index
 	 */
-	dragonBones_internal function addDisplayToContainer(container:Object, index:int = -1):void
+	private void addDisplayToContainer(Object container, int index = -1)
 	{
 		throw new IllegalOperationError("Abstract method needs to be implemented in subclass!");
 	}
@@ -461,7 +464,7 @@ public class Slot extends DBObject
 	 * @private
 	 * remove the original display object from its parent.
 	 */
-	dragonBones_internal function removeDisplayFromContainer():void
+	private void removeDisplayFromContainer()
 	{
 		throw new IllegalOperationError("Abstract method needs to be implemented in subclass!");
 	}
@@ -470,7 +473,7 @@ public class Slot extends DBObject
 	 * @private
 	 * Updates the transform of the slot.
 	 */
-	dragonBones_internal function updateTransform():void
+	private void updateTransform()
 	{
 		throw new IllegalOperationError("Abstract method needs to be implemented in subclass!");
 	}
@@ -478,7 +481,7 @@ public class Slot extends DBObject
 	/**
 	 * @private
 	 */
-	dragonBones_internal function updateDisplayVisible(value:Boolean):void
+	void updateDisplayVisible(boolean value)
 	{
 		/**
 		 * bone.visible && slot.visible && updateVisible
@@ -499,17 +502,17 @@ public class Slot extends DBObject
 	 * @param gM
 	 * @param bM
 	 */
-	dragonBones_internal function updateDisplayColor(
-		aOffset:Number,
-		rOffset:Number,
-		gOffset:Number,
-		bOffset:Number,
-		aMultiplier:Number,
-		rMultiplier:Number,
-		gMultiplier:Number,
-		bMultiplier:Number,
-		colorChanged:Boolean = false
-	):void
+	private void updateDisplayColor(
+		double aOffset,
+		double rOffset,
+		double gOffset,
+		double bOffset,
+		double aMultiplier,
+		double rMultiplier,
+		double gMultiplier,
+		double bMultiplier,
+		boolean colorChanged = false
+	)
 	{
 		_colorTransform.alphaOffset = aOffset;
 		_colorTransform.redOffset = rOffset;
@@ -528,27 +531,27 @@ public class Slot extends DBObject
 	 * Update the blend mode of the display object.
 	 * @param value The blend mode to use.
 	 */
-	dragonBones_internal function updateDisplayBlendMode(value:String):void
+	private void updateDisplayBlendMode(String value)
 	{
 		throw new IllegalOperationError("Abstract method needs to be implemented in subclass!");
 	}
 
 	/** @private When slot timeline enter a key frame, call this func*/
-	dragonBones_internal function arriveAtFrame(frame:Frame, timelineState:SlotTimelineState, animationState:AnimationState, isCross:Boolean):void
+	private void arriveAtFrame(Frame frame, SlotTimelineState timelineState, AnimationState animationState, boolean isCross)
 	{
-		var displayControl:Boolean = animationState.displayControl &&
-									 animationState.containsBoneMask(parent.name)
+		boolean displayControl = animationState.displayControl &&
+									 animationState.containsBoneMask(getParent().name);
 
 		if(displayControl)
 		{
-			var slotFrame:SlotFrame = frame as SlotFrame;
-			var displayIndex:int = slotFrame.displayIndex;
-			var childSlot:Slot;
+			SlotFrame slotFrame = (SlotFrame)frame;
+			int displayIndex = slotFrame.displayIndex;
+			Slot childSlot;
 			changeDisplay(displayIndex);
 			updateDisplayVisible(slotFrame.visible);
 			if(displayIndex >= 0)
 			{
-				if(!isNaN(slotFrame.zOrder) && slotFrame.zOrder != _tweenZOrder)
+				if(!Double.isNaN(slotFrame.zOrder) && slotFrame.zOrder != _tweenZOrder)
 				{
 					_tweenZOrder = slotFrame.zOrder;
 					this._armature._slotsZOrderChanged = true;
@@ -557,7 +560,7 @@ public class Slot extends DBObject
 
 			//[TODO]currently there is only gotoAndPlay belongs to frame action. In future, there will be more.
 			//后续会扩展更多的action，目前只有gotoAndPlay的含义
-			if(frame.action)
+			if(frame.action != null)
 			{
 				if (childArmature)
 				{
@@ -567,22 +570,22 @@ public class Slot extends DBObject
 		}
 	}
 
-	override protected function updateGlobal():Object
+	@Override protected Object updateGlobal()
 	{
 		calculateRelativeParentTransform();
 		TransformUtil.transformToMatrix(_global, _globalTransformMatrix);
-		var output:Object = calculateParentTransform();
+		Object output = calculateParentTransform();
 		if(output != null)
 		{
 			//计算父骨头绝对坐标
-			var parentMatrix:Matrix = output.parentGlobalTransformMatrix;
+			Matrix parentMatrix = output.parentGlobalTransformMatrix;
 			_globalTransformMatrix.concat(parentMatrix);
 		}
 		TransformUtil.matrixToTransform(_globalTransformMatrix,_global,true,true);
 		return output;
 	}
 
-	dragonBones_internal function resetToOrigin():void
+	public void resetToOrigin()
 	{
 		changeDisplay(_originDisplayIndex);
 		updateDisplayColor(0, 0, 0, 0, 1, 1, 1, 1, true);

@@ -1,6 +1,9 @@
 package dragonBones.objects;
 
+import flash.errors.ArgumentError;
+
 import java.util.ArrayList;
+import java.util.Objects;
 
 final public class AnimationData extends Timeline
 	{
@@ -36,15 +39,11 @@ final public class AnimationData extends Timeline
 			playTimes = 0;
 			autoTween = true;
 			tweenEasing = Double.NaN;
-			hideTimelineNameMap = new ArrayList<String>;
-			hideTimelineNameMap.fixed = true;
-			hideSlotTimelineNameMap = new ArrayList<String>;
-			hideSlotTimelineNameMap.fixed = true;
-			
-			_timelineList = new ArrayList<TransformTimeline>;
-			_timelineList.fixed = true;
-			_slotTimelineList = new ArrayList<SlotTimeline>;
-			_slotTimelineList.fixed = true;
+			hideTimelineNameMap = new ArrayList<String>();
+			hideSlotTimelineNameMap = new ArrayList<String>();
+
+			_timelineList = new ArrayList<TransformTimeline>();
+			_slotTimelineList = new ArrayList<SlotTimeline>();
 		}
 		
 		@Override
@@ -52,37 +51,32 @@ final public class AnimationData extends Timeline
 		{
 			super.dispose();
 			
-			hideTimelineNameMap.fixed = false;
-			hideTimelineNameMap.length = 0;
+			hideTimelineNameMap.clear();
 			hideTimelineNameMap = null;
 			
-			_timelineList.fixed = false;
 			for (TransformTimeline timeline : _timelineList)
 			{
 				timeline.dispose();
 			}
-			_timelineList.fixed = false;
-			_timelineList.length = 0;
+			_timelineList.clear();
 			_timelineList = null;
 			
-			_slotTimelineList.fixed = false;
 			for (SlotTimeline slotTimeline : _slotTimelineList)
 			{
 				slotTimeline.dispose();
 			}
-			_slotTimelineList.fixed = false;
-			_slotTimelineList.length = 0;
+			_slotTimelineList.clear();
 			_slotTimelineList = null;
 		}
 		
 		public TransformTimeline getTimeline(String timelineName)
 		{
-			int i = _timelineList.length;
+			int i = _timelineList.size();
 			while(i -- > 0)
 			{
-				if(_timelineList[i].name == timelineName)
+				if(Objects.equals(_timelineList.get(i).name, timelineName))
 				{
-					return _timelineList[i];
+					return _timelineList.get(i);
 				}
 			}
 			return null;
@@ -90,27 +84,25 @@ final public class AnimationData extends Timeline
 		
 		public void addTimeline(TransformTimeline timeline)
 		{
-			if(!timeline)
+			if(timeline == null)
 			{
 				throw new ArgumentError();
 			}
 			
 			if(_timelineList.indexOf(timeline) < 0)
 			{
-				_timelineList.fixed = false;
-				_timelineList[_timelineList.length] = timeline;
-				_timelineList.fixed = true;
+				_timelineList.set(_timelineList.size(), timeline);
 			}
 		}
 		
 		public SlotTimeline getSlotTimeline(String timelineName)
 		{
-			int i = _slotTimelineList.length;
+			int i = _slotTimelineList.size();
 			while(i -- > 0)
 			{
-				if(_slotTimelineList[i].name == timelineName)
+				if(Objects.equals(_slotTimelineList.get(i).name, timelineName))
 				{
-					return _slotTimelineList[i];
+					return _slotTimelineList.get(i);
 				}
 			}
 			return null;
@@ -118,16 +110,14 @@ final public class AnimationData extends Timeline
 		
 		public void addSlotTimeline(SlotTimeline timeline)
 		{
-			if(!timeline)
+			if(timeline == null)
 			{
 				throw new ArgumentError();
 			}
 			
 			if(_slotTimelineList.indexOf(timeline) < 0)
 			{
-				_slotTimelineList.fixed = false;
-				_slotTimelineList[_slotTimelineList.length] = timeline;
-				_slotTimelineList.fixed = true;
+				_slotTimelineList.set(_slotTimelineList.size(), timeline);
 			}
 		}
 	}

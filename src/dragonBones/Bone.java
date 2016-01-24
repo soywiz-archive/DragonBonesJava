@@ -1,12 +1,12 @@
 ﻿package dragonBones;
 
+import flash.errors.ArgumentError;
 import flash.geom.Matrix;
 import flash.geom.Point;
 
 import dragonBones.animation.AnimationState;
 import dragonBones.animation.TimelineState;
 import dragonBones.core.DBObject;
-import dragonBones.core.dragonBones_internal;
 import dragonBones.events.FrameEvent;
 import dragonBones.events.SoundEvent;
 import dragonBones.events.SoundEventManager;
@@ -16,6 +16,7 @@ import dragonBones.objects.Frame;
 import dragonBones.utils.TransformUtil;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 //use namespace dragonBones_internal;
 
@@ -76,8 +77,8 @@ public class Bone extends DBObject
 	/** @private */
 	public Matrix _globalTransformMatrixForChild;
 
-	private var _tempGlobalTransformForChild:DBTransform;
-	private var _tempGlobalTransformMatrixForChild:Matrix;
+	private DBTransform _tempGlobalTransformForChild;
+	private Matrix _tempGlobalTransformMatrixForChild;
 
 	public Bone()
 	{
@@ -87,11 +88,9 @@ public class Bone extends DBObject
 		_tweenPivot = new Point();
 		_tween.scaleX = _tween.scaleY = 1;
 
-		_boneList = new Vector.<Bone>;
-		_boneList.fixed = true;
-		_slotList = new Vector.<Slot>;
-		_slotList.fixed = true;
-		_timelineStateList = new Vector.<TimelineState>;
+		_boneList = new ArrayList<Bone>();
+		_slotList = new ArrayList<Slot>();
+		_timelineStateList = new ArrayList<TimelineState>();
 
 		_needUpdate = 2;
 		//_isColorChanged = false;
@@ -103,7 +102,7 @@ public class Bone extends DBObject
 	@Override
 	public void dispose()
 	{
-		if(!_boneList)
+		if(_boneList == null)
 		{
 			return;
 		}
@@ -121,11 +120,9 @@ public class Bone extends DBObject
 			_slotList.get(i).dispose();
 		}
 
-		_boneList.fixed = false;
-		_boneList.length = 0;
-		_slotList.fixed = false;
-		_slotList.length = 0;
-		_timelineStateList.length = 0;
+		_boneList.clear();
+		_slotList.clear();
+		_timelineStateList.clear();
 
 		_tween = null;
 		_tweenPivot = null;
@@ -154,7 +151,7 @@ public class Bone extends DBObject
 		DBObject ancestor = child;
 		while(!(ancestor == this || ancestor == null))
 		{
-			ancestor = ancestor.parent;
+			ancestor = ancestor.getParent();
 		}
 		return ancestor == this;
 	}
@@ -176,23 +173,21 @@ public class Bone extends DBObject
 			throw new ArgumentError("An Bone cannot be added as a child to itself or one of its children (or children's children, etc.)");
 		}
 
-		if(childBone.parent == this)
+		if(childBone.getParent() == this)
 		{
 			return;
 		}
 
-		if(childBone.parent)
+		if(childBone.getParent() != null)
 		{
-			childBone.parent.removeChildBone(childBone);
+			childBone.getParent().removeChildBone(childBone);
 		}
 
-		_boneList.fixed = false;
-		_boneList[_boneList.length] = childBone;
-		_boneList.fixed = true;
+		_boneList.set(_boneList.size(), childBone);
 		childBone.setParent(this);
 		childBone.setArmature(_armature);
 
-		if(_armature && !updateLater)
+		if(_armature != null && !updateLater)
 		{
 			_armature.updateAnimationAfterBoneListChanged();
 		}
@@ -205,24 +200,23 @@ public class Bone extends DBObject
 	 */
 	public void removeChildBone(Bone childBone, boolean updateLater = false)
 	{
-		if(!childBone)
+		if(childBone == null)
 		{
 			throw new ArgumentError();
 		}
 
-		int index = _boneList.indexOf(childBone);
-		if(index < 0)
+		if(!_boneList.contains(childBone))
 		{
 			throw new ArgumentError();
 		}
 
-		_boneList.fixed = false;
-		_boneList.splice(index, 1);
-		_boneList.fixed = true;
+		_boneList.remove(childBone);
+
+
 		childBone.setParent(null);
 		childBone.setArmature(null);
 
-		if(_armature && !updateLater)
+		if(_armature != null && !updateLater)
 		{
 			_armature.updateAnimationAfterBoneListChanged(false);
 		}
@@ -240,14 +234,12 @@ public class Bone extends DBObject
 			throw new ArgumentError();
 		}
 
-		if(childSlot.parent)
+		if(childSlot.getParent())
 		{
-			childSlot.parent.removeSlot(childSlot);
+			childSlot.getParent().removeSlot(childSlot);
 		}
 
-		_slotList.fixed = false;
-		_slotList[_slotList.length] = childSlot;
-		_slotList.fixed = true;
+		_slotList.set(_slotList.size(), childSlot);
 		childSlot.setParent(this);
 		childSlot.setArmature(this._armature);
 	}
@@ -259,26 +251,24 @@ public class Bone extends DBObject
 	 */
 	public void removeSlot(Slot childSlot)
 	{
-		if(!childSlot)
+		if(childSlot == null)
 		{
 			throw new ArgumentError();
 		}
 
-		var index:int = _slotList.indexOf(childSlot);
-		if(index < 0)
+		if(!_slotList.contains(childSlot))
 		{
 			throw new ArgumentError();
 		}
 
-		_slotList.fixed = false;
-		_slotList.splice(index, 1);
-		_slotList.fixed = true;
+		_slotList.remove(childSlot);
 		childSlot.setParent(null);
 		childSlot.setArmature(null);
 	}
 
 	/** @private */
-	@Override private void setArmature(Armature value)
+	@Override
+	public void setArmature(Armature value)
 	{
 		if(_armature == value)
 		{
@@ -347,8 +337,13 @@ public class Bone extends DBObject
 		_global.y = this._origin.y + _tween.y + this._offset.y;
 	}
 
-	/** @private */
-	private void update(boolean needUpdate = false)
+	private void update()
+	{
+		update(false);
+	}
+
+		/** @private */
+	private void update(boolean needUpdate)
 	{
 		_needUpdate --;
 		if(needUpdate || _needUpdate > 0 || (this._parent && this._parent._needUpdate > 0))
@@ -426,7 +421,7 @@ public class Bone extends DBObject
 	}
 
 	/** @private */
-	private void hideSlots()
+	public void hideSlots()
 	{
 		for (Slot childSlot : _slotList)
 		{
@@ -435,12 +430,12 @@ public class Bone extends DBObject
 	}
 
 	/** @private When bone timeline enter a key frame, call this func*/
-	private void arriveAtFrame(Frame frame, TimelineState timelineState, AnimationState animationState, boolean isCross)
+	public void arriveAtFrame(Frame frame, TimelineState timelineState, AnimationState animationState, boolean isCross)
 	{
 		boolean displayControl =
 			animationState.displayControl &&
-			(!displayController || displayController == animationState.name) &&
-			animationState.containsBoneMask(name)
+			(displayController != null || Objects.equals(displayController, animationState.getName())) &&
+			animationState.containsBoneMask(name);
 
 		if(displayControl)
 		{
@@ -483,25 +478,21 @@ public class Bone extends DBObject
 	{
 		if(_timelineStateList.indexOf(timelineState) < 0)
 		{
-			_timelineStateList.push(timelineState);
+			_timelineStateList.add(timelineState);
 			_timelineStateList.sort(sortState);
 		}
 	}
 
 	/** @private */
-	private void removeState(TimelineState timelineState)
+	public void removeState(TimelineState timelineState)
 	{
-		int index = _timelineStateList.indexOf(timelineState);
-		if(index >= 0)
-		{
-			_timelineStateList.splice(index, 1);
-		}
+		_timelineStateList.remove(timelineState);
 	}
 
 	/** @private */
 	private void removeAllStates()
 	{
-		_timelineStateList.length = 0;
+		_timelineStateList.clear();
 	}
 
 	private void blendingTimeline()
@@ -514,8 +505,8 @@ public class Bone extends DBObject
 		int i = _timelineStateList.size();
 		if(i == 1)
 		{
-			timelineState = _timelineStateList[0];
-			weight = timelineState._animationState.weight * timelineState._animationState.fadeWeight;
+			timelineState = _timelineStateList.get(0);
+			weight = timelineState._animationState.weight * timelineState._animationState.getFadeWeight();
 			timelineState._weight = weight;
 			transform = timelineState._transform;
 			pivot = timelineState._pivot;
@@ -543,7 +534,7 @@ public class Bone extends DBObject
 
 			double weigthLeft = 1;
 			double layerTotalWeight = 0;
-			int prevLayer = _timelineStateList.get(i - 1)._animationState.layer;
+			int prevLayer = _timelineStateList.get(i - 1)._animationState.getLayer();
 			int currentLayer;
 
 			//Traversal the layer from up to down
@@ -553,7 +544,7 @@ public class Bone extends DBObject
 			{
 				timelineState = _timelineStateList.get(i);
 
-				currentLayer = timelineState._animationState.layer;
+				currentLayer = timelineState._animationState.getLayer();
 				if(prevLayer != currentLayer)
 				{
 					if(layerTotalWeight >= weigthLeft)
@@ -568,7 +559,7 @@ public class Bone extends DBObject
 				}
 				prevLayer = currentLayer;
 
-				weight = timelineState._animationState.weight * timelineState._animationState.fadeWeight * weigthLeft;
+				weight = timelineState._animationState.weight * timelineState._animationState.getFadeWeight() * weigthLeft;
 				timelineState._weight = weight;
 				if(weight != 0)
 				{
@@ -601,7 +592,7 @@ public class Bone extends DBObject
 
 	private int sortState(TimelineState state1, TimelineState state2)
 	{
-		return state1._animationState.layer < state2._animationState.layer?-1:1;
+		return state1._animationState.getLayer() < state2._animationState.getLayer()?-1:1;
 	}
 
 	/**
@@ -609,9 +600,9 @@ public class Bone extends DBObject
 	 */
 	public Armature getChildArmature()
 	{
-		if(slot)
+		if(getSlot() != null)
 		{
-			return slot.childArmature;
+			return getSlot().getChildArmature();
 		}
 		return null;
 	}
@@ -621,17 +612,17 @@ public class Bone extends DBObject
 	 */
 	public Object getDisplay()
 	{
-		if(slot != null)
+		if(getSlot() != null)
 		{
-			return slot.display;
+			return getSlot().getDisplay();
 		}
 		return null;
 	}
 	public void setDisplay(Object value)
 	{
-		if(slot != null)
+		if(getSlot() != null)
 		{
-			slot.display = value;
+			getSlot().setDisplay(value);
 		}
 	}
 

@@ -1,5 +1,7 @@
 ﻿package dragonBones.animation;
-import flash.utils.getTimer;
+import dragonBones.utils.ArrayListUtils;
+
+import java.util.ArrayList;
 
 /**
  * A WorldClock instance lets you conveniently update many number of Armature instances at once. You can add/remove Armature instance and set a global timescale that will apply to all registered Armature instance animations.
@@ -13,90 +15,104 @@ public final class WorldClock implements IAnimatable
 	 */
 	public static WorldClock clock = new WorldClock();
 
-	private var _animatableList:Vector.<IAnimatable>;
+	private ArrayList<IAnimatable> _animatableList;
 
-	private var _time:Number;
-	public function get time():Number
+	private double _time;
+	public double getTime()
 	{
 		return _time;
 	}
 
-	private var _timeScale:Number;
+	private double _timeScale;
 	/**
 	 * The time scale to apply to the number of second passed to the advanceTime() method.
-	 * @param A Number to use as a time scale.
+	 * A Number to use as a time scale.
 	 */
-	public function get timeScale():Number
+	public double getTimeScale()
 	{
 		return _timeScale;
 	}
-	public function set timeScale(value:Number):void
+	public void setTimeScale(double value)
 	{
-		if(isNaN(value) || value < 0)
+		if(Double.isNaN(value) || value < 0)
 		{
 			value = 1;
 		}
 		_timeScale = value;
 	}
 
+	static private double getTimer() {
+		return (double)System.currentTimeMillis();
+	}
+
+	public WorldClock()
+	{
+		this(-1, 1);
+	}
+
+	public WorldClock(double time)
+	{
+		this(time, 1);
+	}
+
 	/**
 	 * Creates a new WorldClock instance. (use the static var WorldClock.clock instead).
 	 */
-	public function WorldClock(time:Number = -1, timeScale:Number = 1)
+	public WorldClock(double time, double timeScale)
 	{
 		_time = time >= 0?time:getTimer() * 0.001;
-		_timeScale = isNaN(timeScale)?1:timeScale;
-		_animatableList = new Vector.<IAnimatable>;
+		_timeScale = Double.isNaN(timeScale)?1:timeScale;
+		_animatableList = new ArrayList<IAnimatable>();
 	}
 
 	/**
 	 * Returns true if the IAnimatable instance is contained by WorldClock instance.
-	 * @param An IAnimatable instance (Armature or custom)
+	 * An IAnimatable instance (Armature or custom)
 	 * @return true if the IAnimatable instance is contained by WorldClock instance.
 	 */
-	public function contains(animatable:IAnimatable):Boolean
+	public boolean contains(IAnimatable animatable)
 	{
-		return _animatableList.indexOf(animatable) >= 0;
+		return _animatableList.contains(animatable);
 	}
 
 	/**
 	 * Add a IAnimatable instance (Armature or custom) to this WorldClock instance.
-	 * @param An IAnimatable instance (Armature, WorldClock or custom)
+	 * An IAnimatable instance (Armature, WorldClock or custom)
 	 */
-	public function add(animatable:IAnimatable):void
+	public void add(IAnimatable animatable)
 	{
-		if (animatable && _animatableList.indexOf(animatable) == -1)
+		if (animatable != null && _animatableList.indexOf(animatable) == -1)
 		{
-			_animatableList.push(animatable);
+			_animatableList.add(animatable);
 		}
 	}
 
 	/**
 	 * Remove a IAnimatable instance (Armature or custom) from this WorldClock instance.
-	 * @param An IAnimatable instance (Armature or custom)
+	 * An IAnimatable instance (Armature or custom)
 	 */
-	public function remove(animatable:IAnimatable):void
+	public void remove(IAnimatable animatable)
 	{
-		var index:int = _animatableList.indexOf(animatable);
+		int index = _animatableList.indexOf(animatable);
 		if (index >= 0)
 		{
-			_animatableList[index] = null;
+			_animatableList.set(index, null);
 		}
 	}
 
 	/**
 	 * Remove all IAnimatable instance (Armature or custom) from this WorldClock instance.
 	 */
-	public function clear():void
+	public void clear()
 	{
-		_animatableList.length = 0;
+		_animatableList.clear();
 	}
 
 	/**
 	 * Update all registered IAnimatable instance animations using this method typically in an ENTERFRAME Event or with a Timer.
-	 * @param The amount of second to move the playhead ahead.
+	 * The amount of second to move the playhead ahead.
 	 */
-	public function advanceTime(passedTime:Number):void
+	public void advanceTime(double passedTime)
 	{
 		if(passedTime < 0)
 		{
@@ -106,22 +122,23 @@ public final class WorldClock implements IAnimatable
 
 		passedTime *= _timeScale;
 
-		var length:int = _animatableList.length;
+		int length = _animatableList.size();
 		if(length == 0)
 		{
 			return;
 		}
-		var currentIndex:int = 0;
+		int currentIndex = 0;
 
-		for(var i:int = 0;i < length; i++)
+		int i = 0;
+		for(i = 0;i < length; i++)
 		{
-			var animatable:IAnimatable = _animatableList[i];
-			if(animatable)
+			IAnimatable animatable = _animatableList.get(i);
+			if(animatable != null)
 			{
 				if(currentIndex != i)
 				{
-					_animatableList[currentIndex] = animatable;
-					_animatableList[i] = null;
+					_animatableList.set(currentIndex, animatable);
+					_animatableList.set(i, null);
 				}
 				animatable.advanceTime(passedTime);
 				currentIndex ++;
@@ -130,12 +147,13 @@ public final class WorldClock implements IAnimatable
 
 		if (currentIndex != i)
 		{
-			length = _animatableList.length;
+			length = _animatableList.size();
 			while(i < length)
 			{
-				_animatableList[currentIndex ++] = _animatableList[i ++];
+				_animatableList.set(currentIndex++, _animatableList.get(i++));
 			}
-			_animatableList.length = currentIndex;
+
+			ArrayListUtils.setLength(_animatableList, currentIndex, null);
 		}
 	}
 }

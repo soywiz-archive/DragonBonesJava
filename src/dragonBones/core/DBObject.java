@@ -109,7 +109,7 @@ public class DBObject
 		return _parent;
 	}
 	/** @private */
-	private void setParent(Bone value)
+	public void setParent(Bone value)
 	{
 		_parent = value;
 	}

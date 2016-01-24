@@ -91,7 +91,7 @@ public class Armature extends EventDispatcher implements IArmature
 	public Object userData;
 
 	/** @private Set it to true when slot's zorder changed*/
-	private boolean _slotsZOrderChanged;
+	boolean _slotsZOrderChanged;
 
 	/** @private Store event needed to dispatch in current frame. When advanceTime execute complete, dispath them.*/
 	private ArrayList<Event> _eventList;
