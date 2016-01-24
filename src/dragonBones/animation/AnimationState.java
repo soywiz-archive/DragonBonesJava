@@ -2,7 +2,6 @@
 import dragonBones.Armature;
 import dragonBones.Bone;
 import dragonBones.Slot;
-import dragonBones.core.dragonBones_internal;
 import dragonBones.events.AnimationEvent;
 import dragonBones.objects.AnimationData;
 import dragonBones.objects.Frame;
@@ -23,7 +22,7 @@ final public class AnimationState
 	private static ArrayList<AnimationState> _pool = new ArrayList<AnimationState>();
 
 	/** @private */
-	private static AnimationState borrowObject()
+	static AnimationState borrowObject()
 	{
 		if(_pool.size() == 0)
 		{
@@ -33,7 +32,7 @@ final public class AnimationState
 	}
 
 	/** @private */
-	private static void returnObject(AnimationState animationState)
+	static void returnObject(AnimationState animationState)
 	{
 		animationState.clear();
 
@@ -91,9 +90,9 @@ final public class AnimationState
 	public boolean lastFrameAutoTween;
 
 	/** @private */
-	private int _layer;
+	int _layer;
 	/** @private */
-	private String _group;
+	String _group;
 
 	private Armature _armature;
 	private ArrayList<TimelineState> _timelineStateList;
@@ -133,9 +132,9 @@ final public class AnimationState
 
 	public AnimationState()
 	{
-		_timelineStateList = new ArrayList<TimelineState>;
-		_slotTimelineStateList = new ArrayList<SlotTimelineState>;
-		_boneMasks = new ArrayList<String>;
+		_timelineStateList = new ArrayList<TimelineState>();
+		_slotTimelineStateList = new ArrayList<SlotTimelineState>();
+		_boneMasks = new ArrayList<String>();
 	}
 
 	private void clear()
@@ -148,7 +147,7 @@ final public class AnimationState
 		_clip = null;
 	}
 
-	private void resetTimelineStateList()
+	void resetTimelineStateList()
 	{
 		int i = _timelineStateList.size();
 		while(i -- > 0)
@@ -171,12 +170,17 @@ final public class AnimationState
 		return _boneMasks.size() == 0 || _boneMasks.indexOf(boneName) >= 0;
 	}
 
+	public AnimationState addBoneMask(String boneName)
+	{
+		return addBoneMask(boneName, true);
+	}
+
 	/**
 	 * Adds a bone which should be animated. This allows you to reduce the number of animations you have to create.
 	 * @param boneName Bone's name.
 	 * @param ifInvolveChildBones if involve child bone's animation.
 	 */
-	public AnimationState addBoneMask(String boneName, boolean ifInvolveChildBones = true)
+	public AnimationState addBoneMask(String boneName, boolean ifInvolveChildBones)
 	{
 		addBoneToBoneMask(boneName);
 
@@ -204,7 +208,7 @@ final public class AnimationState
 
 	public AnimationState removeBoneMask(String boneName)
 	{
-		removeBoneMask(boneName, true);
+		return removeBoneMask(boneName, true);
 	}
 
 	/**
@@ -262,7 +266,7 @@ final public class AnimationState
 	 * @private
 	 * Update timeline state based on mixing transforms and clip.
 	 */
-	private void updateTimelineStates()
+	void updateTimelineStates()
 	{
 		TimelineState timelineState;
 		SlotTimelineState slotTimelineState;
@@ -385,7 +389,7 @@ final public class AnimationState
 	}
 
 	/** @private */
-	private AnimationState fadeIn(Armature armature, AnimationData clip, double fadeTotalTime, double timeScale, int playTimes, boolean pausePlayhead)
+	AnimationState fadeIn(Armature armature, AnimationData clip, double fadeTotalTime, double timeScale, int playTimes, boolean pausePlayhead)
 	{
 		_armature = armature;
 		_clip = clip;
@@ -486,7 +490,7 @@ final public class AnimationState
 	}
 
 	/** @private */
-	private boolean advanceTime(double passedTime)
+	boolean advanceTime(double passedTime)
 	{
 		passedTime *= _timeScale;
 
@@ -574,7 +578,7 @@ final public class AnimationState
 				{
 					event = new AnimationEvent(AnimationEvent.FADE_OUT);
 					event.animationState = this;
-					_armature._eventList.push(event);
+					_armature._eventList.add(event);
 				}
 			}
 			else
@@ -586,7 +590,7 @@ final public class AnimationState
 				{
 					event = new AnimationEvent(AnimationEvent.FADE_IN);
 					event.animationState = this;
-					_armature._eventList.push(event);
+					_armature._eventList.add(event);
 				}
 			}
 		}
@@ -599,7 +603,7 @@ final public class AnimationState
 				{
 					event = new AnimationEvent(AnimationEvent.FADE_OUT_COMPLETE);
 					event.animationState = this;
-					_armature._eventList.push(event);
+					_armature._eventList.add(event);
 				}
 			}
 			else
@@ -608,7 +612,7 @@ final public class AnimationState
 				{
 					event = new AnimationEvent(AnimationEvent.FADE_IN_COMPLETE);
 					event.animationState = this;
-					_armature._eventList.push(event);
+					_armature._eventList.add(event);
 				}
 			}
 		}
@@ -626,14 +630,15 @@ final public class AnimationState
 		boolean loopCompleteFlg = false;
 		boolean isThisComplete = false;
 		int currentPlayTimes = 0;
-		int currentTime = _time * 1000;
+		int currentTime = (int)(_time * 1000);
 		if(_playTimes == 0)
 		{
 			isThisComplete = false;
-			currentPlayTimes = Math.ceil(Math.abs(currentTime) / _totalTime) || 1;
+			currentPlayTimes = (int)Math.ceil(Math.abs(currentTime) / _totalTime);
+			if (currentPlayTimes == 0) currentPlayTimes = 1;
 			//currentTime -= Math.floor(currentTime / _totalTime) * _totalTime;
 
-			currentTime -= int(currentTime / _totalTime) * _totalTime;
+			currentTime -= (int)(currentTime / _totalTime) * _totalTime;
 
 			if(currentTime < 0)
 			{
@@ -728,7 +733,7 @@ final public class AnimationState
 			{
 				event = new AnimationEvent(AnimationEvent.START);
 				event.animationState = this;
-				_armature._eventList.push(event);
+				_armature._eventList.add(event);
 			}
 		}
 
@@ -738,7 +743,7 @@ final public class AnimationState
 			{
 				event = new AnimationEvent(AnimationEvent.COMPLETE);
 				event.animationState = this;
-				_armature._eventList.push(event);
+				_armature._eventList.add(event);
 			}
 			if(autoFadeOut)
 			{
@@ -751,7 +756,7 @@ final public class AnimationState
 			{
 				event = new AnimationEvent(AnimationEvent.LOOP_COMPLETE);
 				event.animationState = this;
-				_armature._eventList.push(event);
+				_armature._eventList.add(event);
 			}
 		}
 	}
@@ -836,8 +841,12 @@ final public class AnimationState
 		return this;
 	}
 
+	public AnimationState setAutoFadeOut(boolean value)
+	{
+		return setAutoFadeOut(value, -1);
+	}
 
-	public AnimationState setAutoFadeOut(boolean value, double fadeOutTime = -1)
+	public AnimationState setAutoFadeOut(boolean value, double fadeOutTime)
 	{
 		autoFadeOut = value;
 		if(fadeOutTime >= 0)
@@ -936,7 +945,7 @@ final public class AnimationState
 	/**
 	 * Is animation complete.
 	 */
-	public boolean getIsComplete()
+	public boolean isComplete()
 	{
 		return _isComplete;
 	}

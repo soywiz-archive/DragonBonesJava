@@ -1,11 +1,12 @@
 ﻿package dragonBones.animation;
-	import dragonBones.Armature;
-	import dragonBones.Slot;
-	import dragonBones.core.dragonBones_internal;
-	import dragonBones.objects.AnimationData;
 
-	import java.util.ArrayList;
-	import java.util.Objects;
+import dragonBones.Armature;
+import dragonBones.Slot;
+import dragonBones.objects.AnimationData;
+import dragonBones.utils.ArrayListUtils;
+
+import java.util.ArrayList;
+import java.util.Objects;
 
 /**
  * An Animation instance is used to control the animation state of an Armature.
@@ -49,8 +50,8 @@ public class Animation
 	public Animation(Armature armature)
 	{
 		_armature = armature;
-		_animationList = new ArrayList<String>;
-		_animationStateList = new ArrayList<AnimationState>;
+		_animationList = new ArrayList<String>();
+		_animationStateList = new ArrayList<AnimationState>();
 
 		_timeScale = 1;
 		_isPlaying = false;
@@ -84,13 +85,20 @@ public class Animation
 		AnimationState animationState;
 		while(i -- > 0)
 		{
-			animationState = _animationStateList[i];
+			animationState = _animationStateList.get(i);
 			animationState.resetTimelineStateList();
 			AnimationState.returnObject(animationState);
 		}
 		_animationStateList.clear();
 	}
 
+	public AnimationState gotoAndPlay(String animationName) {
+		return gotoAndPlay(animationName, -1, -1, Double.NaN, 0, null, SAME_LAYER_AND_GROUP, true, true);
+	}
+
+	public AnimationState gotoAndPlay(String animationName, double fadeInTime) {
+		return gotoAndPlay(animationName, fadeInTime, -1, Double.NaN, 0, null, SAME_LAYER_AND_GROUP, true, true);
+	}
 
 
 	/**
@@ -105,26 +113,26 @@ public class Animation
 	 * @param pauseFadeOut Pause other animation playing.
 	 * @param pauseFadeIn Pause this animation playing before fade in complete.
 	 * @return AnimationState.
-	 * @see dragonBones.objects.AnimationData.
-	 * @see dragonBones.animation.AnimationState.
+	 * @see dragonBones.objects.AnimationData
+	 * @see dragonBones.animation.AnimationState
 	 */
 	public AnimationState gotoAndPlay(
 		String animationName,
-		double fadeInTime = -1,
-		double duration = -1,
-		double playTimes = Double.NaN,
-		int layer = 0,
-		String group = null,
-		String fadeOutMode = SAME_LAYER_AND_GROUP,
-		boolean pauseFadeOut = true,
-		boolean pauseFadeIn = true
+		double fadeInTime,
+		double duration,
+		double playTimes,
+		int layer,
+		String group,
+		String fadeOutMode,
+		boolean pauseFadeOut,
+		boolean pauseFadeIn
 	)
 	{
-		if (!_animationDataList)
+		if (_animationDataList == null)
 		{
 			return null;
 		}
-		int i = _animationDataList.length;
+		int i = _animationDataList.size();
 		AnimationData animationData = null;
 		while(i -- > 0)
 		{
@@ -168,7 +176,7 @@ public class Animation
 				while(i -- > 0)
 				{
 					animationState = _animationStateList.get(i);
-					if(animationState.layer == layer)
+					if(animationState.getLayer() == layer)
 					{
 						animationState.fadeOut(fadeInTime, pauseFadeOut);
 					}
@@ -176,11 +184,11 @@ public class Animation
 				break;
 
 			case SAME_GROUP:
-				i = _animationStateList.length;
+				i = _animationStateList.size();
 				while(i -- > 0)
 				{
-					animationState = _animationStateList[i];
-					if(animationState.group == group)
+					animationState = _animationStateList.get(i);
+					if(Objects.equals(animationState.getGroup(), group))
 					{
 						animationState.fadeOut(fadeInTime, pauseFadeOut);
 					}
@@ -188,21 +196,21 @@ public class Animation
 				break;
 
 			case ALL:
-				i = _animationStateList.length;
+				i = _animationStateList.size();
 				while(i -- > 0)
 				{
-					animationState = _animationStateList[i];
+					animationState = _animationStateList.get(i);
 					animationState.fadeOut(fadeInTime, pauseFadeOut);
 				}
 				break;
 
 			case SAME_LAYER_AND_GROUP:
 			default:
-				i = _animationStateList.length;
+				i = _animationStateList.size();
 				while(i -- > 0)
 				{
-					animationState = _animationStateList[i];
-					if(animationState.layer == layer && animationState.group == group )
+					animationState = _animationStateList.get(i);
+					if(animationState.getLayer() == layer && Objects.equals(animationState.getGroup(), group))
 					{
 						animationState.fadeOut(fadeInTime, pauseFadeOut);
 					}
@@ -214,7 +222,7 @@ public class Animation
 		_lastAnimationState._layer = layer;
 		_lastAnimationState._group = group;
 		_lastAnimationState.autoTween = tweenEnabled;
-		_lastAnimationState.fadeIn(_armature, animationData, fadeInTime, 1 / durationScale, playTimes, pauseFadeIn);
+		_lastAnimationState.fadeIn(_armature, animationData, fadeInTime, 1 / durationScale, (int)playTimes, pauseFadeIn);
 
 		addState(_lastAnimationState);
 
@@ -224,9 +232,9 @@ public class Animation
 		while(i -- > 0)
 		{
 			Slot slot = slotList.get(i);
-			if(slot.childArmature)
+			if(slot.getChildArmature() != null)
 			{
-				slot.childArmature.animation.gotoAndPlay(animationName, fadeInTime);
+				slot.getChildArmature().getAnimation().gotoAndPlay(animationName, fadeInTime);
 			}
 		}
 		if(needUpdata)
@@ -236,40 +244,47 @@ public class Animation
 		return _lastAnimationState;
 	}
 
-	/**
-	 * Control the animation to stop with a specified time. If related animationState haven't been created, then create a new animationState.
-	 * @param animationName The name of the animationState.
-	 * @param time
-	 * @param normalizedTime
-	 * @param fadeInTime A fade time to apply (>= 0), -1 means use xml data's fadeInTime.
-	 * @param duration The duration of that Animation. -1 means use xml data's duration.
-	 * @param layer The layer of the animation.
-	 * @param group The group of the animation.
-	 * @param fadeOutMode Fade out mode (none, sameLayer, sameGroup, sameLayerAndGroup, all).
-	 * @return AnimationState.
-	 * @see dragonBones.objects.AnimationData
-	 * @see dragonBones.animation.AnimationState
-	 */
+	public AnimationState gotoAndStop(
+		String animationName,
+		double time
+	) {
+		return gotoAndStop(animationName, time, -1, 0, -1, 0, null, ALL);
+	}
+
+		/**
+		 * Control the animation to stop with a specified time. If related animationState haven't been created, then create a new animationState.
+		 * @param animationName The name of the animationState.
+		 * @param time
+		 * @param normalizedTime
+		 * @param fadeInTime A fade time to apply (>= 0), -1 means use xml data's fadeInTime.
+		 * @param duration The duration of that Animation. -1 means use xml data's duration.
+		 * @param layer The layer of the animation.
+		 * @param group The group of the animation.
+		 * @param fadeOutMode Fade out mode (none, sameLayer, sameGroup, sameLayerAndGroup, all).
+		 * @return AnimationState.
+		 * @see dragonBones.objects.AnimationData
+		 * @see dragonBones.animation.AnimationState
+		 */
 	public AnimationState gotoAndStop(
 		String animationName,
 		double time,
-		double normalizedTime = -1,
-		double fadeInTime = 0,
-		double duration = -1,
-		int layer = 0,
-		String group = null,
-		String fadeOutMode = ALL
+		double normalizedTime,
+		double fadeInTime,
+		double duration,
+		int layer,
+		String group,
+		String fadeOutMode
 	)
 	{
 		AnimationState animationState = getState(animationName, layer);
-		if(!animationState)
+		if(animationState == null)
 		{
-			animationState = gotoAndPlay(animationName, fadeInTime, duration, NaN, layer, group, fadeOutMode);
+			animationState = gotoAndPlay(animationName, fadeInTime, duration, Double.NaN, layer, group, fadeOutMode, true, true);
 		}
 
 		if(normalizedTime >= 0)
 		{
-			animationState.setCurrentTime(animationState.totalTime * normalizedTime);
+			animationState.setCurrentTime(animationState.getTotalTime() * normalizedTime);
 		}
 		else
 		{
@@ -286,13 +301,13 @@ public class Animation
 	 */
 	public void play()
 	{
-		if (!_animationDataList || _animationDataList.length == 0)
+		if (_animationDataList == null || _animationDataList.size() == 0)
 		{
 			return;
 		}
-		if(!_lastAnimationState)
+		if(_lastAnimationState == null)
 		{
-			gotoAndPlay(_animationDataList[0].name);
+			gotoAndPlay(_animationDataList.get(0).name);
 		}
 		else if (!_isPlaying)
 		{
@@ -300,7 +315,7 @@ public class Animation
 		}
 		else
 		{
-			gotoAndPlay(_lastAnimationState.name);
+			gotoAndPlay(_lastAnimationState.getName());
 		}
 	}
 
@@ -309,18 +324,23 @@ public class Animation
 		_isPlaying = false;
 	}
 
+	public AnimationState getState(String name)
+	{
+		return getState(name, 0);
+	}
+
 	/**
 	 * Returns the AnimationState named name.
 	 * @return A AnimationState instance.
 	 * @see dragonBones.animation.AnimationState
 	 */
-	public AnimationState getState(String name, int layer = 0)
+	public AnimationState getState(String name, int layer)
 	{
-		int i = _animationStateList.length;
+		int i = _animationStateList.size();
 		while(i -- > 0)
 		{
-			AnimationState animationState = _animationStateList[i];
-			if(animationState.name == name && animationState.layer == layer)
+			AnimationState animationState = _animationStateList.get(i);
+			if(Objects.equals(animationState.getName(), name) && animationState.getLayer() == layer)
 			{
 				return animationState;
 			}
@@ -331,7 +351,6 @@ public class Animation
 	/**
 	 * check if contains a AnimationData by name.
 	 * @return Boolean.
-	 * @see dragonBones.animation.AnimationData
 	 */
 	public boolean hasAnimation(String animationName)
 	{
@@ -361,12 +380,12 @@ public class Animation
 		int i = _animationStateList.size();
 		while(i -- > 0)
 		{
-			AnimationState animationState = _animationStateList[i];
+			AnimationState animationState = _animationStateList.get(i);
 			if(animationState.advanceTime(passedTime))
 			{
 				removeState(animationState);
 			}
-			else if(animationState.fadeState != 1)
+			else if(animationState.getFadeState() != 1)
 			{
 				isFading = true;
 			}
@@ -379,10 +398,10 @@ public class Animation
 	//当动画播放过程中Bonelist改变时触发
 	public void updateAnimationStates()
 	{
-		var i:int = _animationStateList.length;
-		while(i --)
+		int i = _animationStateList.size();
+		while(i -- > 0)
 		{
-			_animationStateList[i].updateTimelineStates();
+			_animationStateList.get(i).updateTimelineStates();
 		}
 	}
 
@@ -390,9 +409,9 @@ public class Animation
 	{
 		if(_animationStateList.indexOf(animationState) < 0)
 		{
-			_animationStateList.unshift(animationState);
+			ArrayListUtils.unshift(_animationStateList, animationState);
 
-			_animationStateCount = _animationStateList.length;
+			_animationStateCount = _animationStateList.size();
 		}
 	}
 
@@ -401,14 +420,14 @@ public class Animation
 		int index = _animationStateList.indexOf(animationState);
 		if(index >= 0)
 		{
-			_animationStateList.splice(index, 1);
+			_animationStateList.remove(index); // removeAt
 			AnimationState.returnObject(animationState);
 
 			if(_lastAnimationState == animationState)
 			{
-				if(_animationStateList.length > 0)
+				if(_animationStateList.size() > 0)
 				{
-					_lastAnimationState = _animationStateList[0];
+					_lastAnimationState = _animationStateList.get(0);
 				}
 				else
 				{
@@ -416,7 +435,7 @@ public class Animation
 				}
 			}
 
-			_animationStateCount = _animationStateList.length;
+			_animationStateCount = _animationStateList.size();
 		}
 	}
 
@@ -435,7 +454,7 @@ public class Animation
 	*/
 	public String getMovementID()
 	{
-		return lastAnimationName;
+		return getLastAnimationName();
 	}
 
 
@@ -454,7 +473,7 @@ public class Animation
 	 */
 	public String getLastAnimationName()
 	{
-		return _lastAnimationState?_lastAnimationState.name:null;
+		return _lastAnimationState != null?_lastAnimationState.getName():null;
 	}
 
 
@@ -474,25 +493,25 @@ public class Animation
 	 */
 	public boolean getIsPlaying()
 	{
-		return _isPlaying && !isComplete;
+		return _isPlaying && !isComplete();
 	}
 
 	/**
 	 * Is animation complete.
 	 * @see dragonBones.animation.AnimationState
 	 */
-	public boolean getIsComplete()
+	public boolean isComplete()
 	{
-		if(_lastAnimationState)
+		if(_lastAnimationState != null)
 		{
-			if(!_lastAnimationState.isComplete)
+			if(!_lastAnimationState.isComplete())
 			{
 				return false;
 			}
-			int i = _animationStateList.length;
+			int i = _animationStateList.size();
 			while(i -- > 0)
 			{
-				if(!_animationStateList[i].isComplete)
+				if(!_animationStateList.get(i).isComplete())
 				{
 					return false;
 				}

@@ -1,8 +1,8 @@
 package dragonBones.fast.animation;
 
+import dragonBones.animation.BaseAnimation;
 import dragonBones.cache.AnimationCacheManager;
 import dragonBones.core.IArmature;
-import dragonBones.core.dragonBones_internal;
 import dragonBones.fast.FastArmature;
 import dragonBones.fast.FastSlot;
 import dragonBones.objects.AnimationData;
@@ -14,11 +14,10 @@ import java.util.ArrayList;
 /**
  * 不支持动画融合，在开启缓存的情况下，不支持无极的平滑补间
  */
-public class FastAnimation
+public class FastAnimation extends BaseAnimation
 {
 	public ArrayList<String> animationList;
 	public FastAnimationState animationState = new FastAnimationState();
-	public AnimationCacheManager animationCacheManager;
 
 	private FastArmature _armature;
 	private ArrayList<AnimationData> _animationDataList;

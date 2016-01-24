@@ -1,22 +1,25 @@
 package dragonBones.cache;
 import dragonBones.core.IAnimationState;
+import dragonBones.core.IBaseSlot;
 import dragonBones.core.ICacheUser;
 import dragonBones.core.ICacheableArmature;
 import dragonBones.objects.AnimationData;
 import dragonBones.objects.ArmatureData;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 //use namespace dragonBones_internal;
 
 public class AnimationCacheManager
 {
-	public ICacheableArmature cacheGeneratorArmature
+	public ICacheableArmature cacheGeneratorArmature;
 	public ArmatureData armatureData;
 	public double frameRate;
-	public Object animationCacheDic = {};
+	public Map<String, AnimationCache> animationCacheDic = new HashMap<>();
 //		public Object boneFrameCacheDic = {};
-	public Object slotFrameCacheDic = {};
+	public Map<String, Object> slotFrameCacheDic = new HashMap<>();
 	public AnimationCacheManager()
 	{
 	}
@@ -50,13 +53,13 @@ public class AnimationCacheManager
 	{
 		for (AnimationData animationData : armatureData.getAnimationDataList())
 		{
-			animationCacheDic[animationData.name] = AnimationCache.initWithAnimationData(animationData,armatureData);
+			animationCacheDic.put(animationData.name, AnimationCache.initWithAnimationData(animationData,armatureData));
 		}
 	}
 
 	public void initAnimationCache(String animationName)
 	{
-		animationCacheDic[animationName] = AnimationCache.initWithAnimationData(armatureData.getAnimationData(animationName),armatureData);
+		animationCacheDic.put(animationName, AnimationCache.initWithAnimationData(armatureData.getAnimationData(animationName),armatureData));
 	}
 
 	public void bindCacheUserArmatures(ArrayList<ICacheableArmature> armatures)
@@ -72,7 +75,7 @@ public class AnimationCacheManager
 	{
 		armature.getAnimation().animationCacheManager = this;
 
-		Object slotDic = armature.getSlotDic();
+		Map<String, Object> slotDic = armature.getSlotDic();
 		ICacheUser cacheUser;
 //			for each(cacheUser in armature._boneDic)
 //			{
@@ -94,9 +97,9 @@ public class AnimationCacheManager
 //			{
 //				boneFrameCacheDic[cacheUser.name] = new FrameCache();
 //			}
-		for (Object cacheUser : armature.getSlotDic())
+		for (IBaseSlot cacheUser : armature.getSlotDic())
 		{
-			slotFrameCacheDic[cacheUser.name] = new SlotFrameCache();
+			slotFrameCacheDic[cacheUser.getName()] = new SlotFrameCache();
 		}
 
 		for (AnimationCache animationCache in animationCacheDic)
@@ -116,10 +119,10 @@ public class AnimationCacheManager
 
 	public void generateAnimationCache(String animationName, boolean loop)
 	{
-		boolean temp = cacheGeneratorArmature.enableCache;
-		cacheGeneratorArmature.enableCache = false;
-		AnimationCache animationCache = animationCacheDic[animationName];
-		if(!animationCache)
+		boolean temp = cacheGeneratorArmature.getEnableCache();
+		cacheGeneratorArmature.setEnableCache(false);
+		AnimationCache animationCache = animationCacheDic.get(animationName);
+		if(animationCache == null)
 		{
 			return;
 		}

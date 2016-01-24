@@ -35,9 +35,9 @@ public class DBObject
 	public boolean inheritTranslation;
 
 	/** @private */
-	private DBTransform _global;
+	protected DBTransform _global;
 	/** @private */
-	private Matrix _globalTransformMatrix;
+	protected Matrix _globalTransformMatrix;
 
 	public static Matrix _tempParentGlobalTransformMatrix = new Matrix();
 	private static DBTransform _tempParentGlobalTransform = new DBTransform();
@@ -101,7 +101,7 @@ public class DBObject
 	}
 
 	/** @private */
-	private Bone _parent;
+	protected Bone _parent;
 	/**
 	 * Indicates the Bone instance that directly contains this DBObject instance if any.
 	 */
@@ -205,7 +205,7 @@ public class DBObject
 		return null;
 	}
 
-	protected Object updateGlobal()
+	protected DBObject.TempOutput updateGlobal()
 	{
 		calculateRelativeParentTransform();
 		DBObject.TempOutput output = calculateParentTransform();

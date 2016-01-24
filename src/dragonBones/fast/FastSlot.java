@@ -1,5 +1,6 @@
 package dragonBones.fast;
 
+import dragonBones.core.IBaseSlot;
 import dragonBones.core.DBObject;
 import flash.errors.IllegalOperationError;
 import flash.geom.ColorTransform;
@@ -21,7 +22,7 @@ import java.util.Objects;
 
 //use namespace dragonBones_internal;
 
-public class FastSlot extends FastDBObject implements ISlotCacheGenerator
+public class FastSlot extends FastDBObject implements ISlotCacheGenerator, IBaseSlot
 {
 	/** @private Need to keep the reference of DisplayData. When slot switch displayObject, it need to restore the display obect's origional pivot. */
 	ArrayList<DisplayData> _displayDataList;
@@ -252,14 +253,14 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 				FastArmature targetArmature = (FastArmature)display;
 
 				if(	this.armature &&
-					this.armature.animation.animationState &&
-					targetArmature.animation.hasAnimation(this.armature.animation.animationState.name))
+					this.armature.getAnimation().animationState &&
+					targetArmature.getAnimation().hasAnimation(this.armature.animation.animationState.name))
 				{
-					targetArmature.animation.gotoAndPlay(this.armature.animation.animationState.name);
+					targetArmature.getAnimation().gotoAndPlay(this.armature.animation.animationState.name);
 				}
 				else
 				{
-					targetArmature.animation.play();
+					targetArmature.getAnimation().play();
 				}
 			}
 		}

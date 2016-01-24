@@ -1,4 +1,6 @@
 package dragonBones.cache;
+import dragonBones.core.ICacheUser;
+import dragonBones.core.ISlotCacheGenerator;
 import dragonBones.objects.AnimationData;
 import dragonBones.objects.ArmatureData;
 import dragonBones.objects.BoneData;
@@ -7,6 +9,8 @@ import dragonBones.objects.SlotTimeline;
 import dragonBones.objects.TransformTimeline;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 public class AnimationCache
@@ -15,7 +19,7 @@ public class AnimationCache
 //		public var boneTimelineCacheList:Vector.<BoneTimelineCache> = new Vector.<BoneTimelineCache>();
 	public ArrayList<SlotTimelineCache> slotTimelineCacheList = new ArrayList<SlotTimelineCache>();
 //		public var boneTimelineCacheDic:Object = {};
-	public Object slotTimelineCacheDic = {};
+	public Map<String, SlotTimelineCache> slotTimelineCacheDic = new HashMap<>();
 	public int frameNum = 0;
 	public AnimationCache()
 	{
@@ -42,12 +46,12 @@ public class AnimationCache
 				slotName = slotData.name;
 				if (Objects.equals(slotData.parent, boneName))
 				{
-					if (output.slotTimelineCacheDic[slotName] == null)
+					if (!output.slotTimelineCacheDic.containsKey(slotName))
 					{
 						slotTimelineCache = new SlotTimelineCache();
 						slotTimelineCache.name = slotName;
 						output.slotTimelineCacheList.add(slotTimelineCache);
-						output.slotTimelineCacheDic[slotName] = slotTimelineCache;
+						output.slotTimelineCacheDic.put(slotName, slotTimelineCache);
 					}
 
 				}
@@ -67,14 +71,14 @@ public class AnimationCache
 //			}
 //		}
 
-	public void initSlotTimelineCacheDic(Object slotCacheGeneratorDic, Object slotFrameCacheDic)
+	public void initSlotTimelineCacheDic(Map<String, ISlotCacheGenerator> slotCacheGeneratorDic, Map<String, FrameCache> slotFrameCacheDic)
 	{
 		String name;
-		for (SlotTimelineCache slotTimelineCache : slotTimelineCacheDic)
+		for (SlotTimelineCache slotTimelineCache : slotTimelineCacheDic.values())
 		{
 			name = slotTimelineCache.name;
-			slotTimelineCache.cacheGenerator = slotCacheGeneratorDic[name];
-			slotTimelineCache.currentFrameCache = slotFrameCacheDic[name];
+			slotTimelineCache.cacheGenerator = slotCacheGeneratorDic.get(name);
+			slotTimelineCache.currentFrameCache = slotFrameCacheDic.get(name);
 		}
 	}
 
@@ -86,11 +90,11 @@ public class AnimationCache
 //			}
 //		}
 
-	public void bindCacheUserSlotDic(Object slotDic)
+	public void bindCacheUserSlotDic(Map<String, ICacheUser> slotDic)
 	{
-		for(String name : slotDic)
+		for (String name : slotDic.keySet())
 		{
-			((SlotTimelineCache)slotTimelineCacheDic[name]).bindCacheUser(slotDic[name]);
+			((SlotTimelineCache)slotTimelineCacheDic.get(name)).bindCacheUser(slotDic.get(name));
 		}
 	}
 
@@ -115,7 +119,7 @@ public class AnimationCache
 
 	public void update(double progress)
 	{
-		int frameIndex = progress * (frameNum-1);
+		int frameIndex = (int)(progress * (frameNum-1));
 
 //			var boneTimelineCache:BoneTimelineCache;
 //			for(var i:int = 0, length:int = boneTimelineCacheList.length; i < length; i++)

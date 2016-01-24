@@ -16,6 +16,7 @@ import dragonBones.objects.Frame;
 import dragonBones.utils.TransformUtil;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Objects;
 
 //use namespace dragonBones_internal;
@@ -134,7 +135,7 @@ public class Bone extends DBObject
 //骨架装配
 	/**
 	 * If contains some bone or slot
-	 * @param Slot or Bone instance
+	 * @param child Slot or Bone instance
 	 * @return Boolean
 	 * @see dragonBones.core.DBObject
 	 */
@@ -155,13 +156,16 @@ public class Bone extends DBObject
 		}
 		return ancestor == this;
 	}
+	public void addChildBone(Bone childBone) {
+		addChildBone(childBone, false);
+	}
 
 	/**
 	 * Add a bone as child
-	 * @param a Bone instance
+	 * @param childBone Bone instance
 	 * @see dragonBones.core.DBObject
 	 */
-	public void addChildBone(Bone childBone, boolean updateLater = false)
+	public void addChildBone(Bone childBone, boolean updateLater)
 	{
 		if(childBone == null)
 		{
@@ -193,12 +197,17 @@ public class Bone extends DBObject
 		}
 	}
 
+	public void removeChildBone(Bone childBone)
+	{
+		removeChildBone(childBone, false);
+	}
+
 	/**
 	 * remove a child bone
-	 * @param a Bone instance
+	 * @param childBone Bone instance
 	 * @see dragonBones.core.DBObject
 	 */
-	public void removeChildBone(Bone childBone, boolean updateLater = false)
+	public void removeChildBone(Bone childBone, boolean updateLater)
 	{
 		if(childBone == null)
 		{
@@ -224,7 +233,7 @@ public class Bone extends DBObject
 
 	/**
 	 * Add a slot as child
-	 * @param a Slot instance
+	 * @param childSlot Slot instance
 	 * @see dragonBones.core.DBObject
 	 */
 	public void addSlot(Slot childSlot)
@@ -234,7 +243,7 @@ public class Bone extends DBObject
 			throw new ArgumentError();
 		}
 
-		if(childSlot.getParent())
+		if(childSlot.getParent() != null)
 		{
 			childSlot.getParent().removeSlot(childSlot);
 		}
@@ -246,7 +255,7 @@ public class Bone extends DBObject
 
 	/**
 	 * remove a child slot
-	 * @param a Slot instance
+	 * @param childSlot Slot instance
 	 * @see dragonBones.core.DBObject
 	 */
 	public void removeSlot(Slot childSlot)
@@ -303,9 +312,14 @@ public class Bone extends DBObject
 	 * @return A Vector.&lt;Slot&gt; instance.
 	 * @see dragonBones.Slot
 	 */
-	public ArrayList<Bone> getBones(boolean returnCopy = true)
+	public ArrayList<Bone> getBones(boolean returnCopy)
 	{
-		return returnCopy?_boneList.concat():_boneList;
+		return returnCopy? (ArrayList<Bone>) _boneList.clone() :_boneList;
+	}
+
+	public ArrayList<Bone> getBones()
+	{
+		return getBones(true);
 	}
 
 	/**
@@ -313,9 +327,13 @@ public class Bone extends DBObject
 	 * @return A Vector.&lt;Slot&gt; instance.
 	 * @see dragonBones.Slot
 	 */
-	public ArrayList<Slot> getSlots(boolean returnCopy = true)
+	public ArrayList<Slot> getSlots(boolean returnCopy)
 	{
-		return returnCopy?_slotList.concat():_slotList;
+		return returnCopy? (ArrayList<Slot>) _slotList.clone() :_slotList;
+	}
+	public ArrayList<Slot> getSlots()
+	{
+		return getSlots(true);
 	}
 
 //动画
@@ -346,7 +364,7 @@ public class Bone extends DBObject
 		void update(boolean needUpdate)
 	{
 		_needUpdate --;
-		if(needUpdate || _needUpdate > 0 || (this._parent && this._parent._needUpdate > 0))
+		if(needUpdate || _needUpdate > 0 || (this._parent != null && this._parent._needUpdate > 0))
 		{
 			_needUpdate = 1;
 		}
@@ -358,7 +376,7 @@ public class Bone extends DBObject
 		blendingTimeline();
 
 	//计算global
-		Object result = updateGlobal();
+		DBObject.TempOutput result = updateGlobal();
 		DBTransform parentGlobalTransform = result != null ? result.parentGlobalTransform : null;
 		Matrix parentGlobalTransformMatrix = result != null ? result.parentGlobalTransformMatrix : null;
 
@@ -440,15 +458,15 @@ public class Bone extends DBObject
 		if(displayControl)
 		{
 			Slot childSlot;
-			if(frame.event && this._armature.hasEventListener(FrameEvent.BONE_FRAME_EVENT))
+			if(frame.event != null && this._armature.hasEventListener(FrameEvent.BONE_FRAME_EVENT))
 			{
 				FrameEvent frameEvent = new FrameEvent(FrameEvent.BONE_FRAME_EVENT);
 				frameEvent.bone = this;
 				frameEvent.animationState = animationState;
 				frameEvent.frameLabel = frame.event;
-				this._armature._eventList.push(frameEvent);
+				this._armature._eventList.add(frameEvent);
 			}
-			if(frame.sound && _soundManager.hasEventListener(SoundEvent.SOUND))
+			if(frame.sound != null && _soundManager.hasEventListener(SoundEvent.SOUND))
 			{
 				SoundEvent soundEvent = new SoundEvent(SoundEvent.SOUND);
 				soundEvent.armature = this._armature;
@@ -463,10 +481,10 @@ public class Bone extends DBObject
 			{
 				for (Slot childSlot2 : _slotList)
 				{
-					Armature childArmature = childSlot2.childArmature;
+					Armature childArmature = childSlot2.getChildArmature();
 					if(childArmature != null)
 					{
-						childArmature.animation.gotoAndPlay(frame.action);
+						childArmature.getAnimation().gotoAndPlay(frame.action);
 					}
 				}
 			}
@@ -479,7 +497,7 @@ public class Bone extends DBObject
 		if(_timelineStateList.indexOf(timelineState) < 0)
 		{
 			_timelineStateList.add(timelineState);
-			_timelineStateList.sort(sortState);
+			_timelineStateList.sort(new SortState());
 		}
 	}
 
@@ -590,7 +608,14 @@ public class Bone extends DBObject
 		}
 	}
 
-	private int sortState(TimelineState state1, TimelineState state2)
+	class SortState implements Comparator<TimelineState> {
+		@Override
+		public int compare(TimelineState state1, TimelineState state2) {
+			return state1._animationState.getLayer() < state2._animationState.getLayer()?-1:1;
+		}
+	}
+
+	static private int sortState(TimelineState state1, TimelineState state2)
 	{
 		return state1._animationState.getLayer() < state2._animationState.getLayer()?-1:1;
 	}

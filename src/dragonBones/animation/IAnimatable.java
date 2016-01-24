@@ -15,7 +15,7 @@ package dragonBones.animation;
 	{
 		/**
 		 * Update the animation using this method typically in an ENTERFRAME Event or with a Timer.
-		 * @param The amount of second to move the playhead ahead.
+		 * @param passedTime The amount of second to move the playhead ahead.
 		 */
 		void advanceTime(double passedTime);
 	}

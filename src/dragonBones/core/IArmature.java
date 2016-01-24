@@ -1,9 +1,10 @@
 package dragonBones.core;
+	import dragonBones.animation.BaseAnimation;
 	import dragonBones.animation.IAnimatable;
 
 	public interface IArmature extends IAnimatable
 	{
-		Object getAnimation();
+		BaseAnimation getAnimation();
 		void resetAnimation();
 		
 	}

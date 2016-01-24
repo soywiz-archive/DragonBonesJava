@@ -94,7 +94,7 @@ public class Armature extends EventDispatcher implements IArmature
 	boolean _slotsZOrderChanged;
 
 	/** @private Store event needed to dispatch in current frame. When advanceTime execute complete, dispath them.*/
-	private ArrayList<Event> _eventList;
+	public ArrayList<Event> _eventList;
 
 
 	/** @private Store slots based on slots' zOrder*/
@@ -540,7 +540,7 @@ public class Armature extends EventDispatcher implements IArmature
 	}
 
 	/** @private */
-	private void addBoneToBoneList(Bone bone)
+	void addBoneToBoneList(Bone bone)
 	{
 		if(_boneList.indexOf(bone) < 0)
 		{
@@ -549,7 +549,7 @@ public class Armature extends EventDispatcher implements IArmature
 	}
 
 	/** @private */
-	private void removeBoneFromBoneList(Bone bone)
+	void removeBoneFromBoneList(Bone bone)
 	{
 		_boneList.remove(bone);
 	}
@@ -589,7 +589,12 @@ public class Armature extends EventDispatcher implements IArmature
 		_slotsZOrderChanged = false;
 	}
 
-	private void updateAnimationAfterBoneListChanged(boolean ifNeedSortBoneList = true)
+	void updateAnimationAfterBoneListChanged()
+	{
+		updateAnimationAfterBoneListChanged(true);
+	}
+
+	void updateAnimationAfterBoneListChanged(boolean ifNeedSortBoneList)
 	{
 		if(ifNeedSortBoneList)
 		{
@@ -632,7 +637,7 @@ public class Armature extends EventDispatcher implements IArmature
 	}
 
 	/** @private When AnimationState enter a key frame, call this func*/
-	private void arriveAtFrame(Frame frame, TimelineState timelineState, AnimationState animationState, boolean isCross)
+	public void arriveAtFrame(Frame frame, TimelineState timelineState, AnimationState animationState, boolean isCross)
 	{
 		if(frame.event != null && this.hasEventListener(FrameEvent.ANIMATION_FRAME_EVENT))
 		{

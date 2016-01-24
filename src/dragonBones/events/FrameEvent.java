@@ -6,6 +6,7 @@ package dragonBones.events;
 * @langversion 3.0
 * @version 2.0
 */
+import dragonBones.Armature;
 import flash.events.Event;
 
 /**
@@ -56,9 +57,14 @@ public class FrameEvent extends Event
 	 * @param type
 	 * @param cancelable
 	 */
-	public FrameEvent(String type, boolean cancelable = false)
+	public FrameEvent(String type, boolean cancelable)
 	{
 		super(type, false, cancelable);
+	}
+
+	public FrameEvent(String type)
+	{
+		this(type, false);
 	}
 
 	/**

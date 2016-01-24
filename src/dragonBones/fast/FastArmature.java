@@ -1,5 +1,6 @@
 package dragonBones.fast;
 
+import dragonBones.animation.BaseAnimation;
 import dragonBones.events.EventInfo;
 import dragonBones.utils.ArrayListUtils;
 import flash.events.Event;
@@ -19,6 +20,8 @@ import dragonBones.objects.DragonBonesData;
 import dragonBones.objects.Frame;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 //use namespace dragonBones_internal;
 
@@ -76,7 +79,7 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
 
     /** @private Store slots based on slots' zOrder*/
     public ArrayList<FastSlot> slotList;
-    private Object _slotDic;
+    private Map<String, FastSlot> _slotDic;
 
     public ArrayList<FastSlot> slotHasChildArmatureList;
 
@@ -101,7 +104,7 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
         boneList = new ArrayList<>();
         _boneDic = {};
         slotList = new ArrayList<FastSlot>();
-        _slotDic = {};
+        _slotDic = new HashMap<>();
         slotHasChildArmatureList = new ArrayList<>();
 
         _eventList = [];
@@ -486,7 +489,7 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
         return slot1.zOrder < slot2.zOrder?1: -1;
     }
 
-    public Object getAnimation()
+    public BaseAnimation getAnimation()
     {
         return _animation;
     }
@@ -535,7 +538,7 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
         _enableEventDispatch = value;
     }
 
-    public Object getSlotDic()
+    public Map<String, Object> getSlotDic()
     {
         return _slotDic;
     }

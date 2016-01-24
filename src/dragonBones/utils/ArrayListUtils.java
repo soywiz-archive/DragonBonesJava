@@ -1,5 +1,6 @@
 package dragonBones.utils;
 
+import dragonBones.animation.AnimationState;
 import flash.events.Event;
 
 import java.util.ArrayList;
@@ -27,4 +28,8 @@ public class ArrayListUtils {
 		return array.remove(0);
 	}
 
+	public static <T> T unshift(ArrayList<T> array, T value) {
+		array.add(0, value);
+		return value;
+	}
 }

@@ -1,5 +1,7 @@
 package dragonBones.core;
 
+import java.util.Map;
+
 public interface ICacheableArmature extends IArmature
 {
 	boolean getEnableCache();
@@ -8,5 +10,5 @@ public interface ICacheableArmature extends IArmature
 	boolean getEnableEventDispatch();
 	void setEnableEventDispatch(boolean value);
 
-	Object getSlotDic();
+	Map<String, IBaseSlot> getSlotDic();
 }

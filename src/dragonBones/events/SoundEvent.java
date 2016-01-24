@@ -6,6 +6,7 @@ package dragonBones.events;
  * @langversion 3.0
  * @version 2.0
  */
+import dragonBones.Armature;
 import dragonBones.animation.AnimationState;
 
 import flash.events.Event;
@@ -37,9 +38,14 @@ public class SoundEvent extends Event
 	 * @param type
 	 * @param cancelable
 	 */
-	public SoundEvent(String type, boolean cancelable = false)
+	public SoundEvent(String type, boolean cancelable)
 	{
 		super(type, false, cancelable);
+	}
+
+	public SoundEvent(String type)
+	{
+		this(type, false);
 	}
 
 	/**
