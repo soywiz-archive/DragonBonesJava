@@ -142,7 +142,7 @@ public class NativeTextureAtlas implements ITextureAtlas
 		_subTextureDataDic.remove("__name");
 	}
 
-	private void movieClipToBitmapData()
+	public void movieClipToBitmapData()
 	{
 		if (_bitmapData == null && _movieClip != null)
 		{

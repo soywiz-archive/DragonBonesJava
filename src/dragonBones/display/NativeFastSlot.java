@@ -14,7 +14,7 @@ public class NativeFastSlot extends FastSlot
 
 	public NativeFastSlot()
 	{
-		super(this);
+		super();
 		_nativeDisplay = null;
 	}
 

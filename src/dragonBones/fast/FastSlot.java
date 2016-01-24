@@ -22,7 +22,7 @@ import java.util.Objects;
 
 //use namespace dragonBones_internal;
 
-public class FastSlot extends FastDBObject implements ISlotCacheGenerator
+abstract public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 {
 	/** @private Need to keep the reference of DisplayData. When slot switch displayObject, it need to restore the display obect's origional pivot. */
 	ArrayList<DisplayData> _displayDataList;
@@ -44,14 +44,10 @@ public class FastSlot extends FastDBObject implements ISlotCacheGenerator
 	protected String _blendMode;
 
 	public boolean hasChildArmature;
-	public FastSlot(FastSlot self)
+	public FastSlot()
 	{
 		super();
 
-		if(self != this)
-		{
-			throw new IllegalOperationError("Abstract class can not be instantiated!");
-		}
 		hasChildArmature = false;
 		_currentDisplayIndex = -1;
 

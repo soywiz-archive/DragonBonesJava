@@ -1,5 +1,6 @@
 ﻿package dragonBones;
 import dragonBones.events.*;
+import flash.Pair;
 import flash.errors.ArgumentError;
 import flash.events.Event;
 import flash.events.EventDispatcher;
@@ -14,65 +15,63 @@ import dragonBones.objects.Frame;
 import dragonBones.objects.SkinData;
 import dragonBones.objects.SlotData;
 
-import java.util.ArrayList;
-import java.util.Objects;
-import java.util.Vector;
+import java.util.*;
 
 //use namespace dragonBones_internal;
 
-/**
- * Dispatched when slot's zOrder changed
- */
-@EventInfo(name="zOrderUpdated", type="dragonBones.events.ArmatureEvent")
-
-/**
- * Dispatched when an animation state begins fade in (Even if fade in time is 0)
- */
-@EventInfo(name="fadeIn", type="dragonBones.events.AnimationEvent")
-
-/**
- * Dispatched when an animation state begins fade out (Even if fade out time is 0)
- */
-@EventInfo(name="fadeOut", type="dragonBones.events.AnimationEvent")
-
-/**
- * Dispatched when an animation state start to play(AnimationState may play when fade in start or end. It is controllable).
- */
-@EventInfo(name="start", type="dragonBones.events.AnimationEvent")
-
-/**
- * Dispatched when an animation state play complete (if playtimes equals to 0 means loop forever. Then this Event will not be triggered)
- */
-@EventInfo(name="complete", type="dragonBones.events.AnimationEvent")
-
-/**
- * Dispatched when an animation state complete a loop.
- */
-@EventInfo(name="loopComplete", type="dragonBones.events.AnimationEvent")
-
-/**
- * Dispatched when an animation state fade in complete.
- */
-@EventInfo(name="fadeInComplete", type="dragonBones.events.AnimationEvent")
-
-/**
- * Dispatched when an animation state fade out complete.
- */
-@EventInfo(name="fadeOutComplete", type="dragonBones.events.AnimationEvent")
-
-/**
- * Dispatched when an animation state enter a frame with animation frame event.
- */
-@EventInfo(name="animationFrameEvent", type="dragonBones.events.FrameEvent")
-
-/**
- * Dispatched when an bone enter a frame with animation frame event.
- */
-@EventInfo(name="boneFrameEvent", type="dragonBones.events.FrameEvent")
+///**
+// * Dispatched when slot's zOrder changed
+// */
+//@EventInfo(name="zOrderUpdated", type="dragonBones.events.ArmatureEvent")
+//
+///**
+// * Dispatched when an animation state begins fade in (Even if fade in time is 0)
+// */
+//@EventInfo(name="fadeIn", type="dragonBones.events.AnimationEvent")
+//
+///**
+// * Dispatched when an animation state begins fade out (Even if fade out time is 0)
+// */
+//@EventInfo(name="fadeOut", type="dragonBones.events.AnimationEvent")
+//
+///**
+// * Dispatched when an animation state start to play(AnimationState may play when fade in start or end. It is controllable).
+// */
+//@EventInfo(name="start", type="dragonBones.events.AnimationEvent")
+//
+///**
+// * Dispatched when an animation state play complete (if playtimes equals to 0 means loop forever. Then this Event will not be triggered)
+// */
+//@EventInfo(name="complete", type="dragonBones.events.AnimationEvent")
+//
+///**
+// * Dispatched when an animation state complete a loop.
+// */
+//@EventInfo(name="loopComplete", type="dragonBones.events.AnimationEvent")
+//
+///**
+// * Dispatched when an animation state fade in complete.
+// */
+//@EventInfo(name="fadeInComplete", type="dragonBones.events.AnimationEvent")
+//
+///**
+// * Dispatched when an animation state fade out complete.
+// */
+//@EventInfo(name="fadeOutComplete", type="dragonBones.events.AnimationEvent")
+//
+///**
+// * Dispatched when an animation state enter a frame with animation frame event.
+// */
+//@EventInfo(name="animationFrameEvent", type="dragonBones.events.FrameEvent")
+//
+///**
+// * Dispatched when an bone enter a frame with animation frame event.
+// */
+//@EventInfo(name="boneFrameEvent", type="dragonBones.events.FrameEvent")
 
 public class Armature extends EventDispatcher implements IArmature
 {
-	private DragonBonesData __dragonBonesData;
+	public DragonBonesData __dragonBonesData;
 
 
 	/**
@@ -142,7 +141,7 @@ public class Armature extends EventDispatcher implements IArmature
 	/**
 	 * save more skinLists
 	 */
-	private Object _skinLists;
+	private Map<String, Map<String, ArrayList<Object>>> _skinLists;
 	/**
 	 * Creates a Armature blank instance.
 	 * @param display type of this object varies from flash.display.DisplayObject to startling.display.DisplayObject and subclasses.
@@ -159,7 +158,7 @@ public class Armature extends EventDispatcher implements IArmature
 		_slotList = new ArrayList<Slot>();
 		_boneList = new ArrayList<Bone>();
 		_eventList = new ArrayList<Event>();
-		_skinLists = { };
+		_skinLists = new HashMap<>();
 		_delayDispose = false;
 		_lockDispose = false;
 
@@ -555,7 +554,7 @@ public class Armature extends EventDispatcher implements IArmature
 	}
 
 	/** @private */
-	private void addSlotToSlotList(Slot slot)
+	void addSlotToSlotList(Slot slot)
 	{
 		if(_slotList.indexOf(slot) < 0)
 		{
@@ -564,7 +563,7 @@ public class Armature extends EventDispatcher implements IArmature
 	}
 
 	/** @private */
-	private void removeSlotFromSlotList(Slot slot)
+	void removeSlotFromSlotList(Slot slot)
 	{
 		_slotList.remove(slot);
 	}
@@ -574,7 +573,7 @@ public class Armature extends EventDispatcher implements IArmature
 	 */
 	public void updateSlotsZOrder()
 	{
-		_slotList.sort(sortSlot);
+		_slotList.sort(this::sortSlot);
 		int i = _slotList.size();
 		while(i -- > 0)
 		{
@@ -610,27 +609,32 @@ public class Armature extends EventDispatcher implements IArmature
 		{
 			return;
 		}
-		Array helpArray = [];
+		ArrayList<Pair<Integer, Bone>> helpArray = new ArrayList<>();
 		while(i -- > 0)
 		{
 			int level = 0;
-			Bone bone = _boneList[i];
+			Bone bone = _boneList.get(i);
 			Bone boneParent = bone;
 			while(boneParent != null)
 			{
 				level ++;
-				boneParent = boneParent.parent;
+				boneParent = boneParent.getParent();
 			}
-			helpArray[i] = [level, bone];
+			helpArray.set(i, new Pair(level, bone));
 		}
 
-		helpArray.sortOn("0", Array.NUMERIC|Array.DESCENDING);
+		helpArray.sort(new Comparator<Pair<Integer, Bone>>() {
+			@Override
+			public int compare(Pair<Integer, Bone> o1, Pair<Integer, Bone> o2) {
+				return Integer.compare(o1.first, o2.first);
+			}
+		});
 
 		i = helpArray.size();
 
 		while(i -- > 0)
 		{
-			_boneList[i] = helpArray[i][1];
+			_boneList.set(i, helpArray.get(i).second);
 		}
 
 		helpArray.clear();
@@ -662,7 +666,7 @@ public class Armature extends EventDispatcher implements IArmature
 		{
 			if(animationState.displayControl)
 			{
-				animation.gotoAndPlay(frame.action);
+				getAnimation().gotoAndPlay(frame.action);
 			}
 		}
 	}
@@ -672,36 +676,36 @@ public class Armature extends EventDispatcher implements IArmature
 		return slot1.getZOrder() < slot2.getZOrder()?1: -1;
 	}
 
-	public void addSkinList(String skinName, Object list)
+	public void addSkinList(String skinName, Map<String, ArrayList<Object>> list)
 	{
 		if (skinName == null)
 		{
 			skinName = "default";
 		}
-		if (_skinLists[skinName] != null)
+		if (_skinLists.get(skinName) != null)
 		{
-			_skinLists[skinName] = list;
+			_skinLists.put(skinName, list);
 		}
 	}
 
 	public void changeSkin(String skinName)
 	{
 		SkinData skinData = getArmatureData().getSkinData(skinName);
-		if(!skinData || !_skinLists[skinName])
+		if(skinData == null || !_skinLists.containsKey(skinName))
 		{
 			return;
 		}
 		getArmatureData().setSkinData(skinName);
-		ArrayList<Object> displayList = [];
-		ArrayList<SlotData> slotDataList = getArmatureData().slotDataList;
+		ArrayList<Object> displayList = new ArrayList<>();
+		ArrayList<SlotData> slotDataList = getArmatureData().getSlotDataList();
 		SlotData slotData;
 		Slot slot;
 		Bone bone;
 		for(int i = 0; i < slotDataList.size(); i++)
 		{
 
-			slotData = slotDataList[i];
-			displayList = _skinLists[skinName][slotData.name];
+			slotData = slotDataList.get(i);
+			displayList = _skinLists.get(skinName).get(slotData.name);
 			bone = getBone(slotData.parent);
 			if(bone == null || displayList == null)
 			{
@@ -714,10 +718,5 @@ public class Armature extends EventDispatcher implements IArmature
 			slot.setDisplayList(displayList);
 			slot.changeDisplay(0);
 		}
-	}
-
-	public Object getAnimation()
-	{
-		return _animation;
 	}
 }

@@ -3,6 +3,9 @@ package flash.events;
 import flash.Runnable1;
 
 public class EventDispatcher implements IEventDispatcher {
+	public EventDispatcher() {
+	}
+
 	public EventDispatcher(IEventDispatcher dispatcher) {
 	}
 

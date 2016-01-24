@@ -1,5 +1,7 @@
 package dragonBones.fast;
 
+import dragonBones.core.IName;
+import dragonBones.core.ISetName;
 import flash.geom.Matrix;
 
 import dragonBones.cache.FrameCache;
@@ -10,7 +12,7 @@ import dragonBones.utils.TransformUtil;
 //use namespace dragonBones_internal;
 
 
-public class FastDBObject
+public class FastDBObject implements IName, ISetName
 {
 	private String _name;
 

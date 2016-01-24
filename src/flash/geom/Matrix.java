@@ -28,4 +28,8 @@ public class Matrix {
 	public void concat(Matrix that) {
 		throw new RuntimeException("Not implemented");
 	}
+
+	public void scale(double sx, double sy) {
+		throw new Error();
+	}
 }

@@ -21,7 +21,7 @@ public class StarlingFastSlot extends FastSlot
 
 	public StarlingFastSlot()
 	{
-		super(this);
+		super();
 
 		_starlingDisplay = null;
 

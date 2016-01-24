@@ -15,7 +15,7 @@ public class NativeSlot extends Slot
 
 	public NativeSlot()
 	{
-		super(this);
+		super();
 		_nativeDisplay = null;
 	}
 

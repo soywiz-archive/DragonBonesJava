@@ -6,12 +6,13 @@
 * @langversion 3.0
 * @version 2.0
 */
+import dragonBones.Armature;
 import flash.display.BitmapData;
+import flash.display.DisplayObject;
 import flash.display.MovieClip;
 import flash.geom.Rectangle;
 
 import dragonBones.Slot;
-import dragonBones.core.dragonBones_internal;
 import dragonBones.display.StarlingFastSlot;
 import dragonBones.display.StarlingSlot;
 import dragonBones.fast.FastArmature;
@@ -53,39 +54,40 @@ public class StarlingFactory extends BaseFactory
 	/**
 	 * Whether to generate mapmaps (true) or not (false).
 	 */
-	public var generateMipMaps:Boolean;
+	public boolean generateMipMaps;
 	/**
 	 * Whether to optimize for rendering (true) or not (false).
 	 */
-	public var optimizeForRenderToTexture:Boolean;
+	public boolean optimizeForRenderToTexture;
 	/**
 	 * Apply a scale for SWF specific texture. Use 1 for no scale.
 	 */
-	public var scaleForTexture:Number;
+	public double scaleForTexture;
 
 	/**
 	 * Creates a new StarlingFactory instance.
 	 */
-	public function StarlingFactory()
+	public StarlingFactory()
 	{
-		super(this);
+		super();
 		scaleForTexture = 1;
 	}
 
 	/** @private */
-	override protected function generateTextureAtlas(content:Object, textureAtlasRawData:Object):ITextureAtlas
+	protected ITextureAtlas generateTextureAtlas(Object content, Object textureAtlasRawData)
 	{
-		var texture:Texture;
-		var bitmapData:BitmapData;
-		if (content is BitmapData)
+		Texture texture;
+		BitmapData bitmapData;
+		if (content instanceof BitmapData)
 		{
-			bitmapData = content as BitmapData;
+			bitmapData = (BitmapData)content;
 			texture = Texture.fromBitmapData(bitmapData, generateMipMaps, optimizeForRenderToTexture);
 		}
-		else if (content is MovieClip)
+		else if (content instanceof MovieClip)
 		{
-			var width:int = getNearest2N(content.width) * scaleForTexture;
-			var height:int = getNearest2N(content.height) * scaleForTexture;
+			MovieClip movieClip = (MovieClip)content;
+			int width = (int)(getNearest2N(movieClip.getWidth()) * scaleForTexture);
+			int height = (int)(getNearest2N(movieClip.getHeight()) * scaleForTexture);
 
 //				_helpMatrix.a = 1;
 //				_helpMatrix.b = 0;
@@ -94,18 +96,17 @@ public class StarlingFactory extends BaseFactory
 			_helpMatrix.scale(scaleForTexture, scaleForTexture);
 			_helpMatrix.tx = 0;
 			_helpMatrix.ty = 0;
-			var movieClip:MovieClip = content as MovieClip;
 			movieClip.gotoAndStop(1);
 			bitmapData = new BitmapData(width, height, true, 0xFF00FF);
 			bitmapData.draw(movieClip, _helpMatrix);
-			movieClip.gotoAndStop(movieClip.totalFrames);
+			movieClip.gotoAndStop(movieClip.getTotalFrames());
 			texture = Texture.fromBitmapData(bitmapData, generateMipMaps, optimizeForRenderToTexture, scaleForTexture);
 		}
 		else
 		{
 			throw new Error();
 		}
-		var textureAtlas:StarlingTextureAtlas = new StarlingTextureAtlas(texture, textureAtlasRawData, false);
+		StarlingTextureAtlas textureAtlas = new StarlingTextureAtlas(texture, textureAtlasRawData, false);
 		if (Starling.handleLostContext)
 		{
 			textureAtlas._bitmapData = bitmapData;
@@ -118,24 +119,21 @@ public class StarlingFactory extends BaseFactory
 	}
 
 	/** @private */
-	override protected function generateArmature():Armature
+	protected Armature generateArmature()
 	{
-		var armature:Armature = new Armature(new Sprite());
-		return armature;
+		return new Armature(new Sprite());
 	}
 
 	/** @private */
-	override protected function generateFastArmature():FastArmature
+	protected FastArmature generateFastArmature()
 	{
-		var armature:FastArmature = new FastArmature(new Sprite());
-		return armature;
+		return new FastArmature(new Sprite());
 	}
 
 	/** @private */
-	override protected function generateSlot():Slot
+	protected Slot generateSlot()
 	{
-		var slot:Slot = new StarlingSlot();
-		return slot;
+		return new StarlingSlot();
 	}
 
 	/**
@@ -143,44 +141,43 @@ public class StarlingFactory extends BaseFactory
 	 * Generates an Slot instance.
 	 * @return Slot An Slot instance.
 	 */
-	override protected function generateFastSlot():FastSlot
+	protected FastSlot generateFastSlot()
 	{
-		var slot:FastSlot = new StarlingFastSlot();
-		return slot;
+		return new StarlingFastSlot();
 	}
 
 	/** @private */
-	override protected function generateDisplay(textureAtlas:Object, fullName:String, pivotX:Number, pivotY:Number):Object
+	protected Object generateDisplay(Object textureAtlas, String fullName, double pivotX, double pivotY)
 	{
-		var subTexture:SubTexture = (textureAtlas as TextureAtlas).getTexture(fullName) as SubTexture;
-		if (subTexture)
+		SubTexture subTexture = (SubTexture)((TextureAtlas)textureAtlas).getTexture(fullName);
+		if (subTexture != null)
 		{
-			var image:Image = new Image(subTexture);
-			if (isNaN(pivotX) || isNaN(pivotY))
+			Image image = new Image(subTexture);
+			if (Double.isNaN(pivotX) || Double.isNaN(pivotY))
 			{
-				var subTextureFrame:Rectangle = (textureAtlas as TextureAtlas).getFrame(fullName);
-				if(subTextureFrame)
+				Rectangle subTextureFrame = ((TextureAtlas)textureAtlas).getFrame(fullName);
+				if(subTextureFrame != null)
 				{
-					pivotX = subTextureFrame.width / 2;//pivotX;
-					pivotY = subTextureFrame.height / 2;// pivotY;
+					pivotX = subTextureFrame.getWidth() / 2;//pivotX;
+					pivotY = subTextureFrame.getHeight() / 2;// pivotY;
 				}
 				else
 				{
-					pivotX = subTexture.width / 2;//pivotX;
-					pivotY = subTexture.height / 2;// pivotY;
+					pivotX = subTexture.getWidth() / 2;//pivotX;
+					pivotY = subTexture.getHeight() / 2;// pivotY;
 				}
 
 			}
-			image.pivotX = pivotX;
-			image.pivotY = pivotY;
+			image.setPivotX(pivotX);
+			image.setPivotY(pivotY);
 
 			return image;
 		}
 		return null;
 	}
 
-	private function getNearest2N(_n:uint):uint
+	private int getNearest2N(int _n)
 	{
-		return _n & _n - 1?1 << _n.toString(2).length:_n;
+		return ((_n & _n - 1) != 0) ?1 << Integer.toString(_n, 2).length():_n;
 	}
 }

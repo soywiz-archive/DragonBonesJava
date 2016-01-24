@@ -5,6 +5,7 @@ public class Event {
 
 	public Object target;
 	public String type;
+	public boolean cancelable;
 
 	public Event(String type) {
 		this(type, false, false);
@@ -12,5 +13,6 @@ public class Event {
 
 	public Event(String type, boolean b, boolean cancelable) {
 		this.type = type;
+		this.cancelable = cancelable;
 	}
 }

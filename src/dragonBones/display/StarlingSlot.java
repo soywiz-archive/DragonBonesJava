@@ -19,7 +19,7 @@ public class StarlingSlot extends Slot
 
 	public StarlingSlot()
 	{
-		super(this);
+		super();
 
 		_starlingDisplay = null;
 

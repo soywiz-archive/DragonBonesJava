@@ -1,5 +1,6 @@
 ﻿package dragonBones.factories;
 
+import dragonBones.Armature;
 import dragonBones.display.NativeFastSlot;
 import dragonBones.fast.FastArmature;
 import dragonBones.fast.FastSlot;
@@ -29,120 +30,119 @@ public class NativeFactory extends BaseFactory
 	/**
 	 * If enable BitmapSmooth
 	 */
-	public var fillBitmapSmooth:Boolean;
+	public boolean fillBitmapSmooth;
 
 	/**
 	 * If use bitmapData Texture（When using dbswf，you can use vector element，if enable useBitmapDataTexture，dbswf will be force converted to BitmapData）
 	 */
-	public var useBitmapDataTexture:Boolean;
+	public boolean useBitmapDataTexture;
 
-	public function NativeFactory()
+	public NativeFactory()
 	{
-		super(this);
+		super();
 	}
 
 	/** @private */
-	override protected function generateTextureAtlas(content:Object, textureAtlasRawData:Object):ITextureAtlas
+	protected ITextureAtlas generateTextureAtlas(Object content, Object textureAtlasRawData)
 	{
-		var textureAtlas:NativeTextureAtlas = new NativeTextureAtlas(content, textureAtlasRawData, 1, false);
+		NativeTextureAtlas textureAtlas = new NativeTextureAtlas(content, textureAtlasRawData, 1, false);
 		return textureAtlas;
 	}
 
 	/** @private */
-	override protected function generateArmature():Armature
+	protected Armature generateArmature()
 	{
-		var display:Sprite = new Sprite();
-		var armature:Armature = new Armature(display);
+		Sprite display = new Sprite();
+		Armature armature = new Armature(display);
 		return armature;
 	}
 
-	override protected function generateFastArmature():FastArmature
+	protected FastArmature generateFastArmature()
 	{
-		var armature:FastArmature = new FastArmature(new Sprite());
+		FastArmature armature = new FastArmature(new Sprite());
 		return armature;
 	}
 
-	override protected function generateFastSlot():FastSlot
+	protected FastSlot generateFastSlot()
 	{
-		var slot:FastSlot = new NativeFastSlot();
+		FastSlot slot = new NativeFastSlot();
 		return slot;
 	}
 
 	/** @private */
-	override protected function generateSlot():Slot
+	protected Slot generateSlot()
 	{
-		var slot:Slot = new NativeSlot();
-		return slot;
+		return new NativeSlot();
 	}
 
 	/** @private */
-	override protected function generateDisplay(textureAtlas:Object, fullName:String, pivotX:Number, pivotY:Number):Object
+	protected Object generateDisplay(Object textureAtlas, String fullName, double pivotX, double pivotY)
 	{
-		var nativeTextureAtlas:NativeTextureAtlas;
-		if(textureAtlas is NativeTextureAtlas)
+		NativeTextureAtlas nativeTextureAtlas;
+		if(textureAtlas instanceof NativeTextureAtlas)
 		{
-			nativeTextureAtlas = textureAtlas as NativeTextureAtlas;
+			nativeTextureAtlas = (NativeTextureAtlas)textureAtlas;
 		}
 
-		if(nativeTextureAtlas)
+		if(nativeTextureAtlas != null)
 		{
-			var movieClip:MovieClip = nativeTextureAtlas.movieClip;
-			if(useBitmapDataTexture && movieClip)
+			MovieClip movieClip = nativeTextureAtlas.getMovieClip();
+			if(useBitmapDataTexture && movieClip != null)
 			{
 				nativeTextureAtlas.movieClipToBitmapData();
 			}
 
 			//TO DO 问春雷
-			if (!useBitmapDataTexture && movieClip && movieClip.totalFrames >= 3)
+			if (!useBitmapDataTexture && movieClip != null && movieClip.getTotalFrames() >= 3)
 			{
-				movieClip.gotoAndStop(movieClip.totalFrames);
+				movieClip.gotoAndStop(movieClip.getTotalFrames());
 				movieClip.gotoAndStop(fullName);
-				if (movieClip.numChildren > 0)
+				if (movieClip.getNumChildren() > 0)
 				{
 					try
 					{
-						var displaySWF:Object = movieClip.getChildAt(0);
+						Object displaySWF = movieClip.getChildAt(0);
 						displaySWF.x = 0;
 						displaySWF.y = 0;
 						return displaySWF;
 					}
-					catch(e:Error)
+					catch(Throwable e)
 					{
 						throw new Error("Can not get the movie clip, please make sure the version of the resource compatible with app version!");
 					}
 				}
 			}
-			else if(nativeTextureAtlas.bitmapData)
+			else if(nativeTextureAtlas.getBitmapData() != null)
 			{
-				var subTextureRegion:Rectangle = nativeTextureAtlas.getRegion(fullName);
-				if (subTextureRegion)
+				Rectangle subTextureRegion = nativeTextureAtlas.getRegion(fullName);
+				if (subTextureRegion != null)
 				{
-					var subTextureFrame:Rectangle = nativeTextureAtlas.getFrame(fullName);
+					Rectangle subTextureFrame = nativeTextureAtlas.getFrame(fullName);
 
-					if (isNaN(pivotX) || isNaN(pivotX))
+					if (Double.isNaN(pivotX) || Double.isNaN(pivotX))
 					{
-						if (subTextureFrame)
+						if (subTextureFrame != null)
 						{
-							pivotX = subTextureFrame.width / 2 + subTextureFrame.x;
-							pivotY = subTextureFrame.height / 2 + subTextureFrame.y;
+							pivotX = subTextureFrame.getWidth() / 2 + subTextureFrame.getX();
+							pivotY = subTextureFrame.getHeight() / 2 + subTextureFrame.getY();
 						}
 						else
 						{
-							pivotX = subTextureRegion.width / 2;
-							pivotY = subTextureRegion.height / 2;
+							pivotX = subTextureRegion.getWidth() / 2;
+							pivotY = subTextureRegion.getHeight() / 2;
 						}
 
 					}
 					else
 					{
-						if(subTextureFrame)
+						if(subTextureFrame != null)
 						{
-							pivotX += subTextureFrame.x;
-							pivotY += subTextureFrame.y;
+							pivotX += subTextureFrame.getX();
+							pivotY += subTextureFrame.getY();
 						}
 					}
 
-					var displayShape:Shape = new Shape();
+					Shape displayShape = new Shape();
 					_helpMatrix.a = 1;
 					_helpMatrix.b = 0;
 					_helpMatrix.c = 0;
@@ -151,8 +151,8 @@ public class NativeFactory extends BaseFactory
 					_helpMatrix.tx = -pivotX - subTextureRegion.x;
 					_helpMatrix.ty = -pivotY - subTextureRegion.y;
 
-					displayShape.graphics.beginBitmapFill(nativeTextureAtlas.bitmapData, _helpMatrix, false, fillBitmapSmooth);
-					displayShape.graphics.drawRect(-pivotX, -pivotY, subTextureRegion.width, subTextureRegion.height);
+					displayShape.getGraphics().beginBitmapFill(nativeTextureAtlas.bitmapData, _helpMatrix, false, fillBitmapSmooth);
+					displayShape.getGraphics().drawRect(-pivotX, -pivotY, subTextureRegion.width, subTextureRegion.height);
 
 					return displayShape;
 				}

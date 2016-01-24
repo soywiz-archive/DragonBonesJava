@@ -34,7 +34,7 @@ public class Animation
 	private double _timeScale;
 
 	/** @private */
-	private AnimationState _lastAnimationState;
+	public AnimationState _lastAnimationState;
 
 	/** @private */
 	public boolean _isFading;

@@ -24,29 +24,29 @@ import java.util.*;
 
 //use namespace dragonBones_internal;
 
-/**
- * Dispatched when an animation state play complete (if playtimes equals to 0 means loop forever. Then this Event will not be triggered)
- */
-@EventInfo(name="complete", type="dragonBones.events.AnimationEvent")
-
-/**
- * Dispatched when an animation state complete a loop.
- */
-@EventInfo(name="loopComplete", type="dragonBones.events.AnimationEvent")
-
-/**
- * Dispatched when an animation state enter a frame with animation frame event.
- */
-@EventInfo(name="animationFrameEvent", type="dragonBones.events.FrameEvent")
-
-/**
- * Dispatched when an bone enter a frame with animation frame event.
- */
-@EventInfo(name="boneFrameEvent", type="dragonBones.events.FrameEvent")
-
-/**
- * 不支持动态添加Bone和Slot，换装请通过更换Slot的dispaly或子骨架childArmature来实现
- */
+///**
+// * Dispatched when an animation state play complete (if playtimes equals to 0 means loop forever. Then this Event will not be triggered)
+// */
+//@EventInfo(name="complete", type="dragonBones.events.AnimationEvent")
+//
+///**
+// * Dispatched when an animation state complete a loop.
+// */
+//@EventInfo(name="loopComplete", type="dragonBones.events.AnimationEvent")
+//
+///**
+// * Dispatched when an animation state enter a frame with animation frame event.
+// */
+//@EventInfo(name="animationFrameEvent", type="dragonBones.events.FrameEvent")
+//
+///**
+// * Dispatched when an bone enter a frame with animation frame event.
+// */
+//@EventInfo(name="boneFrameEvent", type="dragonBones.events.FrameEvent")
+//
+///**
+// * 不支持动态添加Bone和Slot，换装请通过更换Slot的dispaly或子骨架childArmature来实现
+// */
 public class FastArmature extends EventDispatcher implements ICacheableArmature
 {
     /**
@@ -84,7 +84,7 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
 
     protected boolean _enableEventDispatch = true;
 
-    private DragonBonesData __dragonBonesData;
+    public DragonBonesData __dragonBonesData;
     private ArmatureData _armatureData;
     boolean _slotsZOrderChanged;
 

@@ -9,7 +9,6 @@ import flash.geom.Matrix;
 import dragonBones.animation.AnimationState;
 import dragonBones.animation.SlotTimelineState;
 import dragonBones.core.DBObject;
-import dragonBones.core.dragonBones_internal;
 import dragonBones.objects.DBTransform;
 import dragonBones.objects.DisplayData;
 import dragonBones.objects.Frame;
@@ -25,7 +24,7 @@ import java.util.Objects;
 
 //use namespace dragonBones_internal;
 
-public class Slot extends DBObject
+abstract public class Slot extends DBObject
 {
 	/** @private Need to keep the reference of DisplayData. When slot switch displayObject, it need to restore the display obect's origional pivot. */
 	private ArrayList<DisplayData> _displayDataList;
@@ -55,16 +54,11 @@ public class Slot extends DBObject
 	/** @private */
 //		protected var _timelineStateList:Vector.<SlotTimelineState>;
 
-	public Slot(Slot self)
+	public Slot()
 	{
 		super();
 
-		if(self != this)
-		{
-			throw new IllegalOperationError("Abstract class can not be instantiated!");
-		}
-
-		_displayList = [];
+		_displayList = new ArrayList<>();
 		_currentDisplayIndex = -1;
 
 		_originZOrder = 0;
@@ -85,9 +79,9 @@ public class Slot extends DBObject
 	public void initWithSlotData(SlotData slotData)
 	{
 		name = slotData.name;
-		blendMode = slotData.blendMode;
+		setBlendMode(slotData.blendMode);
 		_originZOrder = slotData.zOrder;
-		_displayDataList = slotData.displayDataList;
+		_displayDataList = slotData.getDisplayDataList();
 		_originDisplayIndex = slotData.displayIndex;
 	}
 
@@ -120,7 +114,7 @@ public class Slot extends DBObject
 //		}
 
 	/** @private */
-//		dragonBones_internal function addState(timelineState:SlotTimelineState):void
+//		function addState(timelineState:SlotTimelineState):void
 //		{
 //			if(_timelineStateList.indexOf(timelineState) < 0)
 //			{
@@ -130,7 +124,7 @@ public class Slot extends DBObject
 //		}
 
 	/** @private */
-//		dragonBones_internal function removeState(timelineState:SlotTimelineState):void
+//		function removeState(timelineState:SlotTimelineState):void
 //		{
 //			var index:int = _timelineStateList.indexOf(timelineState);
 //			if(index >= 0)
@@ -141,7 +135,8 @@ public class Slot extends DBObject
 
 //骨架装配
 	/** @private */
-	@Override dragonBones_internal void setArmature(Armature value)
+	@Override
+	public void setArmature(Armature value)
 	{
 		if(_armature == value)
 		{
@@ -156,7 +151,7 @@ public class Slot extends DBObject
 		{
 			_armature.addSlotToSlotList(this);
 			_armature._slotsZOrderChanged = true;
-			addDisplayToContainer(this._armature.display);
+			addDisplayToContainer(this._armature.getDisplay());
 		}
 		else
 		{
@@ -190,33 +185,33 @@ public class Slot extends DBObject
 
 	private void updateChildArmatureAnimation()
 	{
-		if(childArmature)
+		if(getChildArmature() != null)
 		{
 			if(_isShowDisplay)
 			{
 				if(
-					this._armature &&
-					this._armature.animation.lastAnimationState &&
-					childArmature.animation.hasAnimation(this._armature.animation.lastAnimationState.name)
+					this._armature != null &&
+					this._armature.getAnimation().getLastAnimationState() != null &&
+						getChildArmature().getAnimation().hasAnimation(this._armature.getAnimation().getLastAnimationState().getName())
 				)
 				{
-					childArmature.animation.gotoAndPlay(this._armature.animation.lastAnimationState.name);
+					getChildArmature().getAnimation().gotoAndPlay(this._armature.getAnimation().getLastAnimationState().getName());
 				}
 				else
 				{
-					childArmature.animation.play();
+					getChildArmature().getAnimation().play();
 				}
 			}
 			else
 			{
-				childArmature.animation.stop();
-				childArmature.animation._lastAnimationState = null;
+				getChildArmature().getAnimation().stop();
+				getChildArmature().getAnimation()._lastAnimationState = null;
 			}
 		}
 	}
 
 	/** @private */
-	private void changeDisplay(int displayIndex)
+	void changeDisplay(int displayIndex)
 	{
 		if (displayIndex < 0)
 		{
@@ -258,7 +253,7 @@ public class Slot extends DBObject
 				if(this._armature != null)
 				{
 					this._armature._slotsZOrderChanged = true;
-					addDisplayToContainer(this._armature.display);
+					addDisplayToContainer(this._armature.getDisplay());
 				}
 				updateChildArmatureAnimation();
 			}
@@ -277,7 +272,7 @@ public class Slot extends DBObject
 			currentDisplayIndex = getDisplayIndex();
 			removeDisplayFromContainer();
 		}
-		Object displayObj = _displayList[_currentDisplayIndex];
+		Object displayObj = _displayList.get(_currentDisplayIndex);
 		if (displayObj != null)
 		{
 			if(displayObj instanceof Armature)
@@ -519,7 +514,7 @@ public class Slot extends DBObject
 		double rMultiplier,
 		double gMultiplier,
 		double bMultiplier,
-		boolean colorChanged=false
+		boolean colorChanged
 	)
 	{
 		_colorTransform.alphaOffset = aOffset;
@@ -570,7 +565,7 @@ public class Slot extends DBObject
 			//后续会扩展更多的action，目前只有gotoAndPlay的含义
 			if(frame.action != null)
 			{
-				if (getChildArmature())
+				if (getChildArmature() != null)
 				{
 					getChildArmature().getAnimation().gotoAndPlay(frame.action);
 				}
@@ -578,11 +573,11 @@ public class Slot extends DBObject
 		}
 	}
 
-	@Override protected Object updateGlobal()
+	@Override protected DBObject.TempOutput updateGlobal()
 	{
 		calculateRelativeParentTransform();
 		TransformUtil.transformToMatrix(_global, _globalTransformMatrix);
-		Object output = calculateParentTransform();
+		DBObject.TempOutput output = calculateParentTransform();
 		if(output != null)
 		{
 			//计算父骨头绝对坐标
@@ -595,7 +590,7 @@ public class Slot extends DBObject
 
 	public void resetToOrigin()
 	{
-		changeDisplay(_originDisplayIndex);
+		changeDisplay((int) _originDisplayIndex);
 		updateDisplayColor(0, 0, 0, 0, 1, 1, 1, 1, true);
 	}
 }

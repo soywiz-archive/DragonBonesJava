@@ -12,6 +12,10 @@ public class MovieClip extends DisplayObjectContainer {
 		throw new Error();
 	}
 
+	public void gotoAndStop(String name) {
+		throw new Error();
+	}
+
 	public int getTotalFrames() {
 		throw new Error();
 	}
