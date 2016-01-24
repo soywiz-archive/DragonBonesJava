@@ -1,8 +1,9 @@
 package dragonBones.fast;
 
-import dragonBones.animation.BaseAnimation;
+import dragonBones.core.ISlotCacheGenerator;
 import dragonBones.events.EventInfo;
 import dragonBones.utils.ArrayListUtils;
+import flash.errors.ArgumentError;
 import flash.events.Event;
 import flash.events.EventDispatcher;
 
@@ -11,7 +12,6 @@ import dragonBones.cache.SlotFrameCache;
 import dragonBones.core.IArmature;
 import dragonBones.core.ICacheableArmature;
 import dragonBones.core.dragonBones_internal;
-import dragonBones.events.AnimationEvent;
 import dragonBones.events.FrameEvent;
 import dragonBones.fast.animation.FastAnimation;
 import dragonBones.fast.animation.FastAnimationState;
@@ -20,6 +20,7 @@ import dragonBones.objects.DragonBonesData;
 import dragonBones.objects.Frame;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -79,7 +80,7 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
 
     /** @private Store slots based on slots' zOrder*/
     public ArrayList<FastSlot> slotList;
-    private Map<String, FastSlot> _slotDic;
+    private Map<String, ISlotCacheGenerator> _slotDic;
 
     public ArrayList<FastSlot> slotHasChildArmatureList;
 
@@ -261,11 +262,11 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
 
     public FastBone getBone(String boneName)
     {
-        return _boneDic[boneName];
+        return _boneDic.get(boneName);
     }
     public FastSlot getSlot(String slotName)
     {
-        return _slotDic[slotName];
+        return (FastSlot) _slotDic.get(slotName);
     }
 
     /**
@@ -277,7 +278,7 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
     public FastBone getBoneByDisplay(Object display)
     {
         FastSlot slot = getSlotByDisplay(display);
-        return slot != null ?slot.parent:null;
+        return slot != null ?slot.getParent():null;
     }
 
     /**
@@ -292,7 +293,7 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
         {
             for (FastSlot slot : slotList)
             {
-                if(slot.display == displayObj)
+                if(slot.getDisplay() == displayObj)
                 {
                     return slot;
                 }
@@ -303,7 +304,7 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
 
     /**
      * Get all Slot instance associated with this armature.
-     * @param if return Vector copy
+     * @param returnCopy if return Vector copy
      * @return A Vector.&lt;Slot&gt; instance.
      * @see dragonBones.Slot
      */
@@ -314,11 +315,11 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
 
     private void _updateBonesByCache()
     {
-        var i:int = boneList.length;
-        var bone:FastBone;
-        while(i --)
+        int i = boneList.size();
+        FastBone bone;
+        while(i -- > 0)
         {
-            bone = boneList[i];
+            bone = boneList.get(i);
             bone.update();
         }
     }
@@ -326,7 +327,7 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
 
     /**
      * Add a Bone instance to this Armature instance.
-     * @param A Bone instance.
+     * @param bone A Bone instance.
      * @param (optional) The parent's name of this Bone instance.
      * @see dragonBones.Bone
      */
@@ -347,23 +348,23 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
     /**
      * Add a slot to a bone as child.
      * @param slot A Slot instance
-     * @param boneName bone name
+     * @param parentBoneName bone name
      * @see dragonBones.core.DBObject
      */
     private void addSlot(FastSlot slot, String parentBoneName)
     {
         FastBone bone = getBone(parentBoneName);
-        if(bone)
+        if(bone != null)
         {
             slot.armature = this;
             slot.setParent(bone);
-            bone.slotList.push(slot);
-            slot.addDisplayToContainer(display);
-            slotList.push(slot);
-            _slotDic[slot.name] = slot;
+            bone.slotList.add(slot);
+            slot.addDisplayToContainer(getDisplay());
+            slotList.add(slot);
+            _slotDic.put(slot.getName(), slot);
             if(slot.hasChildArmature)
             {
-                slotHasChildArmatureList.push(slot);
+                slotHasChildArmatureList.add(slot);
             }
 
         }
@@ -378,15 +379,13 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
      */
     private void updateSlotsZOrder()
     {
-        slotList.fixed = false;
-        slotList.sort(sortSlot);
-        slotList.fixed = true;
-        int i = slotList.length;
+        slotList.sort(new SortSlot());
+        int i = slotList.size();
         while(i -- > 0)
         {
-            FastSlot slot = slotList[i];
-            if ((slot._frameCache && ((SlotFrameCache)slot._frameCache).displayIndex >= 0)
-                || (!slot._frameCache && slot.displayIndex >= 0))
+            FastSlot slot = slotList.get(i);
+            if ((slot._frameCache != null && ((SlotFrameCache)slot._frameCache).displayIndex >= 0)
+                || (slot._frameCache == null && slot.getDisplayIndex() >= 0))
             {
                 slot.addDisplayToContainer(_display);
             }
@@ -397,13 +396,13 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
 
     private void sortBoneList()
     {
-        int i = boneList.length;
+        int i = boneList.size();
         if(i == 0)
         {
             return;
         }
         ArrayList<?> helpArray = [];
-        while(i --)
+        while(i -- > 0)
         {
             int level = 0;
             FastBone bone = boneList[i];
@@ -420,12 +419,10 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
 
         i = helpArray.length;
 
-        boneList.fixed = false;
-        while(i --)
+        while(i -- > 0)
         {
             boneList[i] = helpArray[i][1];
         }
-        boneList.fixed = true;
 
         helpArray.length = 0;
     }
@@ -439,64 +436,71 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
     {
         if(frame.event && this.hasEventListener(FrameEvent.ANIMATION_FRAME_EVENT))
         {
-            var frameEvent:FrameEvent = new FrameEvent(FrameEvent.ANIMATION_FRAME_EVENT);
+            FrameEvent frameEvent = new FrameEvent(FrameEvent.ANIMATION_FRAME_EVENT);
             frameEvent.animationState = animationState;
             frameEvent.frameLabel = frame.event;
             addEvent(frameEvent);
         }
 
-        if(frame.action)
+        if(frame.action != null)
         {
             animation.gotoAndPlay(frame.action);
         }
     }
 
+    public void invalidUpdate()
+    {
+        invalidUpdate(null);
+    }
+
     /**
      * Force update bones and slots. (When bone's animation play complete, it will not update)
      */
-    public void invalidUpdate(String boneName = null)
+    public void invalidUpdate(String boneName)
     {
-        if(boneName)
+        if(boneName != null)
         {
-            var bone:FastBone = getBone(boneName);
-            if(bone)
+            FastBone bone = getBone(boneName);
+            if(bone != null)
             {
                 bone.invalidUpdate();
             }
         }
         else
         {
-            var i:int = boneList.length;
-            while(i --)
+            int i = boneList.size();
+            while(i -- > 0)
             {
-                boneList[i].invalidUpdate();
+                boneList.get(i).invalidUpdate();
             }
         }
     }
 
     public void resetAnimation()
     {
-        animation.animationState.resetTimelineStateList();
+        getAnimation().animationState.resetTimelineStateList();
         for (FastBone boneItem : boneList)
         {
             boneItem._timelineState = null;
         }
-        animation.stop();
+        getAnimation().stop();
     }
 
-    private int sortSlot(FastSlot slot1, FastSlot slot2)
-    {
-        return slot1.zOrder < slot2.zOrder?1: -1;
+    static class SortSlot implements Comparator<FastSlot> {
+        @Override
+        public int compare(FastSlot slot1, FastSlot slot2) {
+            return slot1.getZOrder() < slot2.getZOrder()?1: -1;
+        }
     }
 
-    public BaseAnimation getAnimation()
+    static private int sortSlot(FastSlot slot1, FastSlot slot2)
     {
-        return _animation;
+        return slot1.getZOrder() < slot2.getZOrder()?1: -1;
     }
 
     /**
      * ArmatureData.
-     * @see dragonBones.objects.ArmatureData.
+     * @see dragonBones.objects.ArmatureData
      */
     public ArmatureData getArmatureData()
     {
@@ -538,7 +542,7 @@ public class FastArmature extends EventDispatcher implements ICacheableArmature
         _enableEventDispatch = value;
     }
 
-    public Map<String, Object> getSlotDic()
+    public Map<String, IBaseSlot> getSlotDic()
     {
         return _slotDic;
     }

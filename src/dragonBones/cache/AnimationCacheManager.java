@@ -1,8 +1,8 @@
 package dragonBones.cache;
 import dragonBones.core.IAnimationState;
-import dragonBones.core.IBaseSlot;
 import dragonBones.core.ICacheUser;
 import dragonBones.core.ICacheableArmature;
+import dragonBones.core.ISlotCacheGenerator;
 import dragonBones.objects.AnimationData;
 import dragonBones.objects.ArmatureData;
 
@@ -19,7 +19,7 @@ public class AnimationCacheManager
 	public double frameRate;
 	public Map<String, AnimationCache> animationCacheDic = new HashMap<>();
 //		public Object boneFrameCacheDic = {};
-	public Map<String, Object> slotFrameCacheDic = new HashMap<>();
+	public Map<String, FrameCache> slotFrameCacheDic = new HashMap<>();
 	public AnimationCacheManager()
 	{
 	}
@@ -75,15 +75,14 @@ public class AnimationCacheManager
 	{
 		armature.getAnimation().animationCacheManager = this;
 
-		Map<String, Object> slotDic = armature.getSlotDic();
-		ICacheUser cacheUser;
+		Map<String, ISlotCacheGenerator> slotDic = armature.getSlotDic();
 //			for each(cacheUser in armature._boneDic)
 //			{
 //				cacheUser.frameCache = boneFrameCacheDic[cacheUser.name];
 //			}
-		for (Object cacheUser : slotDic)
+		for (ISlotCacheGenerator cacheUser : slotDic.values())
 		{
-			cacheUser.frameCache = slotFrameCacheDic[cacheUser.name];
+			cacheUser.setFrameCache(slotFrameCacheDic.get(cacheUser.getName()));
 		}
 	}
 
@@ -91,18 +90,18 @@ public class AnimationCacheManager
 	{
 		cacheGeneratorArmature = armature;
 
-		Object slotDic = armature.getSlotDic();
-		ICacheUser cacheUser;
+		Map<String, ISlotCacheGenerator> slotDic = armature.getSlotDic();
+
 //			for each(cacheUser in armature._boneDic)
 //			{
 //				boneFrameCacheDic[cacheUser.name] = new FrameCache();
 //			}
-		for (IBaseSlot cacheUser : armature.getSlotDic())
+		for (ISlotCacheGenerator cacheUser : armature.getSlotDic().values())
 		{
-			slotFrameCacheDic[cacheUser.getName()] = new SlotFrameCache();
+			slotFrameCacheDic.put(cacheUser.getName(), new SlotFrameCache());
 		}
 
-		for (AnimationCache animationCache in animationCacheDic)
+		for (AnimationCache animationCache : animationCacheDic.values())
 		{
 //				animationCache.initBoneTimelineCacheDic(armature._boneDic, boneFrameCacheDic);
 			animationCache.initSlotTimelineCacheDic(slotDic, slotFrameCacheDic);
@@ -111,7 +110,7 @@ public class AnimationCacheManager
 
 	public void generateAllAnimationCache(boolean loop)
 	{
-		for (AnimationCache animationCache : animationCacheDic)
+		for (AnimationCache animationCache : animationCacheDic.values())
 		{
 			generateAnimationCache(animationCache.name, loop);
 		}
@@ -127,7 +126,7 @@ public class AnimationCacheManager
 			return;
 		}
 
-		IAnimationState animationState = cacheGeneratorArmature.getAnimation().animationState;
+		IAnimationState animationState = cacheGeneratorArmature.getAnimation().ianimationState;
 		double passTime = 1 / frameRate;
 
 		if (loop)
@@ -165,6 +164,6 @@ public class AnimationCacheManager
 
 	public AnimationCache getAnimationCache(String animationName)
 	{
-		return animationCacheDic[animationName];
+		return animationCacheDic.get(animationName);
 	}
 }

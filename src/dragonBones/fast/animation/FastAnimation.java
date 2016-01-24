@@ -17,7 +17,7 @@ import java.util.ArrayList;
 public class FastAnimation extends BaseAnimation
 {
 	public ArrayList<String> animationList;
-	public FastAnimationState animationState = new FastAnimationState();
+	public FastAnimationState animationState;
 
 	private FastArmature _armature;
 	private ArrayList<AnimationData> _animationDataList;
@@ -28,6 +28,8 @@ public class FastAnimation extends BaseAnimation
 	public FastAnimation(FastArmature armature)
 	{
 		_armature = armature;
+		animationState = new FastAnimationState();
+		ianimationState = animationState;
 		animationState._armature = armature;
 		animationList = new ArrayList<String>();
 		_animationDataObj = {};
