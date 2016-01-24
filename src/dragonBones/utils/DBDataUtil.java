@@ -15,21 +15,24 @@ import dragonBones.objects.SlotTimeline;
 import dragonBones.objects.TransformFrame;
 import dragonBones.objects.TransformTimeline;
 
+import java.util.ArrayList;
+import java.util.Objects;
+
 /** @private */
 public final class DBDataUtil
 {
 	public static void transformArmatureData(ArmatureData armatureData)
 	{
-		var boneDataList:Vector.<BoneData> = armatureData.boneDataList;
-		var i:int = boneDataList.length;
+		ArrayList<BoneData> boneDataList = armatureData.getBoneDataList();
+		int i = boneDataList.size();
 
-		while(i --)
+		while(i -- > 0)
 		{
-			var boneData:BoneData = boneDataList[i];
-			if(boneData.parent)
+			BoneData boneData = boneDataList.get(i);
+			if(boneData.parent != null)
 			{
-				var parentBoneData:BoneData = armatureData.getBoneData(boneData.parent);
-				if(parentBoneData)
+				BoneData parentBoneData = armatureData.getBoneData(boneData.parent);
+				if(parentBoneData != null)
 				{
 					boneData.transform.copy(boneData.global);
 					boneData.transform.divParent(parentBoneData.global);
@@ -41,11 +44,11 @@ public final class DBDataUtil
 
 	public static void transformArmatureDataAnimations(ArmatureData armatureData)
 	{
-		ArrayList<AnimationData> animationDataList = armatureData.animationDataList;
-		int i = animationDataList.length;
+		ArrayList<AnimationData> animationDataList = armatureData.getAnimationDataList();
+		int i = animationDataList.size();
 		while(i -- > 0)
 		{
-			transformAnimationData(animationDataList[i], armatureData, false);
+			transformAnimationData(animationDataList.get(i), armatureData, false);
 		}
 	}
 
@@ -63,50 +66,51 @@ public final class DBDataUtil
 		}
 
 		SkinData skinData = armatureData.getSkinData(null);
-		ArrayList<BoneData> boneDataList = armatureData.boneDataList;
-		ArrayList<SlotData> slotDataList;
-		if(skinData)
+		ArrayList<BoneData> boneDataList = armatureData.getBoneDataList();
+		ArrayList<SlotData> slotDataList = null;
+		if(skinData != null)
 		{
-			slotDataList = armatureData.slotDataList;
+			slotDataList = armatureData.getSlotDataList();
 		}
 
-		for(int i = 0;i < boneDataList.length;i ++)
+		for(int i = 0;i < boneDataList.size();i ++)
 		{
-			BoneData boneData = boneDataList[i];
+			BoneData boneData = boneDataList.get(i);
 			//绝对数据是不可能有slotTimeline的
 			TransformTimeline timeline = animationData.getTimeline(boneData.name);
 			SlotTimeline slotTimeline = animationData.getSlotTimeline(boneData.name);
-			if(!timeline && !slotTimeline)
+			if(timeline == null && slotTimeline == null)
 			{
 				continue;
 			}
 
 			SlotData slotData = null;
-			if(slotDataList)
+			if(slotDataList != null)
 			{
-				for (SlotData slotData : slotDataList)
+				for (SlotData slotData2 : slotDataList)
 				{
 					//找到属于当前Bone的slot(FLash Pro制作的动画一个Bone只包含一个slot)
-					if(slotData.parent == boneData.name)
+					if(Objects.equals(slotData2.parent, boneData.name))
 					{
 						break;
 					}
 				}
 			}
 
-			var frameList:Vector.<Frame> = timeline.frameList;
-			if (slotTimeline)
+			ArrayList<Frame> frameList = timeline.getFrameList();
+			ArrayList<Frame> slotFrameList = null;
+			if (slotTimeline != null)
 			{
-				var slotFrameList:Vector.<Frame> = slotTimeline.frameList;
+				slotFrameList = slotTimeline.getFrameList();
 			}
 
-			var originTransform:DBTransform = null;
-			var originPivot:Point = null;
-			var prevFrame:TransformFrame = null;
-			var frameListLength:uint = frameList.length;
-			for(var j:int = 0;j < frameListLength;j ++)
+			DBTransform originTransform = null;
+			Point originPivot = null;
+			TransformFrame prevFrame = null;
+			int frameListLength = frameList.size();
+			for(int j = 0;j < frameListLength;j ++)
 			{
-				var frame:TransformFrame = frameList[j] as TransformFrame;
+				TransformFrame frame = (TransformFrame) frameList.get(j);
 				//计算frame的transform信息
 				setFrameTransform(animationData, armatureData, boneData, frame);
 
@@ -151,11 +155,11 @@ public final class DBDataUtil
 					//frame.pivot.y -= originPivot.y;
 				//}
 
-				if(prevFrame)
+				if(prevFrame != null)
 				{
-					var dLX:Number = frame.transform.skewX - prevFrame.transform.skewX;
+					double dLX = frame.transform.skewX - prevFrame.transform.skewX;
 
-					if(prevFrame.tweenRotate)
+					if(prevFrame.tweenRotate != 0)
 					{
 
 						if(prevFrame.tweenRotate > 0)
@@ -196,16 +200,16 @@ public final class DBDataUtil
 				prevFrame = frame;
 			}
 
-			if (slotTimeline && slotFrameList)
+			if (slotTimeline != null && slotFrameList != null)
 			{
-				frameListLength = slotFrameList.length;
-				for(j = 0;j < frameListLength;j ++)
+				frameListLength = slotFrameList.size();
+				for(int j = 0;j < frameListLength;j ++)
 				{
-					var slotFrame:SlotFrame = slotFrameList[j] as SlotFrame;
+					SlotFrame slotFrame = (SlotFrame) slotFrameList.get(j);
 
 					if(!slotTimeline.transformed)
 					{
-						if(slotData)
+						if(slotData != null)
 						{
 							slotFrame.zOrder -= slotData.zOrder;
 						}
@@ -220,24 +224,24 @@ public final class DBDataUtil
 	}
 
 	//计算frame的transoform信息
-	private static function setFrameTransform(animationData:AnimationData, armatureData:ArmatureData, boneData:BoneData, frame:TransformFrame):void
+	private static void setFrameTransform(AnimationData animationData, ArmatureData armatureData, BoneData boneData, TransformFrame frame)
 	{
 		frame.transform.copy(frame.global);
 		//找到当前bone的父亲列表 并将timeline信息存入parentTimelineList 将boneData信息存入parentDataList
-		var parentData:BoneData = armatureData.getBoneData(boneData.parent);
-		if(parentData)
+		BoneData parentData = armatureData.getBoneData(boneData.parent);
+		if(parentData != null)
 		{
-			var parentTimeline:TransformTimeline = animationData.getTimeline(parentData.name);
-			if(parentTimeline)
+			TransformTimeline parentTimeline = animationData.getTimeline(parentData.name);
+			if(parentTimeline != null)
 			{
-				var parentTimelineList:Vector.<TransformTimeline> = new Vector.<TransformTimeline>;
-				var parentDataList:Vector.<BoneData> = new Vector.<BoneData>;
-				while(parentTimeline)
+				ArrayList<TransformTimeline> parentTimelineList = new ArrayList<TransformTimeline>();
+				ArrayList<BoneData> parentDataList = new ArrayList<BoneData>();
+				while(parentTimeline != null)
 				{
-					parentTimelineList.push(parentTimeline);
-					parentDataList.push(parentData);
+					parentTimelineList.add(parentTimeline);
+					parentDataList.add(parentData);
 					parentData = armatureData.getBoneData(parentData.parent);
-					if(parentData)
+					if(parentData != null)
 					{
 						parentTimeline = animationData.getTimeline(parentData.name);
 					}
@@ -247,22 +251,22 @@ public final class DBDataUtil
 					}
 				}
 
-				var i:int = parentTimelineList.length;
+				int i = parentTimelineList.size();
 
-				var globalTransform:DBTransform;
-				var globalTransformMatrix:Matrix = new Matrix();
+				DBTransform globalTransform = null;
+				Matrix globalTransformMatrix = new Matrix();
 
-				var currentTransform:DBTransform = new DBTransform();
-				var currentTransformMatrix:Matrix = new Matrix();
+				DBTransform currentTransform = new DBTransform();
+				Matrix currentTransformMatrix = new Matrix();
 				//从根开始遍历
-				while(i --)
+				while(i -- > 0)
 				{
-					parentTimeline = parentTimelineList[i];
-					parentData = parentDataList[i];
+					parentTimeline = parentTimelineList.get(i);
+					parentData = parentDataList.get(i);
 					//一级一级找到当前帧对应的每个父节点的transform(相对transform) 保存到currentTransform，globalTransform保存根节点的transform
-					getTimelineTransform(parentTimeline, frame.position, currentTransform, !globalTransform);
+					getTimelineTransform(parentTimeline, frame.position, currentTransform, globalTransform == null);
 
-					if(!globalTransform)
+					if(globalTransform == null)
 					{
 						globalTransform = new DBTransform();
 						globalTransform.copy(currentTransform);
@@ -292,34 +296,34 @@ public final class DBDataUtil
 		}
 	}
 
-	private static function getTimelineTransform(timeline:TransformTimeline, position:int, retult:DBTransform, isGlobal:Boolean):void
+	private static void getTimelineTransform(TransformTimeline timeline, int position, DBTransform retult, boolean isGlobal)
 	{
-		var frameList:Vector.<Frame> = timeline.frameList;
-		var i:int = frameList.length;
+		ArrayList<Frame> frameList = timeline.getFrameList();
+		int i = frameList.size();
 
-		while(i --)
+		while(i -- > 0)
 		{
-			var currentFrame:TransformFrame = frameList[i] as TransformFrame;
+			TransformFrame currentFrame = (TransformFrame) frameList.get(i);
 			//找到穿越当前帧的关键帧
 			if(currentFrame.position <= position && currentFrame.position + currentFrame.duration > position)
 			{
 				//是最后一帧或者就是当前帧
-				if(i == frameList.length - 1 || position == currentFrame.position)
+				if(i == frameList.size() - 1 || position == currentFrame.position)
 				{
 					retult.copy(isGlobal?currentFrame.global:currentFrame.transform);
 				}
 				else
 				{
-					var tweenEasing:Number = currentFrame.tweenEasing;
-					var progress:Number = (position - currentFrame.position) / currentFrame.duration;
-					if(tweenEasing && tweenEasing != 10)
+					double tweenEasing = currentFrame.tweenEasing;
+					double progress = (position - currentFrame.position) / currentFrame.duration;
+					if(tweenEasing != 0 && tweenEasing != 10)
 					{
 						progress = MathUtil.getEaseValue(progress, tweenEasing);
 					}
-					var nextFrame:TransformFrame = frameList[i + 1] as TransformFrame;
+					TransformFrame nextFrame = (TransformFrame) frameList.get(i + 1);
 
-					var currentTransform:DBTransform = isGlobal?currentFrame.global:currentFrame.transform;
-					var nextTransform:DBTransform = isGlobal?nextFrame.global:nextFrame.transform;
+					DBTransform currentTransform = isGlobal?currentFrame.global:currentFrame.transform;
+					DBTransform nextTransform = isGlobal?nextFrame.global:nextFrame.transform;
 
 					retult.x = currentTransform.x + (nextTransform.x - currentTransform.x) * progress;
 					retult.y = currentTransform.y + (nextTransform.y - currentTransform.y) * progress;
@@ -333,42 +337,43 @@ public final class DBDataUtil
 		}
 	}
 
-	public static function addHideTimeline(animationData:AnimationData, armatureData:ArmatureData, addHideSlot:Boolean = false):void
+	public static void addHideTimeline(AnimationData animationData, ArmatureData armatureData)
 	{
-		var boneDataList:Vector.<BoneData> =armatureData.boneDataList;
-		var slotDataList:Vector.<SlotData> =armatureData.slotDataList;
-		var i:int = boneDataList.length;
+		addHideTimeline(animationData, armatureData, false);
+	}
 
-		while(i --)
+	public static void addHideTimeline(AnimationData animationData, ArmatureData armatureData, boolean addHideSlot)
+	{
+		ArrayList<BoneData> boneDataList =armatureData.getBoneDataList();
+		ArrayList<SlotData> slotDataList =armatureData.getSlotDataList();
+		int i = boneDataList.size();
+
+		while(i -- > 0)
 		{
-			var boneData:BoneData = boneDataList[i];
-			var boneName:String = boneData.name;
-			if(!animationData.getTimeline(boneName))
+			BoneData boneData = boneDataList.get(i);
+			String boneName = boneData.name;
+			if(animationData.getTimeline(boneName) == null)
 			{
 				if(animationData.hideTimelineNameMap.indexOf(boneName) < 0)
 				{
-					animationData.hideTimelineNameMap.fixed = false;
-					animationData.hideTimelineNameMap.push(boneName);
-					animationData.hideTimelineNameMap.fixed = true;
+					animationData.hideTimelineNameMap.add(boneName);
 				}
 			}
 		}
 		if (addHideSlot)
 		{
-			i = slotDataList.length;
-			var slotData:SlotData;
-			var slotName:String;
-			while (i--)
+			i = slotDataList.size();
+			SlotData slotData;
+			String slotName;
+			while (i-- > 0)
 			{
-				slotData = slotDataList[i];
+				slotData = slotDataList.get(i);
 				slotName = slotData.name;
-				if (!animationData.getSlotTimeline(slotName))
+				if (animationData.getSlotTimeline(slotName) == null)
 				{
 					if (animationData.hideSlotTimelineNameMap.indexOf(slotName) < 0)
 					{
-						animationData.hideSlotTimelineNameMap.fixed = false;
-						animationData.hideSlotTimelineNameMap.push(slotName);
-						animationData.hideSlotTimelineNameMap.fixed = true;
+						animationData.hideSlotTimelineNameMap.add(slotName);
 					}
 				}
 			}

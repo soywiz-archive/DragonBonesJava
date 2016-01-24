@@ -15,6 +15,8 @@ import dragonBones.objects.DBTransform;
 import dragonBones.objects.Frame;
 import dragonBones.utils.TransformUtil;
 
+import java.util.ArrayList;
+
 //use namespace dragonBones_internal;
 
 public class Bone extends DBObject
@@ -22,62 +24,62 @@ public class Bone extends DBObject
 	/**
 	 * The instance dispatch sound event.
 	 */
-	private static const _soundManager:SoundEventManager = SoundEventManager.getInstance();
+	private static final SoundEventManager _soundManager = SoundEventManager.getInstance();
 
-	public static function initWithBoneData(boneData:BoneData):Bone
+	public static Bone initWithBoneData(BoneData boneData)
 	{
-		var outputBone:Bone = new Bone();
+		Bone outputBone = new Bone();
 
 		outputBone.name = boneData.name;
 		outputBone.inheritRotation = boneData.inheritRotation;
 		outputBone.inheritScale = boneData.inheritScale;
-		outputBone.origin.copy(boneData.transform);
+		outputBone.getOrigin().copy(boneData.transform);
 
 		return outputBone;
 	}
 
-	public var applyOffsetTranslationToChild:Boolean = true;
+	public boolean applyOffsetTranslationToChild = true;
 
-	public var applyOffsetRotationToChild:Boolean = true;
+	public boolean applyOffsetRotationToChild = true;
 
-	public var applyOffsetScaleToChild:Boolean = false;
+	public boolean applyOffsetScaleToChild = false;
 
 	/**
 	 * AnimationState that slots belong to the bone will be controlled by.
 	 * Sometimes, we want slots controlled by a spedific animation state when animation is doing mix or addition.
 	 */
-	public var displayController:String;
+	public String displayController;
 
 	/** @private */
-	protected var _boneList:Vector.<Bone>;
+	protected ArrayList<Bone> _boneList;
 
 	/** @private */
-	protected var _slotList:Vector.<Slot>;
+	protected ArrayList<Slot> _slotList;
 
 	/** @private */
-	protected var _timelineStateList:Vector.<TimelineState>;
+	protected ArrayList<TimelineState> _timelineStateList;
 
 	/** @private */
-	dragonBones_internal var _tween:DBTransform;
+	protected DBTransform _tween;
 
 	/** @private */
-	dragonBones_internal var _tweenPivot:Point;
+	protected Point _tweenPivot;
 
 	/** @private */
-	dragonBones_internal var _needUpdate:int;
+	protected int _needUpdate;
 
 	/** @private */
 	//dragonBones_internal var _isColorChanged:Boolean;
 
 	/** @private */
-	dragonBones_internal var _globalTransformForChild:DBTransform;
+	public DBTransform _globalTransformForChild;
 	/** @private */
-	dragonBones_internal var _globalTransformMatrixForChild:Matrix;
+	public Matrix _globalTransformMatrixForChild;
 
 	private var _tempGlobalTransformForChild:DBTransform;
 	private var _tempGlobalTransformMatrixForChild:Matrix;
 
-	public function Bone()
+	public Bone()
 	{
 		super();
 
@@ -98,7 +100,8 @@ public class Bone extends DBObject
 	/**
 	 * @inheritDoc
 	 */
-	override public function dispose():void
+	@Override
+	public void dispose()
 	{
 		if(!_boneList)
 		{
@@ -106,16 +109,16 @@ public class Bone extends DBObject
 		}
 
 		super.dispose();
-		var i:int = _boneList.length;
-		while(i --)
+		int i = _boneList.size();
+		while(i -- > 0)
 		{
-			_boneList[i].dispose();
+			_boneList.get(i).dispose();
 		}
 
-		i = _slotList.length;
-		while(i --)
+		i = _slotList.size();
+		while(i -- > 0)
 		{
-			_slotList[i].dispose();
+			_slotList.get(i).dispose();
 		}
 
 		_boneList.fixed = false;
@@ -138,9 +141,9 @@ public class Bone extends DBObject
 	 * @return Boolean
 	 * @see dragonBones.core.DBObject
 	 */
-	public function contains(child:DBObject):Boolean
+	public boolean contains(DBObject child)
 	{
-		if(!child)
+		if(child == null)
 		{
 			throw new ArgumentError();
 		}
@@ -148,7 +151,7 @@ public class Bone extends DBObject
 		{
 			return false;
 		}
-		var ancestor:DBObject = child;
+		DBObject ancestor = child;
 		while(!(ancestor == this || ancestor == null))
 		{
 			ancestor = ancestor.parent;
@@ -161,9 +164,9 @@ public class Bone extends DBObject
 	 * @param a Bone instance
 	 * @see dragonBones.core.DBObject
 	 */
-	public function addChildBone(childBone:Bone, updateLater:Boolean = false):void
+	public void addChildBone(Bone childBone, boolean updateLater = false)
 	{
-		if(!childBone)
+		if(childBone == null)
 		{
 			throw new ArgumentError();
 		}
@@ -200,14 +203,14 @@ public class Bone extends DBObject
 	 * @param a Bone instance
 	 * @see dragonBones.core.DBObject
 	 */
-	public function removeChildBone(childBone:Bone, updateLater:Boolean = false):void
+	public void removeChildBone(Bone childBone, boolean updateLater = false)
 	{
 		if(!childBone)
 		{
 			throw new ArgumentError();
 		}
 
-		var index:int = _boneList.indexOf(childBone);
+		int index = _boneList.indexOf(childBone);
 		if(index < 0)
 		{
 			throw new ArgumentError();
@@ -230,9 +233,9 @@ public class Bone extends DBObject
 	 * @param a Slot instance
 	 * @see dragonBones.core.DBObject
 	 */
-	public function addSlot(childSlot:Slot):void
+	public void addSlot(Slot childSlot)
 	{
-		if(!childSlot)
+		if(childSlot == null)
 		{
 			throw new ArgumentError();
 		}
@@ -254,7 +257,7 @@ public class Bone extends DBObject
 	 * @param a Slot instance
 	 * @see dragonBones.core.DBObject
 	 */
-	public function removeSlot(childSlot:Slot):void
+	public void removeSlot(Slot childSlot)
 	{
 		if(!childSlot)
 		{
@@ -275,33 +278,33 @@ public class Bone extends DBObject
 	}
 
 	/** @private */
-	override dragonBones_internal function setArmature(value:Armature):void
+	@Override private void setArmature(Armature value)
 	{
 		if(_armature == value)
 		{
 			return;
 		}
-		if(_armature)
+		if(_armature != null)
 		{
 			_armature.removeBoneFromBoneList(this);
 			_armature.updateAnimationAfterBoneListChanged(false);
 		}
 		_armature = value;
-		if(_armature)
+		if(_armature != null)
 		{
 			_armature.addBoneToBoneList(this);
 		}
 
-		var i:int = _boneList.length;
-		while(i --)
+		int i = _boneList.size();
+		while(i -- > 0)
 		{
-			_boneList[i].setArmature(this._armature);
+			_boneList.get(i).setArmature(this._armature);
 		}
 
-		i = _slotList.length;
-		while(i --)
+		i = _slotList.size();
+		while(i -- >0)
 		{
-			_slotList[i].setArmature(this._armature);
+			_slotList.get(i).setArmature(this._armature);
 		}
 	}
 
@@ -310,7 +313,7 @@ public class Bone extends DBObject
 	 * @return A Vector.&lt;Slot&gt; instance.
 	 * @see dragonBones.Slot
 	 */
-	public function getBones(returnCopy:Boolean = true):Vector.<Bone>
+	public ArrayList<Bone> getBones(boolean returnCopy = true)
 	{
 		return returnCopy?_boneList.concat():_boneList;
 	}
@@ -320,7 +323,7 @@ public class Bone extends DBObject
 	 * @return A Vector.&lt;Slot&gt; instance.
 	 * @see dragonBones.Slot
 	 */
-	public function getSlots(returnCopy:Boolean = true):Vector.<Slot>
+	public ArrayList<Slot> getSlots(boolean returnCopy = true)
 	{
 		return returnCopy?_slotList.concat():_slotList;
 	}
@@ -329,12 +332,12 @@ public class Bone extends DBObject
 	/**
 	 * Force update the bone in next frame even if the bone is not moving.
 	 */
-	public function invalidUpdate():void
+	public void invalidUpdate()
 	{
 		_needUpdate = 2;
 	}
 
-	override protected function calculateRelativeParentTransform():void
+	@Override protected void calculateRelativeParentTransform()
 	{
 		_global.scaleX = this._origin.scaleX * _tween.scaleX * this._offset.scaleX;
 		_global.scaleY = this._origin.scaleY * _tween.scaleY * this._offset.scaleY;
@@ -345,7 +348,7 @@ public class Bone extends DBObject
 	}
 
 	/** @private */
-	dragonBones_internal function update(needUpdate:Boolean = false):void
+	private void update(boolean needUpdate = false)
 	{
 		_needUpdate --;
 		if(needUpdate || _needUpdate > 0 || (this._parent && this._parent._needUpdate > 0))
@@ -360,14 +363,14 @@ public class Bone extends DBObject
 		blendingTimeline();
 
 	//计算global
-		var result:Object = updateGlobal();
-		var parentGlobalTransform:DBTransform = result ? result.parentGlobalTransform : null;
-		var parentGlobalTransformMatrix:Matrix = result ? result.parentGlobalTransformMatrix : null;
+		Object result = updateGlobal();
+		DBTransform parentGlobalTransform = result != null ? result.parentGlobalTransform : null;
+		Matrix parentGlobalTransformMatrix = result != null ? result.parentGlobalTransformMatrix : null;
 
 	//计算globalForChild
-		var ifExistOffsetTranslation:Boolean = _offset.x != 0 || _offset.y != 0;
-		var ifExistOffsetScale:Boolean = _offset.scaleX != 1 || _offset.scaleY != 1;
-		var ifExistOffsetRotation:Boolean = _offset.skewX != 0 || _offset.skewY != 0;
+		boolean ifExistOffsetTranslation = _offset.x != 0 || _offset.y != 0;
+		boolean ifExistOffsetScale = _offset.scaleX != 1 || _offset.scaleY != 1;
+		boolean ifExistOffsetRotation = _offset.skewX != 0 || _offset.skewY != 0;
 
 		if(	(!ifExistOffsetTranslation || applyOffsetTranslationToChild) &&
 			(!ifExistOffsetScale || applyOffsetScaleToChild) &&
@@ -378,13 +381,13 @@ public class Bone extends DBObject
 		}
 		else
 		{
-			if(!_tempGlobalTransformForChild)
+			if(_tempGlobalTransformForChild == null)
 			{
 				_tempGlobalTransformForChild = new DBTransform();
 			}
 			_globalTransformForChild = _tempGlobalTransformForChild;
 
-			if(!_tempGlobalTransformMatrixForChild)
+			if(_tempGlobalTransformMatrixForChild == null)
 			{
 				_tempGlobalTransformMatrixForChild = new Matrix();
 			}
@@ -414,7 +417,7 @@ public class Bone extends DBObject
 			}
 
 			TransformUtil.transformToMatrix(_globalTransformForChild, _globalTransformMatrixForChild);
-			if(parentGlobalTransformMatrix)
+			if(parentGlobalTransformMatrix != null)
 			{
 				_globalTransformMatrixForChild.concat(parentGlobalTransformMatrix);
 				TransformUtil.matrixToTransform(_globalTransformMatrixForChild, _globalTransformForChild, _globalTransformForChild.scaleX * parentGlobalTransform.scaleX >= 0, _globalTransformForChild.scaleY * parentGlobalTransform.scaleY >= 0 );
@@ -423,28 +426,28 @@ public class Bone extends DBObject
 	}
 
 	/** @private */
-	dragonBones_internal function hideSlots():void
+	private void hideSlots()
 	{
-		for each(var childSlot:Slot in _slotList)
+		for (Slot childSlot : _slotList)
 		{
 			childSlot.changeDisplay(-1);
 		}
 	}
 
 	/** @private When bone timeline enter a key frame, call this func*/
-	dragonBones_internal function arriveAtFrame(frame:Frame, timelineState:TimelineState, animationState:AnimationState, isCross:Boolean):void
+	private void arriveAtFrame(Frame frame, TimelineState timelineState, AnimationState animationState, boolean isCross)
 	{
-		var displayControl:Boolean =
+		boolean displayControl =
 			animationState.displayControl &&
 			(!displayController || displayController == animationState.name) &&
 			animationState.containsBoneMask(name)
 
 		if(displayControl)
 		{
-			var childSlot:Slot;
+			Slot childSlot;
 			if(frame.event && this._armature.hasEventListener(FrameEvent.BONE_FRAME_EVENT))
 			{
-				var frameEvent:FrameEvent = new FrameEvent(FrameEvent.BONE_FRAME_EVENT);
+				FrameEvent frameEvent = new FrameEvent(FrameEvent.BONE_FRAME_EVENT);
 				frameEvent.bone = this;
 				frameEvent.animationState = animationState;
 				frameEvent.frameLabel = frame.event;
@@ -452,7 +455,7 @@ public class Bone extends DBObject
 			}
 			if(frame.sound && _soundManager.hasEventListener(SoundEvent.SOUND))
 			{
-				var soundEvent:SoundEvent = new SoundEvent(SoundEvent.SOUND);
+				SoundEvent soundEvent = new SoundEvent(SoundEvent.SOUND);
 				soundEvent.armature = this._armature;
 				soundEvent.animationState = animationState;
 				soundEvent.sound = frame.sound;
@@ -461,12 +464,12 @@ public class Bone extends DBObject
 
 			//[TODO]currently there is only gotoAndPlay belongs to frame action. In future, there will be more.
 			//后续会扩展更多的action，目前只有gotoAndPlay的含义
-			if(frame.action)
+			if(frame.action != null)
 			{
-				for each(childSlot in _slotList)
+				for (Slot childSlot2 : _slotList)
 				{
-					var childArmature:Armature = childSlot.childArmature;
-					if(childArmature)
+					Armature childArmature = childSlot2.childArmature;
+					if(childArmature != null)
 					{
 						childArmature.animation.gotoAndPlay(frame.action);
 					}
@@ -476,7 +479,7 @@ public class Bone extends DBObject
 	}
 
 	/** @private */
-	dragonBones_internal function addState(timelineState:TimelineState):void
+	private void addState(TimelineState timelineState)
 	{
 		if(_timelineStateList.indexOf(timelineState) < 0)
 		{
@@ -486,9 +489,9 @@ public class Bone extends DBObject
 	}
 
 	/** @private */
-	dragonBones_internal function removeState(timelineState:TimelineState):void
+	private void removeState(TimelineState timelineState)
 	{
-		var index:int = _timelineStateList.indexOf(timelineState);
+		int index = _timelineStateList.indexOf(timelineState);
 		if(index >= 0)
 		{
 			_timelineStateList.splice(index, 1);
@@ -496,19 +499,19 @@ public class Bone extends DBObject
 	}
 
 	/** @private */
-	dragonBones_internal function removeAllStates():void
+	private void removeAllStates()
 	{
 		_timelineStateList.length = 0;
 	}
 
-	private function blendingTimeline():void
+	private void blendingTimeline()
 	{
-		var timelineState:TimelineState;
-		var transform:DBTransform;
-		var pivot:Point;
-		var weight:Number;
+		TimelineState timelineState;
+		DBTransform transform;
+		Point pivot;
+		double weight;
 
-		var i:int = _timelineStateList.length;
+		int i = _timelineStateList.size();
 		if(i == 1)
 		{
 			timelineState = _timelineStateList[0];
@@ -529,26 +532,26 @@ public class Bone extends DBObject
 		}
 		else if(i > 1)
 		{
-			var x:Number = 0;
-			var y:Number = 0;
-			var skewX:Number = 0;
-			var skewY:Number = 0;
-			var scaleX:Number = 1;
-			var scaleY:Number = 1;
-			var pivotX:Number = 0;
-			var pivotY:Number = 0;
+			double x = 0;
+			double y = 0;
+			double skewX = 0;
+			double skewY = 0;
+			double scaleX = 1;
+			double scaleY = 1;
+			double pivotX = 0;
+			double pivotY = 0;
 
-			var weigthLeft:Number = 1;
-			var layerTotalWeight:Number = 0;
-			var prevLayer:int = _timelineStateList[i - 1]._animationState.layer;
-			var currentLayer:int;
+			double weigthLeft = 1;
+			double layerTotalWeight = 0;
+			int prevLayer = _timelineStateList.get(i - 1)._animationState.layer;
+			int currentLayer;
 
 			//Traversal the layer from up to down
 			//layer由高到低依次遍历
 
-			while(i --)
+			while(i -- > 0)
 			{
-				timelineState = _timelineStateList[i];
+				timelineState = _timelineStateList.get(i);
 
 				currentLayer = timelineState._animationState.layer;
 				if(prevLayer != currentLayer)
@@ -567,7 +570,7 @@ public class Bone extends DBObject
 
 				weight = timelineState._animationState.weight * timelineState._animationState.fadeWeight * weigthLeft;
 				timelineState._weight = weight;
-				if(weight)
+				if(weight != 0)
 				{
 					transform = timelineState._transform;
 					pivot = timelineState._pivot;
@@ -596,7 +599,7 @@ public class Bone extends DBObject
 		}
 	}
 
-	private function sortState(state1:TimelineState, state2:TimelineState):int
+	private int sortState(TimelineState state1, TimelineState state2)
 	{
 		return state1._animationState.layer < state2._animationState.layer?-1:1;
 	}
@@ -604,7 +607,7 @@ public class Bone extends DBObject
 	/**
 	 * Unrecommended API. Recommend use slot.childArmature.
 	 */
-	public function get childArmature():Armature
+	public Armature getChildArmature()
 	{
 		if(slot)
 		{
@@ -616,17 +619,17 @@ public class Bone extends DBObject
 	/**
 	 * Unrecommended API. Recommend use slot.display.
 	 */
-	public function get display():Object
+	public Object getDisplay()
 	{
-		if(slot)
+		if(slot != null)
 		{
 			return slot.display;
 		}
 		return null;
 	}
-	public function set display(value:Object):void
+	public void setDisplay(Object value)
 	{
-		if(slot)
+		if(slot != null)
 		{
 			slot.display = value;
 		}
@@ -635,7 +638,7 @@ public class Bone extends DBObject
 	/**
 	 * Unrecommended API. Recommend use offset.
 	 */
-	public function get node():DBTransform
+	public DBTransform getNode()
 	{
 		return _offset;
 	}
@@ -644,12 +647,12 @@ public class Bone extends DBObject
 
 
 	/** @private */
-	override public function set visible(value:Boolean):void
+	@Override public void setVisible(boolean value)
 	{
 		if(this._visible != value)
 		{
 			this._visible = value;
-			for each(var childSlot:Slot in _slotList)
+			for (Slot childSlot : _slotList)
 			{
 				childSlot.updateDisplayVisible(this._visible);
 			}
@@ -657,8 +660,8 @@ public class Bone extends DBObject
 	}
 
 
-	public function get slot():Slot
+	public Slot getSlot()
 	{
-		return _slotList.length > 0?_slotList[0]:null;
+		return _slotList.size() > 0? _slotList.get(0) :null;
 	}
 }

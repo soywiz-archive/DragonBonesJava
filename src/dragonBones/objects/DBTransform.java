@@ -92,7 +92,11 @@ public class DBTransform
 		scaleY /= transform.scaleY;
 	}
 
-	public DBTransform divParent(DBTransform transform, boolean createNew = false)
+	public DBTransform divParent(DBTransform transform) {
+		return divParent(transform, false);
+	}
+
+	public DBTransform divParent(DBTransform transform, boolean createNew)
 	{
 		DBTransform output = createNew ? new DBTransform() : this;
 		Matrix parentMatrix = new Matrix();

@@ -8,7 +8,7 @@ public class ColorTransformUtil
 
 	public static ColorTransform cloneColor(ColorTransform color)
 	{
-		return new ColorTransform(color.redMultiplier,color.greenMultiplier,color.blueMultiplier,color.alphaMultiplier,color.redOffset,color.greenOffset,color.blueOffset,color.alphaOffset)
+		return new ColorTransform(color.redMultiplier,color.greenMultiplier,color.blueMultiplier,color.alphaMultiplier,color.redOffset,color.greenOffset,color.blueOffset,color.alphaOffset);
 	}
 
 	public static boolean isEqual(ColorTransform color1, ColorTransform color2)

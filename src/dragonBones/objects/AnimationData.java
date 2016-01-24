@@ -1,5 +1,8 @@
 package dragonBones.objects;
-	final public class AnimationData extends Timeline
+
+import java.util.ArrayList;
+
+final public class AnimationData extends Timeline
 	{
 		public String name;
 		public int frameRate;

@@ -1,5 +1,7 @@
 package dragonBones.objects;
 
+import java.util.ArrayList;
+
 /** @private */
 final public class ArmatureData
 {

@@ -14,6 +14,10 @@ import dragonBones.objects.Frame;
 import dragonBones.objects.SkinData;
 import dragonBones.objects.SlotData;
 
+import java.util.ArrayList;
+import java.util.Objects;
+import java.util.Vector;
+
 //use namespace dragonBones_internal;
 
 /**
@@ -94,42 +98,42 @@ public class Armature extends EventDispatcher implements IArmature
 
 
 	/** @private Store slots based on slots' zOrder*/
-	protected var _slotList:Vector.<Slot>;
+	protected ArrayList<Slot> _slotList;
 
 	/** @private Store bones based on bones' hierarchy (From root to leaf)*/
-	protected var _boneList:Vector.<Bone>;
+	protected ArrayList<Bone> _boneList;
 
-	private var _delayDispose:Boolean;
-	private var _lockDispose:Boolean;
+	private boolean _delayDispose;
+	private boolean _lockDispose;
 
 	/** @private */
-	dragonBones_internal var _armatureData:ArmatureData;
+	private ArmatureData _armatureData;
 	/**
 	 * ArmatureData.
 	 * @see dragonBones.objects.ArmatureData.
 	 */
-	public function get armatureData():ArmatureData
+	public ArmatureData getArmatureData()
 	{
 		return _armatureData;
 	}
 
 	/** @private */
-	protected var _display:Object;
+	protected Object _display;
 	/**
 	 * Armature's display object. It's instance type depends on render engine. For example "flash.display.DisplayObject" or "startling.display.DisplayObject"
 	 */
-	public function get display():Object
+	public Object getDisplay()
 	{
 		return _display;
 	}
 
 	/** @private */
-	protected var _animation:Animation;
+	protected Animation _animation;
 	/**
 	 * An Animation instance
 	 * @see dragonBones.animation.Animation
 	 */
-	public function get animation():Animation
+	public Animation getAnimation()
 	{
 		return _animation;
 	}
@@ -137,13 +141,13 @@ public class Armature extends EventDispatcher implements IArmature
 	/**
 	 * save more skinLists
 	 */
-	dragonBones_internal var _skinLists:Object;
+	private Object _skinLists;
 	/**
 	 * Creates a Armature blank instance.
 	 * @param Instance type of this object varies from flash.display.DisplayObject to startling.display.DisplayObject and subclasses.
 	 * @see #display
 	 */
-	public function Armature(display:Object)
+	public Armature(Object display)
 	{
 		super(this);
 		_display = display;
@@ -167,7 +171,7 @@ public class Armature extends EventDispatcher implements IArmature
 	/**
 	 * Cleans up any resources used by this instance.
 	 */
-	public function dispose():void
+	public void dispose()
 	{
 		_delayDispose = true;
 		if(!_animation || _lockDispose)
@@ -178,15 +182,15 @@ public class Armature extends EventDispatcher implements IArmature
 		userData = null;
 
 		_animation.dispose();
-		var i:int = _slotList.length;
-		while(i --)
+		int i = _slotList.size();
+		while(i -- > 0)
 		{
-			_slotList[i].dispose();
+			_slotList.get(i).dispose();
 		}
-		i = _boneList.length;
-		while(i --)
+		i = _boneList.size();
+		while(i -- > 0)
 		{
-			_boneList[i].dispose();
+			_boneList.get(i).dispose();
 		}
 
 		_slotList.fixed = false;
@@ -207,11 +211,11 @@ public class Armature extends EventDispatcher implements IArmature
 	/**
 	 * Force update bones and slots. (When bone's animation play complete, it will not update)
 	 */
-	public function invalidUpdate(boneName:String = null):void
+	public void invalidUpdate(String boneName = null)
 	{
-		if(boneName)
+		if(boneName != null)
 		{
-			var bone:Bone = getBone(boneName);
+			Bone bone = getBone(boneName);
 			if(bone)
 			{
 				bone.invalidUpdate();
@@ -219,10 +223,10 @@ public class Armature extends EventDispatcher implements IArmature
 		}
 		else
 		{
-			var i:int = _boneList.length;
-			while(i --)
+			int i = _boneList.size();
+			while(i -- > 0)
 			{
-				_boneList[i].invalidUpdate();
+				_boneList.get(i).invalidUpdate();
 			}
 		}
 	}
@@ -231,7 +235,7 @@ public class Armature extends EventDispatcher implements IArmature
 	 * Update the animation using this method typically in an ENTERFRAME Event or with a Timer.
 	 * @param The amount of second to move the playhead ahead.
 	 */
-	public function advanceTime(passedTime:Number):void
+	public void advanceTime(double passedTime)
 	{
 		_lockDispose = true;
 
@@ -239,22 +243,22 @@ public class Armature extends EventDispatcher implements IArmature
 
 		passedTime *= _animation.timeScale;    //_animation's time scale will impact childArmature
 
-		var isFading:Boolean = _animation._isFading;
-		var i:int = _boneList.length;
-		while(i --)
+		boolean isFading = _animation._isFading;
+		int i = _boneList.size();
+		while(i -- > 0)
 		{
-			var bone:Bone = _boneList[i];
+			Bone bone = _boneList[i];
 			bone.update(isFading);
 		}
 
-		i = _slotList.length;
-		while(i --)
+		i = _slotList.size();
+		while(i -- > 0)
 		{
-			var slot:Slot = _slotList[i];
+			Slot slot = _slotList[i];
 			slot.update();
 			if(slot._isShowDisplay)
 			{
-				var childArmature:Armature = slot.childArmature;
+				Armature childArmature = slot.childArmature;
 				if(childArmature)
 				{
 					childArmature.advanceTime(passedTime);
@@ -272,13 +276,13 @@ public class Armature extends EventDispatcher implements IArmature
 			}
 		}
 
-		if(_eventList.length)
+		if(_eventList.size() > 0)
 		{
-			for each(var event:Event in _eventList)
+			for (Event event : _eventList)
 			{
 				this.dispatchEvent(event);
 			}
-			_eventList.length = 0;
+			_eventList.clear();
 		}
 
 		_lockDispose = false;
@@ -288,12 +292,12 @@ public class Armature extends EventDispatcher implements IArmature
 		}
 	}
 
-	public function resetAnimation():void
+	public void resetAnimation()
 	{
 		animation.stop();
 		animation.resetAnimationStateList();
 
-		for each(var boneItem:Bone in _boneList)
+		for (Bone boneItem : _boneList)
 		{
 			boneItem.removeAllStates();
 		}
@@ -305,7 +309,7 @@ public class Armature extends EventDispatcher implements IArmature
 	 * @return A Vector.&lt;Slot&gt; instance.
 	 * @see dragonBones.Slot
 	 */
-	public function getSlots(returnCopy:Boolean = true):Vector.<Slot>
+	public ArrayList<Slot> getSlots(boolean returnCopy = true)
 	{
 		return returnCopy?_slotList.concat():_slotList;
 	}
@@ -316,11 +320,11 @@ public class Armature extends EventDispatcher implements IArmature
 	 * @return A Slot instance or null if no Slot with that name exist.
 	 * @see dragonBones.Slot
 	 */
-	public function getSlot(slotName:String):Slot
+	public Slot getSlot(String slotName)
 	{
-		for each(var slot:Slot in _slotList)
+		for (Slot slot : _slotList)
 		{
-			if(slot.name == slotName)
+			if(Objects.equals(slot.name, slotName))
 			{
 				return slot;
 			}
@@ -334,11 +338,11 @@ public class Armature extends EventDispatcher implements IArmature
 	 * @return A Slot instance or null if no Slot with that DisplayObject exist.
 	 * @see dragonBones.Slot
 	 */
-	public function getSlotByDisplay(displayObj:Object):Slot
+	public Slot getSlotByDisplay(Object displayObj)
 	{
-		if(displayObj)
+		if(displayObj != null)
 		{
-			for each(var slot:Slot in _slotList)
+			for (Slot slot : _slotList)
 			{
 				if(slot.display == displayObj)
 				{
@@ -355,10 +359,10 @@ public class Armature extends EventDispatcher implements IArmature
 	 * @param boneName bone name
 	 * @see dragonBones.core.DBObject
 	 */
-	public function addSlot(slot:Slot, boneName:String):void
+	public void addSlot(Slot slot, String boneName)
 	{
-		var bone:Bone = getBone(boneName);
-		if (bone)
+		Bone bone = getBone(boneName);
+		if (bone != null)
 		{
 			bone.addSlot(slot);
 		}
@@ -373,9 +377,9 @@ public class Armature extends EventDispatcher implements IArmature
 	 * @param The Slot instance to remove.
 	 * @see dragonBones.Slot
 	 */
-	public function removeSlot(slot:Slot):void
+	public void removeSlot(Slot slot)
 	{
-		if(!slot || slot.armature != this)
+		if(slot == null || slot.armature != this)
 		{
 			throw new ArgumentError();
 		}
@@ -388,10 +392,10 @@ public class Armature extends EventDispatcher implements IArmature
 	 * @param The name of the Slot instance to remove.
 	 * @see dragonBones.Slot
 	 */
-	public function removeSlotByName(slotName:String):Slot
+	public Slot removeSlotByName(String slotName)
 	{
-		var slot:Slot = getSlot(slotName);
-		if(slot)
+		Slot slot = getSlot(slotName);
+		if(slot != null)
 		{
 			removeSlot(slot);
 		}
@@ -415,11 +419,11 @@ public class Armature extends EventDispatcher implements IArmature
 	 * @return A Bone instance or null if no Bone with that name exist.
 	 * @see dragonBones.Bone
 	 */
-	public function getBone(boneName:String):Bone
+	public Bone getBone(String boneName)
 	{
-		for each(var bone:Bone in _boneList)
+		for (Bone bone : _boneList)
 		{
-			if(bone.name == boneName)
+			if(Objects.equals(bone.name, boneName))
 			{
 				return bone;
 			}
@@ -433,10 +437,10 @@ public class Armature extends EventDispatcher implements IArmature
 	 * @return A Bone instance or null if no Bone with that DisplayObject exist..
 	 * @see dragonBones.Bone
 	 */
-	public function getBoneByDisplay(display:Object):Bone
+	public Bone getBoneByDisplay(Object display)
 	{
-		var slot:Slot = getSlotByDisplay(display);
-		return slot?slot.parent:null;
+		Slot slot = getSlotByDisplay(display);
+		return (slot != null) ?slot.getParent():null;
 	}
 
 	/**
@@ -445,19 +449,19 @@ public class Armature extends EventDispatcher implements IArmature
 	 * @param (optional) The parent's name of this Bone instance.
 	 * @see dragonBones.Bone
 	 */
-	public function addBone(bone:Bone, parentName:String = null, updateLater:Boolean = false):void
+	public void addBone(Bone bone, String parentName = null, boolean updateLater = false)
 	{
-		var parentBone:Bone;
-		if(parentName)
+		Bone parentBone = null;
+		if(parentName != null)
 		{
 			parentBone = getBone(parentName);
-			if (!parentBone)
+			if (parentBone == null)
 			{
 				throw new ArgumentError();
 			}
 		}
 
-		if(parentBone)
+		if(parentBone != null)
 		{
 			parentBone.addChildBone(bone, updateLater);
 		}
@@ -480,14 +484,14 @@ public class Armature extends EventDispatcher implements IArmature
 	 * @param The Bone instance to remove.
 	 * @see	dragonBones.Bone
 	 */
-	public function removeBone(bone:Bone, updateLater:Boolean = false):void
+	public void removeBone(Bone bone, boolean updateLater = false)
 	{
-		if(!bone || bone.armature != this)
+		if(bone == null || bone.armature != this)
 		{
 			throw new ArgumentError();
 		}
 
-		if(bone.parent)
+		if(bone.getParent() != null)
 		{
 			bone.parent.removeChildBone(bone, updateLater);
 		}
@@ -506,9 +510,9 @@ public class Armature extends EventDispatcher implements IArmature
 	 * @param The name of the Bone instance to remove.
 	 * @see dragonBones.Bone
 	 */
-	public function removeBoneByName(boneName:String):Bone
+	public Bone removeBoneByName(String boneName)
 	{
-		var bone:Bone = getBone(boneName);
+		Bone bone = getBone(boneName);
 		if(bone)
 		{
 			removeBone(bone);
@@ -517,7 +521,7 @@ public class Armature extends EventDispatcher implements IArmature
 	}
 
 	/** @private */
-	dragonBones_internal function addBoneToBoneList(bone:Bone):void
+	private void addBoneToBoneList(Bone bone)
 	{
 		if(_boneList.indexOf(bone) < 0)
 		{
@@ -528,9 +532,9 @@ public class Armature extends EventDispatcher implements IArmature
 	}
 
 	/** @private */
-	dragonBones_internal function removeBoneFromBoneList(bone:Bone):void
+	private void removeBoneFromBoneList(Bone bone)
 	{
-		var index:int = _boneList.indexOf(bone);
+		int index = _boneList.indexOf(bone);
 		if(index >= 0)
 		{
 			_boneList.fixed = false;
@@ -540,7 +544,7 @@ public class Armature extends EventDispatcher implements IArmature
 	}
 
 	/** @private */
-	dragonBones_internal function addSlotToSlotList(slot:Slot):void
+	private void addSlotToSlotList(Slot slot)
 	{
 		if(_slotList.indexOf(slot) < 0)
 		{
@@ -551,9 +555,9 @@ public class Armature extends EventDispatcher implements IArmature
 	}
 
 	/** @private */
-	dragonBones_internal function removeSlotFromSlotList(slot:Slot):void
+	private void removeSlotFromSlotList(Slot slot)
 	{
-		var index:int = _slotList.indexOf(slot);
+		int index = _slotList.indexOf(slot);
 		if(index >= 0)
 		{
 			_slotList.fixed = false;
@@ -565,15 +569,15 @@ public class Armature extends EventDispatcher implements IArmature
 	/**
 	 * Sort all slots based on zOrder
 	 */
-	public function updateSlotsZOrder():void
+	public void updateSlotsZOrder()
 	{
 		_slotList.fixed = false;
 		_slotList.sort(sortSlot);
 		_slotList.fixed = true;
-		var i:int = _slotList.length;
-		while(i --)
+		int i = _slotList.length;
+		while(i -- > 0)
 		{
-			var slot:Slot = _slotList[i];
+			Slot slot = _slotList[i];
 			if(slot._isShowDisplay)
 			{
 				//_display 实际上是container, 这个方法就是把原来的显示对象放到container中的第一个
@@ -584,7 +588,7 @@ public class Armature extends EventDispatcher implements IArmature
 		_slotsZOrderChanged = false;
 	}
 
-	dragonBones_internal function updateAnimationAfterBoneListChanged(ifNeedSortBoneList:Boolean = true):void
+	private void updateAnimationAfterBoneListChanged(boolean ifNeedSortBoneList = true)
 	{
 		if(ifNeedSortBoneList)
 		{
@@ -593,20 +597,20 @@ public class Armature extends EventDispatcher implements IArmature
 		_animation.updateAnimationStates();
 	}
 
-	private function sortBoneList():void
+	private void sortBoneList()
 	{
-		var i:int = _boneList.length;
+		int i = _boneList.length;
 		if(i == 0)
 		{
 			return;
 		}
-		var helpArray:Array = [];
-		while(i --)
+		Array helpArray = [];
+		while(i -- > 0)
 		{
-			var level:int = 0;
-			var bone:Bone = _boneList[i];
-			var boneParent:Bone = bone;
-			while(boneParent)
+			int level = 0;
+			Bone bone = _boneList[i];
+			Bone boneParent = bone;
+			while(boneParent != null)
 			{
 				level ++;
 				boneParent = boneParent.parent;
@@ -619,7 +623,7 @@ public class Armature extends EventDispatcher implements IArmature
 		i = helpArray.length;
 
 		_boneList.fixed = false;
-		while(i --)
+		while(i -- > 0)
 		{
 			_boneList[i] = helpArray[i][1];
 		}
@@ -629,11 +633,11 @@ public class Armature extends EventDispatcher implements IArmature
 	}
 
 	/** @private When AnimationState enter a key frame, call this func*/
-	dragonBones_internal function arriveAtFrame(frame:Frame, timelineState:TimelineState, animationState:AnimationState, isCross:Boolean):void
+	private void arriveAtFrame(Frame frame, TimelineState timelineState, AnimationState animationState, boolean isCross)
 	{
 		if(frame.event && this.hasEventListener(FrameEvent.ANIMATION_FRAME_EVENT))
 		{
-			var frameEvent:FrameEvent = new FrameEvent(FrameEvent.ANIMATION_FRAME_EVENT);
+			FrameEvent frameEvent = new FrameEvent(FrameEvent.ANIMATION_FRAME_EVENT);
 			frameEvent.animationState = animationState;
 			frameEvent.frameLabel = frame.event;
 			_eventList.push(frameEvent);
@@ -641,7 +645,7 @@ public class Armature extends EventDispatcher implements IArmature
 
 		if(frame.sound && _soundManager.hasEventListener(SoundEvent.SOUND))
 		{
-			var soundEvent:SoundEvent = new SoundEvent(SoundEvent.SOUND);
+			SoundEvent soundEvent = new SoundEvent(SoundEvent.SOUND);
 			soundEvent.armature = this;
 			soundEvent.animationState = animationState;
 			soundEvent.sound = frame.sound;
@@ -650,7 +654,7 @@ public class Armature extends EventDispatcher implements IArmature
 
 		//[TODO]currently there is only gotoAndPlay belongs to frame action. In future, there will be more.
 		//后续会扩展更多的action，目前只有gotoAndPlay的含义
-		if(frame.action)
+		if(frame.action != null)
 		{
 			if(animationState.displayControl)
 			{
@@ -659,37 +663,37 @@ public class Armature extends EventDispatcher implements IArmature
 		}
 	}
 
-	private function sortSlot(slot1:Slot, slot2:Slot):int
+	private int sortSlot(Slot slot1, Slot slot2)
 	{
 		return slot1.zOrder < slot2.zOrder?1: -1;
 	}
 
-	public function addSkinList(skinName:String, list:Object):void
+	public void addSkinList(String skinName, Object list)
 	{
-		if (!skinName)
+		if (skinName == null)
 		{
 			skinName = "default";
 		}
-		if (!_skinLists[skinName])
+		if (_skinLists[skinName] != null)
 		{
 			_skinLists[skinName] = list;
 		}
 	}
 
-	public function changeSkin(skinName:String):void
+	public void changeSkin(String skinName)
 	{
-		var skinData:SkinData = armatureData.getSkinData(skinName);
+		SkinData skinData = armatureData.getSkinData(skinName);
 		if(!skinData || !_skinLists[skinName])
 		{
 			return;
 		}
 		armatureData.setSkinData(skinName);
-		var displayList:Array = [];
-		var slotDataList:Vector.<SlotData> = armatureData.slotDataList;
-		var slotData:SlotData;
-		var slot:Slot;
-		var bone:Bone;
-		for(var i:int = 0; i < slotDataList.length; i++)
+		Array displayList = [];
+		Vector.<SlotData> slotDataList = armatureData.slotDataList;
+		SlotData slotData;
+		Slot slot;
+		Bone bone;
+		for(int i = 0; i < slotDataList.length; i++)
 		{
 
 			slotData = slotDataList[i];
@@ -708,7 +712,7 @@ public class Armature extends EventDispatcher implements IArmature
 		}
 	}
 
-	public function getAnimation():Object
+	public Object getAnimation()
 	{
 		return _animation;
 	}

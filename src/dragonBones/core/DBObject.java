@@ -1,5 +1,6 @@
 package dragonBones.core;
 
+import dragonBones.Armature;
 import flash.geom.Matrix;
 
 import dragonBones.Bone;
@@ -93,7 +94,7 @@ public class DBObject
 		return _armature;
 	}
 	/** @private */
-	private void setArmature(Armature value)
+	public void setArmature(Armature value)
 	{
 		_armature = value;
 	}
@@ -156,7 +157,7 @@ public class DBObject
 
 	protected Object calculateParentTransform()
 	{
-		if(this.parent && (this.inheritTranslation || this.inheritRotation || this.inheritScale))
+		if(this.getParent() != null && (this.inheritTranslation || this.inheritRotation || this.inheritScale))
 		{
 			DBTransform parentGlobalTransform = this._parent._globalTransformForChild;
 			Matrix parentGlobalTransformMatrix = this._parent._globalTransformMatrixForChild;

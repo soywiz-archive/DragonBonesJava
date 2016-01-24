@@ -15,13 +15,13 @@ public class SlotTimelineCache extends TimelineCache
 	public void addFrame()
 	{
 		SlotFrameCache cache = new SlotFrameCache();
-		cache.globalTransform.copy(cacheGenerator.global);
-		cache.globalTransformMatrix.copyFrom(cacheGenerator.globalTransformMatrix);
-		if(cacheGenerator.colorChanged)
+		cache.globalTransform.copy(cacheGenerator.getGlobal());
+		cache.globalTransformMatrix.copyFrom(cacheGenerator.getGlobalTransformMatrix());
+		if(cacheGenerator.getColorChanged())
 		{
-			cache.colorTransform =  ColorTransformUtil.cloneColor(cacheGenerator.colorTransform);
+			cache.colorTransform =  ColorTransformUtil.cloneColor(cacheGenerator.getColorTransform());
 		}
-		cache.displayIndex = cacheGenerator.displayIndex;
-		frameCacheList.push(cache);
+		cache.displayIndex = cacheGenerator.getDisplayIndex();
+		frameCacheList.add(cache);
 	}
 }
