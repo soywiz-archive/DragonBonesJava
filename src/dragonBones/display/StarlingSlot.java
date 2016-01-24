@@ -1,4 +1,4 @@
-﻿package dragonBones.display;
+package dragonBones.display;
 
 import starling.display.BlendMode;
 import flash.geom.Matrix;

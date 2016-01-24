@@ -5,7 +5,7 @@ import flash.system.LoaderContext;
 import flash.utils.ByteArray;
 
 public class Loader {
-	public IEventDispatcher getContentLoaderInfo() {
+	public LoaderInfo getContentLoaderInfo() {
 		throw new Error();
 	}
 

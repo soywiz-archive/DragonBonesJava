@@ -1,8 +1,19 @@
 package flash.utils;
 
 public class ByteArray {
+	public byte[] bytes;
 	private int length;
 	private int position;
+
+	public ByteArray(byte[] bytes) {
+		this(bytes, 0, bytes.length);
+	}
+
+	public ByteArray(byte[] bytes, int position, int length) {
+		this.bytes = bytes;
+		this.position = position;
+		this.length = length;
+	}
 
 	public void writeBytes(ByteArray that) {
 	}

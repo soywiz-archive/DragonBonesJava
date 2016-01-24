@@ -1,13 +1,10 @@
 package dragonBones.objects;
 
 import flash.Runnable1;
-import flash.display.Bitmap;
-import flash.display.BitmapData;
-import flash.display.Loader;
-import flash.display.MovieClip;
-import flash.display.Sprite;
+import flash.display.*;
 import flash.events.Event;
 import flash.events.EventDispatcher;
+import flash.events.IEventDispatcher;
 import flash.utils.ByteArray;
 
 ///** Dispatched after a sucessful call to parseTextureAtlasBytes(). */
@@ -56,12 +53,13 @@ public class DecompressedData extends EventDispatcher
 	public void parseTextureAtlasBytes()
 	{
 		TextureAtlasByteArrayLoader loader = new TextureAtlasByteArrayLoader();
-		loader.getContentLoaderInfo().addEventListener(Event.COMPLETE, new Runnable1<Event>() {
+		final LoaderInfo contentLoaderInfo = loader.getContentLoaderInfo();
+		contentLoaderInfo.addEventListener(Event.COMPLETE, new Runnable1<Event>() {
 			@Override
 			public void run(Event e) {
-				e.target.removeEventListener(Event.COMPLETE, this);
-				Loader loader = e.target.loader;
-				Object content = e.target.content;
+				contentLoaderInfo.removeEventListener(Event.COMPLETE, this);
+				Loader loader = contentLoaderInfo.loader;
+				Object content = contentLoaderInfo.content;
 				loader.unloadAndStop();
 
 				if (content instanceof Bitmap)
