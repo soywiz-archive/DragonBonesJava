@@ -21,7 +21,6 @@ public class DataParser
 		{
 			return ObjectDataParser.parseDragonBonesData(rawData);
 		}
-		return null;
 	}
 
 	//public static Map<String, TextureData> parseTextureAtlasData(Object textureAtlasData, double scale= 1)

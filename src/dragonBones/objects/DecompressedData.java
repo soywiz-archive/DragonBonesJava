@@ -1,6 +1,5 @@
 package dragonBones.objects;
 
-import dragonBones.events.EventInfo;
 import flash.Runnable1;
 import flash.display.Bitmap;
 import flash.display.BitmapData;
@@ -43,7 +42,7 @@ public class DecompressedData extends EventDispatcher
 
 	public DecompressedData()
 	{
-		super(this);
+		super();
 	}
 
 	public void dispose()

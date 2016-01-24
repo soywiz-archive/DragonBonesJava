@@ -8,19 +8,18 @@
  */
 
 import dragonBones.core.DragonBones;
-import dragonBones.core.dragonBones_internal;
 import dragonBones.textures.TextureData;
+import dragonBones.textures.TextureDataMap;
 import dragonBones.utils.ConstValues;
 import dragonBones.utils.DBDataUtil;
 
+import flash.XML;
 import flash.errors.ArgumentError;
 import flash.geom.ColorTransform;
 import flash.geom.Point;
 import flash.geom.Rectangle;
-import flash.utils.Dictionary;
-import org.w3c.dom.Document;
 
-import java.util.Map;
+import static dragonBones.utils.XMLUtils.*;
 
 //use namespace dragonBones_internal;
 
@@ -31,39 +30,39 @@ final public class XMLDataParser
 {
 	private static DragonBonesData tempDragonBonesData;
 
-	public static Map<String, TextureData> parseTextureAtlasData(Document rawData, double scale)
+	public static TextureDataMap parseTextureAtlasData(XML rawData, double scale)
 	{
-		var textureAtlasData:Object = {};
-		textureAtlasData.__name = rawData.@[ConstValues.A_NAME];
-		var subTextureFrame:Rectangle;
-		for each (var subTextureXML:XML in rawData[ConstValues.SUB_TEXTURE])
+		TextureDataMap textureAtlasData = new TextureDataMap();
+		textureAtlasData.__name = getString(rawData, ConstValues.A_NAME);
+		Rectangle subTextureFrame;
+		for (XML subTextureXML : rawData.children(ConstValues.SUB_TEXTURE))
 		{
-			var subTextureName:String = subTextureXML.@[ConstValues.A_NAME];
+			String subTextureName = getString(subTextureXML, ConstValues.A_NAME);
 
-			var subTextureRegion:Rectangle = new Rectangle();
-			subTextureRegion.x = int(subTextureXML.@[ConstValues.A_X]) / scale;
-			subTextureRegion.y = int(subTextureXML.@[ConstValues.A_Y]) / scale;
-			subTextureRegion.width = int(subTextureXML.@[ConstValues.A_WIDTH]) / scale;
-			subTextureRegion.height = int(subTextureXML.@[ConstValues.A_HEIGHT]) / scale;
-			var rotated:Boolean = subTextureXML.@[ConstValues.A_ROTATED] == "true";
+			Rectangle subTextureRegion = new Rectangle();
+			subTextureRegion.setX(getInt(subTextureXML, ConstValues.A_X) / scale);
+			subTextureRegion.setY(getInt(subTextureXML, ConstValues.A_Y) / scale);
+			subTextureRegion.setWidth(getInt(subTextureXML, ConstValues.A_WIDTH) / scale);
+			subTextureRegion.setHeight(getInt(subTextureXML, ConstValues.A_HEIGHT) / scale);
+			Boolean rotated = getBoolean(subTextureXML, ConstValues.A_ROTATED, false);
 
-			var frameWidth:Number = int(subTextureXML.@[ConstValues.A_FRAME_WIDTH]) / scale;
-			var frameHeight:Number = int(subTextureXML.@[ConstValues.A_FRAME_HEIGHT]) / scale;
+			double frameWidth = getNumber(subTextureXML, ConstValues.A_FRAME_WIDTH, 0) / scale;
+			double frameHeight = getNumber(subTextureXML, ConstValues.A_FRAME_HEIGHT, 0) / scale;
 
 			if(frameWidth > 0 && frameHeight > 0)
 			{
 				subTextureFrame = new Rectangle();
-				subTextureFrame.x = int(subTextureXML.@[ConstValues.A_FRAME_X]) / scale;
-				subTextureFrame.y = int(subTextureXML.@[ConstValues.A_FRAME_Y]) / scale;
-				subTextureFrame.width = frameWidth;
-				subTextureFrame.height = frameHeight;
+				subTextureFrame.setX(getInt(subTextureXML, ConstValues.A_FRAME_X) / scale);
+				subTextureFrame.setY(getInt(subTextureXML, ConstValues.A_FRAME_Y) / scale);
+				subTextureFrame.setWidth(frameWidth);
+				subTextureFrame.setHeight(frameHeight);
 			}
 			else
 			{
 				subTextureFrame = null;
 			}
 
-			textureAtlasData[subTextureName] = new TextureData(subTextureRegion, subTextureFrame, rotated);
+			textureAtlasData.data.put(subTextureName, new TextureData(subTextureRegion, subTextureFrame, rotated));
 		}
 
 		return textureAtlasData;
@@ -71,22 +70,21 @@ final public class XMLDataParser
 
 	/**
 	 * Parse the SkeletonData.
-	 * @param xml The SkeletonData xml to parse.
+	 * @param rawData The SkeletonData xml to parse.
 	 * @return A SkeletonData instance.
 	 */
-	public static DragonBonesData parseDragonBonesData(Document rawData)
+	public static DragonBonesData parseDragonBonesData(XML rawData)
 	{
 		if(rawData == null)
 		{
 			throw new ArgumentError();
 		}
-		String version = rawData.@[ConstValues.A_VERSION];
+		String version = rawData.getString(ConstValues.A_VERSION);
 		switch (version)
 		{
 			case "2.3":
 			case "3.0":
 				return XML3DataParser.parseSkeletonData(rawData);
-				break;
 			case DragonBones.DATA_VERSION:
 				break;
 
@@ -94,13 +92,13 @@ final public class XMLDataParser
 				throw new Error("Nonsupport version!");
 		}
 
-		int frameRate = (int)(rawData.@[ConstValues.A_FRAME_RATE]);
+		int frameRate = getInt(rawData, ConstValues.A_FRAME_RATE);
 
-		var outputDragonBonesData:DragonBonesData = new DragonBonesData();
-		outputDragonBonesData.name = rawData.@[ConstValues.A_NAME];
-		outputDragonBonesData.isGlobalData = rawData.@[ConstValues.A_IS_GLOBAL] == "0" ? false : true;
+		DragonBonesData outputDragonBonesData = new DragonBonesData();
+		outputDragonBonesData.name = getString(rawData, ConstValues.A_NAME);
+		outputDragonBonesData.isGlobalData = getBoolean(rawData, ConstValues.A_IS_GLOBAL, true);
 		tempDragonBonesData = outputDragonBonesData;
-		for each(var armatureXML:XML in rawData[ConstValues.ARMATURE])
+		for (XML armatureXML : rawData.children(ConstValues.ARMATURE))
 		{
 			outputDragonBonesData.addArmatureData(parseArmatureData(armatureXML, frameRate));
 		}
@@ -109,20 +107,21 @@ final public class XMLDataParser
 		return outputDragonBonesData;
 	}
 
-	private static function parseArmatureData(armatureXML:XML, frameRate:uint):ArmatureData
+	private static ArmatureData parseArmatureData(XML armatureXML, int frameRate)
 	{
-		var outputArmatureData:ArmatureData = new ArmatureData();
-		outputArmatureData.name = armatureXML.@[ConstValues.A_NAME];
+		ArmatureData outputArmatureData = new ArmatureData();
+		outputArmatureData.name = getString(armatureXML, ConstValues.A_NAME);
 
-		for each(var boneXML:XML in armatureXML[ConstValues.BONE])
+		for (XML boneXML : armatureXML.children(ConstValues.BONE))
 		{
 			outputArmatureData.addBoneData(parseBoneData(boneXML));
 		}
-		for each(var slotXML:XML in armatureXML[ConstValues.SLOT])
+
+		for (XML slotXML : armatureXML.children(ConstValues.SLOT))
 		{
 			outputArmatureData.addSlotData(parseSlotData(slotXML));
 		}
-		for each(var skinXML:XML in armatureXML[ConstValues.SKIN])
+		for (XML skinXML :  armatureXML.children(ConstValues.SKIN))
 		{
 			outputArmatureData.addSkinData(parseSkinData(skinXML));
 		}
@@ -134,11 +133,9 @@ final public class XMLDataParser
 
 		outputArmatureData.sortBoneDataList();
 
-		var animationXML:XML;
-
-		for each(animationXML in armatureXML[ConstValues.ANIMATION])
+		for (XML animationXML : armatureXML.children(ConstValues.ANIMATION))
 		{
-			var animationData:AnimationData = parseAnimationData(animationXML, frameRate);
+			AnimationData animationData = parseAnimationData(animationXML, frameRate);
 			DBDataUtil.addHideTimeline(animationData, outputArmatureData, true);
 			DBDataUtil.transformAnimationData(animationData, outputArmatureData, tempDragonBonesData.isGlobalData);
 			outputArmatureData.addAnimationData(animationData);
@@ -147,16 +144,16 @@ final public class XMLDataParser
 		return outputArmatureData;
 	}
 
-	private static function parseBoneData(boneXML:XML):BoneData
+	private static BoneData parseBoneData(XML boneXML)
 	{
-		var boneData:BoneData = new BoneData();
-		boneData.name = boneXML.@[ConstValues.A_NAME];
-		boneData.parent = boneXML.@[ConstValues.A_PARENT];
-		boneData.length = Number(boneXML.@[ConstValues.A_LENGTH]);
+		BoneData boneData = new BoneData();
+		boneData.name = getString(boneXML, ConstValues.A_NAME);
+		boneData.parent = getString(boneXML, ConstValues.A_PARENT);
+		boneData.length = getNumber(boneXML, ConstValues.A_LENGTH, 0);
 		boneData.inheritRotation = getBoolean(boneXML, ConstValues.A_INHERIT_ROTATION, true);
 		boneData.inheritScale = getBoolean(boneXML, ConstValues.A_INHERIT_SCALE, true);
 
-		parseTransform(boneXML[ConstValues.TRANSFORM][0], boneData.transform);
+		parseTransform(boneXML.first(ConstValues.TRANSFORM), boneData.transform, null);
 		if(tempDragonBonesData.isGlobalData)//绝对数据
 		{
 			boneData.global.copy(boneData.transform);
@@ -166,12 +163,12 @@ final public class XMLDataParser
 	}
 
 
-	private static function parseSkinData(skinXML:XML):SkinData
+	private static SkinData parseSkinData(XML skinXML)
 	{
-		var skinData:SkinData = new SkinData();
-		skinData.name = skinXML.@[ConstValues.A_NAME];
+		SkinData skinData = new SkinData();
+		skinData.name = skinXML.getString(ConstValues.A_NAME);
 
-		for each(var slotXML:XML in skinXML[ConstValues.SLOT])
+		for (XML slotXML : skinXML.children(ConstValues.SLOT))
 		{
 			skinData.addSlotData(parseSlotDisplayData(slotXML));
 		}
@@ -179,11 +176,11 @@ final public class XMLDataParser
 		return skinData;
 	}
 
-	private static function parseSlotDisplayData(slotXML:XML):SlotData
+	private static SlotData parseSlotDisplayData(XML slotXML)
 	{
-		var slotData:SlotData = new SlotData();
-		slotData.name = slotXML.@[ConstValues.A_NAME];
-		for each(var displayXML:XML in slotXML[ConstValues.DISPLAY])
+		SlotData slotData = new SlotData();
+		slotData.name = slotXML.getString(ConstValues.A_NAME);
+		for (XML displayXML : slotXML.children(ConstValues.DISPLAY))
 		{
 			slotData.addDisplayData(parseDisplayData(displayXML));
 		}
@@ -191,27 +188,27 @@ final public class XMLDataParser
 		return slotData;
 	}
 
-	private static function parseSlotData(slotXML:XML):SlotData
+	private static SlotData parseSlotData(XML slotXML)
 	{
-		var slotData:SlotData = new SlotData();
-		slotData.name = slotXML.@[ConstValues.A_NAME];
-		slotData.parent = slotXML.@[ConstValues.A_PARENT];
-		slotData.zOrder = getNumber(slotXML,ConstValues.A_Z_ORDER,0)||0;
-		slotData.blendMode = slotXML.@[ConstValues.A_BLENDMODE];
-		slotData.displayIndex = slotXML.@[ConstValues.A_DISPLAY_INDEX];
+		SlotData slotData = new SlotData();
+		slotData.name = slotXML.getString(ConstValues.A_NAME);
+		slotData.parent = slotXML.getString(ConstValues.A_PARENT);
+		slotData.zOrder = slotXML.getDouble(ConstValues.A_Z_ORDER,0);
+		slotData.blendMode = slotXML.getString(ConstValues.A_BLENDMODE);
+		slotData.displayIndex = slotXML.getInt(ConstValues.A_DISPLAY_INDEX);
 		return slotData;
 	}
 
-	private static function parseDisplayData(displayXML:XML):DisplayData
+	private static DisplayData parseDisplayData(XML displayXML)
 	{
-		var displayData:DisplayData = new DisplayData();
-		displayData.name = displayXML.@[ConstValues.A_NAME];
-		displayData.type = displayXML.@[ConstValues.A_TYPE];
+		DisplayData displayData = new DisplayData();
+		displayData.name = displayXML.getString(ConstValues.A_NAME);
+		displayData.type = displayXML.getString(ConstValues.A_TYPE);
 
-		parseTransform(displayXML[ConstValues.TRANSFORM][0], displayData.transform, displayData.pivot);
+		parseTransform(displayXML.first(ConstValues.TRANSFORM), displayData.transform, displayData.pivot);
 
-		displayData.pivot.x = NaN;
-		displayData.pivot.y = NaN;
+		displayData.pivot.x = Double.NaN;
+		displayData.pivot.y = Double.NaN;
 
 		if(tempDragonBonesData!=null)
 		{
@@ -222,72 +219,72 @@ final public class XMLDataParser
 	}
 
 	/** @private */
-	dragonBones_internal static function parseAnimationData(animationXML:XML, frameRate:uint):AnimationData
+	static AnimationData parseAnimationData(XML animationXML, int frameRate)
 	{
-		var animationData:AnimationData = new AnimationData();
-		animationData.name = animationXML.@[ConstValues.A_NAME];
+		AnimationData animationData = new AnimationData();
+		animationData.name = getString(animationXML, ConstValues.A_NAME);
 		animationData.frameRate = frameRate;
-		animationData.duration = Math.round((int(animationXML.@[ConstValues.A_DURATION]) || 1) * 1000 / frameRate);
-		animationData.playTimes = int(getNumber(animationXML,ConstValues.A_PLAY_TIMES,1));
-		animationData.fadeTime = getNumber(animationXML,ConstValues.A_FADE_IN_TIME,0)||0;
-		animationData.scale = getNumber(animationXML, ConstValues.A_SCALE, 1) || 0;
+		animationData.duration = Math.round((getInt(animationXML, ConstValues.A_DURATION)) * 1000 / frameRate);
+		animationData.playTimes = getInt(animationXML,ConstValues.A_PLAY_TIMES,1);
+		animationData.fadeTime = getNumber(animationXML,ConstValues.A_FADE_IN_TIME,0);
+		animationData.scale = getNumber(animationXML, ConstValues.A_SCALE, 1);
 		//use frame tweenEase, NaN
 		//overwrite frame tweenEase, [-1, 0):ease in, 0:line easing, (0, 1]:ease out, (1, 2]:ease in out
-		animationData.tweenEasing = getNumber(animationXML, ConstValues.A_TWEEN_EASING, NaN);
+		animationData.tweenEasing = getNumber(animationXML, ConstValues.A_TWEEN_EASING, Double.NaN);
 		animationData.autoTween = getBoolean(animationXML, ConstValues.A_AUTO_TWEEN, true);
 
-		for each(var frameXML:XML in animationXML[ConstValues.FRAME])
+		for (XML frameXML : animationXML.children(ConstValues.FRAME))
 		{
-			var frame:Frame = parseTransformFrame(frameXML, frameRate);
+			Frame frame = parseTransformFrame(frameXML, frameRate);
 			animationData.addFrame(frame);
 		}
 
 		parseTimeline(animationXML, animationData);
 
-		var lastFrameDuration:int = animationData.duration;
-		for each(var timelineXML:XML in animationXML[ConstValues.BONE])
+		int lastFrameDuration = animationData.duration;
+		for (XML timelineXML : animationXML.children(ConstValues.BONE))
 		{
-			var timeline:TransformTimeline = parseTransformTimeline(timelineXML, animationData.duration, frameRate);
-			if (timeline.frameList.length > 0)
+			TransformTimeline timeline = parseTransformTimeline(timelineXML, animationData.duration, frameRate);
+			if (timeline.getFrameList().size() > 0)
 			{
-				lastFrameDuration = Math.min(lastFrameDuration, timeline.frameList[timeline.frameList.length - 1].duration);
+				lastFrameDuration = Math.min(lastFrameDuration, timeline.getFrameList().get(timeline.getFrameList().size() - 1).duration);
 				animationData.addTimeline(timeline);
 			}
 
 		}
 
-		for each(var slotTimelineXML:XML in animationXML[ConstValues.SLOT])
+		for (XML slotTimelineXML : animationXML.children(ConstValues.SLOT))
 		{
-			var slotTimeline:SlotTimeline = parseSlotTimeline(slotTimelineXML, animationData.duration, frameRate);
-			if (slotTimeline.frameList.length > 0)
+			SlotTimeline slotTimeline = parseSlotTimeline(slotTimelineXML, animationData.duration, frameRate);
+			if (slotTimeline.getFrameList().size() > 0)
 			{
-				lastFrameDuration = Math.min(lastFrameDuration, slotTimeline.frameList[slotTimeline.frameList.length - 1].duration);
+				lastFrameDuration = Math.min(lastFrameDuration, slotTimeline.getFrameList().get(slotTimeline.getFrameList().size() - 1).duration);
 				animationData.addSlotTimeline(slotTimeline);
 			}
 		}
 
-		if(animationData.frameList.length > 0)
+		if(animationData.getFrameList().size() > 0)
 		{
-			lastFrameDuration = Math.min(lastFrameDuration, animationData.frameList[animationData.frameList.length - 1].duration);
+			lastFrameDuration = Math.min(lastFrameDuration, animationData.getFrameList().get(animationData.getFrameList().size() - 1).duration);
 		}
 		animationData.lastFrameDuration = lastFrameDuration;
 
 		return animationData;
 	}
 
-	private static function parseTransformTimeline(timelineXML:XML, duration:int, frameRate:uint):TransformTimeline
+	private static TransformTimeline parseTransformTimeline(XML timelineXML, int duration, int frameRate)
 	{
-		var timeline:TransformTimeline = new TransformTimeline();
-		timeline.name = timelineXML.@[ConstValues.A_NAME];
-		timeline.scale = getNumber(timelineXML, ConstValues.A_SCALE, 1) || 0;
-		timeline.offset = getNumber(timelineXML, ConstValues.A_OFFSET, 0) || 0;
-		timeline.originPivot.x = getNumber(timelineXML, ConstValues.A_PIVOT_X, 0) || 0;
-		timeline.originPivot.y = getNumber(timelineXML, ConstValues.A_PIVOT_Y, 0) || 0;
+		TransformTimeline timeline = new TransformTimeline();
+		timeline.name = getString(timelineXML, ConstValues.A_NAME);
+		timeline.scale = getNumber(timelineXML, ConstValues.A_SCALE, 1);
+		timeline.offset = getNumber(timelineXML, ConstValues.A_OFFSET, 0);
+		timeline.originPivot.x = getNumber(timelineXML, ConstValues.A_PIVOT_X, 0);
+		timeline.originPivot.y = getNumber(timelineXML, ConstValues.A_PIVOT_Y, 0);
 		timeline.duration = duration;
 
-		for each(var frameXML:XML in timelineXML[ConstValues.FRAME])
+		for (XML frameXML : timelineXML.children(ConstValues.FRAME))
 		{
-			var frame:TransformFrame = parseTransformFrame(frameXML, frameRate);
+			TransformFrame frame = parseTransformFrame(frameXML, frameRate);
 			timeline.addFrame(frame);
 		}
 
@@ -296,17 +293,17 @@ final public class XMLDataParser
 		return timeline;
 	}
 
-	private static function parseSlotTimeline(timelineXML:XML, duration:int, frameRate:uint):SlotTimeline
+	private static SlotTimeline parseSlotTimeline(XML timelineXML, int duration, int frameRate)
 	{
-		var timeline:SlotTimeline = new SlotTimeline();
-		timeline.name = timelineXML.@[ConstValues.A_NAME];
-		timeline.scale = getNumber(timelineXML, ConstValues.A_SCALE, 1) || 0;
-		timeline.offset = getNumber(timelineXML, ConstValues.A_OFFSET, 0) || 0;
+		SlotTimeline timeline = new SlotTimeline();
+		timeline.name = getString(timelineXML, ConstValues.A_NAME);
+		timeline.scale = getNumber(timelineXML, ConstValues.A_SCALE, 1);
+		timeline.offset = getNumber(timelineXML, ConstValues.A_OFFSET, 0);
 		timeline.duration = duration;
 
-		for each(var frameXML:XML in timelineXML[ConstValues.FRAME])
+		for (XML frameXML : timelineXML.children(ConstValues.FRAME))
 		{
-			var frame:SlotFrame = parseSlotFrame(frameXML, frameRate);
+			SlotFrame frame = parseSlotFrame(frameXML, frameRate);
 			timeline.addFrame(frame);
 		}
 
@@ -315,29 +312,29 @@ final public class XMLDataParser
 		return timeline;
 	}
 
-	private static function parseMainFrame(frameXML:XML, frameRate:uint):Frame
+	private static Frame parseMainFrame(XML frameXML, int frameRate)
 	{
-		var frame:Frame = new Frame();
+		Frame frame = new Frame();
 		parseFrame(frameXML, frame, frameRate);
 		return frame;
 	}
 
-	private static function parseSlotFrame(frameXML:XML, frameRate:uint):SlotFrame
+	private static SlotFrame parseSlotFrame(XML frameXML, int frameRate)
 	{
-		var frame:SlotFrame = new SlotFrame();
+		SlotFrame frame = new SlotFrame();
 		parseFrame(frameXML, frame, frameRate);
 
 		frame.visible = !getBoolean(frameXML, ConstValues.A_HIDE, false);
 
 		//NaN:no tween, 10:auto tween, [-1, 0):ease in, 0:line easing, (0, 1]:ease out, (1, 2]:ease in out
 		frame.tweenEasing = getNumber(frameXML, ConstValues.A_TWEEN_EASING, 10);
-		frame.displayIndex = int(getNumber(frameXML,ConstValues.A_DISPLAY_INDEX,0));
+		frame.displayIndex = getInt(frameXML,ConstValues.A_DISPLAY_INDEX,0);
 
 		//如果为NaN，则说明没有改变过zOrder
-		frame.zOrder = getNumber(frameXML, ConstValues.A_Z_ORDER, tempDragonBonesData.isGlobalData ? NaN:0);
+		frame.zOrder = getNumber(frameXML, ConstValues.A_Z_ORDER, tempDragonBonesData.isGlobalData ? Double.NaN:0);
 
-		var colorTransformXML:XML = frameXML[ConstValues.COLOR][0];
-		if(colorTransformXML)
+		XML colorTransformXML = frameXML.first(ConstValues.COLOR);
+		if(colorTransformXML != null)
 		{
 			frame.color = new ColorTransform();
 			parseColorTransform(colorTransformXML, frame.color);
@@ -346,135 +343,93 @@ final public class XMLDataParser
 		return frame;
 	}
 
-	private static function parseTransformFrame(frameXML:XML, frameRate:uint):TransformFrame
+	private static TransformFrame parseTransformFrame(XML frameXML, int frameRate)
 	{
-		var frame:TransformFrame = new TransformFrame();
+		TransformFrame frame = new TransformFrame();
 		parseFrame(frameXML, frame, frameRate);
 
 		frame.visible = !getBoolean(frameXML, ConstValues.A_HIDE, false);
 
 		//NaN:no tween, 10:auto tween, [-1, 0):ease in, 0:line easing, (0, 1]:ease out, (1, 2]:ease in out
 		frame.tweenEasing = getNumber(frameXML, ConstValues.A_TWEEN_EASING, 10);
-		frame.tweenRotate = int(getNumber(frameXML,ConstValues.A_TWEEN_ROTATE,0));
+		frame.tweenRotate = getInt(frameXML,ConstValues.A_TWEEN_ROTATE,0);
 		frame.tweenScale = getBoolean(frameXML, ConstValues.A_TWEEN_SCALE, true);
 //			frame.displayIndex = int(getNumber(frameXML,ConstValues.A_DISPLAY_INDEX,0));
 
 
-		parseTransform(frameXML[ConstValues.TRANSFORM][0], frame.transform, frame.pivot);
+		parseTransform(frameXML.first(ConstValues.TRANSFORM), frame.transform, frame.pivot);
 		if(tempDragonBonesData.isGlobalData)//绝对数据
 		{
 			frame.global.copy(frame.transform);
 		}
 
-		frame.scaleOffset.x = getNumber(frameXML, ConstValues.A_SCALE_X_OFFSET, 0) || 0;
-		frame.scaleOffset.y = getNumber(frameXML, ConstValues.A_SCALE_Y_OFFSET, 0) || 0;
+		frame.scaleOffset.x = getNumber(frameXML, ConstValues.A_SCALE_X_OFFSET, 0);
+		frame.scaleOffset.y = getNumber(frameXML, ConstValues.A_SCALE_Y_OFFSET, 0);
 
 		return frame;
 	}
 
-	private static function parseTimeline(timelineXML:XML, timeline:Timeline):void
+	private static void parseTimeline(XML timelineXML, Timeline timeline)
 	{
-		var position:int = 0;
-		var frame:Frame;
-		for each(frame in timeline.frameList)
+		int position = 0;
+		Frame frame = null;
+		for (Frame frame2 : timeline.getFrameList())
 		{
+			frame = frame2;
 			frame.position = position;
 			position += frame.duration;
 		}
-		if(frame)
+		if(frame != null)
 		{
 			frame.duration = timeline.duration - frame.position;
 		}
 	}
 
-	private static function parseFrame(frameXML:XML, frame:Frame, frameRate:uint):void
+	private static void parseFrame(XML frameXML, Frame frame, int frameRate)
 	{
-		frame.duration = Math.round((int(frameXML.@[ConstValues.A_DURATION])) * 1000 / frameRate);
-		frame.action = frameXML.@[ConstValues.A_ACTION];
-		frame.event = frameXML.@[ConstValues.A_EVENT];
-		frame.sound = frameXML.@[ConstValues.A_SOUND];
+		frame.duration = Math.round((getInt(frameXML, ConstValues.A_DURATION)) * 1000 / frameRate);
+		frame.action = getString(frameXML, ConstValues.A_ACTION);
+		frame.event = getString(frameXML, ConstValues.A_EVENT);
+		frame.sound = getString(frameXML, ConstValues.A_SOUND);
 	}
 
-	private static function parseTransform(transformXML:XML, transform:DBTransform, pivot:Point = null):void
+	private static void parseTransform(XML transformXML, DBTransform transform, Point pivot)
 	{
-		if(transformXML)
+		if(transformXML != null)
 		{
-			if(transform)
+			if(transform != null)
 			{
-				transform.x = getNumber(transformXML,ConstValues.A_X,0) || 0;
-				transform.y = getNumber(transformXML,ConstValues.A_Y,0) || 0;
-				transform.skewX = getNumber(transformXML,ConstValues.A_SKEW_X,0) * ConstValues.ANGLE_TO_RADIAN || 0;
-				transform.skewY = getNumber(transformXML,ConstValues.A_SKEW_Y,0) * ConstValues.ANGLE_TO_RADIAN || 0;
-				transform.scaleX = getNumber(transformXML, ConstValues.A_SCALE_X, 1) || 0;
-				transform.scaleY = getNumber(transformXML, ConstValues.A_SCALE_Y, 1) || 0;
+				transform.x = getNumber(transformXML,ConstValues.A_X,0);
+				transform.y = getNumber(transformXML,ConstValues.A_Y,0);
+				transform.skewX = getNumber(transformXML,ConstValues.A_SKEW_X,0) * ConstValues.ANGLE_TO_RADIAN;
+				transform.skewY = getNumber(transformXML,ConstValues.A_SKEW_Y,0) * ConstValues.ANGLE_TO_RADIAN;
+				transform.scaleX = getNumber(transformXML, ConstValues.A_SCALE_X, 1);
+				transform.scaleY = getNumber(transformXML, ConstValues.A_SCALE_Y, 1);
 			}
-			if(pivot)
+			if(pivot != null)
 			{
-				pivot.x = getNumber(transformXML,ConstValues.A_PIVOT_X,0) || 0;
-				pivot.y = getNumber(transformXML,ConstValues.A_PIVOT_Y,0) || 0;
+				pivot.x = getNumber(transformXML,ConstValues.A_PIVOT_X,0);
+				pivot.y = getNumber(transformXML,ConstValues.A_PIVOT_Y,0);
 			}
 		}
 	}
 
-	private static function parseColorTransform(colorTransformXML:XML, colorTransform:ColorTransform):void
+	private static void parseColorTransform(XML colorTransformXML, ColorTransform colorTransform)
 	{
-		if(colorTransformXML)
+		if(colorTransformXML != null)
 		{
-			if(colorTransform)
+			if(colorTransform != null)
 			{
-				colorTransform.alphaOffset = int(colorTransformXML.@[ConstValues.A_ALPHA_OFFSET]);
-				colorTransform.redOffset = int(colorTransformXML.@[ConstValues.A_RED_OFFSET]);
-				colorTransform.greenOffset = int(colorTransformXML.@[ConstValues.A_GREEN_OFFSET]);
-				colorTransform.blueOffset = int(colorTransformXML.@[ConstValues.A_BLUE_OFFSET]);
+				colorTransform.alphaOffset = getInt(colorTransformXML, ConstValues.A_ALPHA_OFFSET);
+				colorTransform.redOffset = getInt(colorTransformXML, ConstValues.A_RED_OFFSET);
+				colorTransform.greenOffset = getInt(colorTransformXML, ConstValues.A_GREEN_OFFSET);
+				colorTransform.blueOffset = getInt(colorTransformXML, ConstValues.A_BLUE_OFFSET);
 
-				colorTransform.alphaMultiplier = int(getNumber(colorTransformXML, ConstValues.A_ALPHA_MULTIPLIER, 100) || 0) * 0.01;
-				colorTransform.redMultiplier = int(getNumber(colorTransformXML, ConstValues.A_RED_MULTIPLIER, 100) || 0) * 0.01;
-				colorTransform.greenMultiplier = int(getNumber(colorTransformXML, ConstValues.A_GREEN_MULTIPLIER, 100) || 0) * 0.01;
-				colorTransform.blueMultiplier = int(getNumber(colorTransformXML, ConstValues.A_BLUE_MULTIPLIER, 100) || 0) * 0.01;
+				colorTransform.alphaMultiplier = getInt(colorTransformXML, ConstValues.A_ALPHA_MULTIPLIER, 100) * 0.01;
+				colorTransform.redMultiplier = getInt(colorTransformXML, ConstValues.A_RED_MULTIPLIER, 100) * 0.01;
+				colorTransform.greenMultiplier = getInt(colorTransformXML, ConstValues.A_GREEN_MULTIPLIER, 100) * 0.01;
+				colorTransform.blueMultiplier = getInt(colorTransformXML, ConstValues.A_BLUE_MULTIPLIER, 100) * 0.01;
 			}
 		}
-	}
-
-	private static function getBoolean(data:XML, key:String, defaultValue:Boolean):Boolean
-	{
-		if(data && data.@[key].length() > 0)
-		{
-			switch(String(data.@[key]))
-			{
-				case "0":
-				case "NaN":
-				case "":
-				case "false":
-				case "null":
-				case "undefined":
-					return false;
-
-				case "1":
-				case "true":
-				default:
-					return true;
-			}
-		}
-		return defaultValue;
-	}
-
-	private static function getNumber(data:XML, key:String, defaultValue:Number):Number
-	{
-		if(data && data.@[key].length() > 0)
-		{
-			switch(String(data.@[key]))
-			{
-				case "NaN":
-				case "":
-				case "false":
-				case "null":
-				case "undefined":
-					return NaN;
-
-				default:
-					return Number(data.@[key]);
-			}
-		}
-		return defaultValue;
 	}
 }

@@ -12,7 +12,7 @@ import flash.utils.ByteArray;
 
 public class TextureAtlasByteArrayLoader extends Loader
 {
-	private static const LoaderContext loaderContext = new LoaderContext(false, ApplicationDomain.currentDomain);
+	private static final LoaderContext loaderContext = new LoaderContext(false, ApplicationDomain.getCurrentDomain());
 
 	public TextureAtlasByteArrayLoader()
 	{
@@ -20,8 +20,13 @@ public class TextureAtlasByteArrayLoader extends Loader
 		loaderContext.allowCodeImport = true;
 	}
 
-	@Override
-	public void loadBytes(ByteArray bytes, LoaderContext context=null)
+	public void loadBytes(ByteArray bytes) {
+		loadBytes(bytes, null);
+	}
+
+	//@Override
+	//public void loadBytes(ByteArray bytes, LoaderContext context=null)
+	public void loadBytes(ByteArray bytes, LoaderContext context)
 	{
 		context = context == null ? loaderContext : context;
 		super.loadBytes(bytes, context);

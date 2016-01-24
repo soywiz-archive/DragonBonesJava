@@ -1,14 +1,13 @@
 package dragonBones.objects;
 
-import dragonBones.events.EventInfo;
 import dragonBones.utils.BytesType;
 
 import flash.display.Loader;
 import flash.events.EventDispatcher;
 import flash.utils.ByteArray;
 
-/** Dispatched after a sucessful call to decompressData(). */
-@EventInfo(name="complete", type="flash.events.Event")
+///** Dispatched after a sucessful call to decompressData(). */
+//@EventInfo(name="complete", type="flash.events.Event")
 public class DataSerializer extends EventDispatcher
 {
 	public DataSerializer()
@@ -17,9 +16,9 @@ public class DataSerializer extends EventDispatcher
 
 	/**
 	 * Compress all data into a ByteArray for serialization.
-	 * @param The DragonBones data.
-	 * @param The TextureAtlas data.
-	 * @param The ByteArray representing the map.
+	 * @param dragonBonesData The DragonBones data.
+	 * @param textureAtlasData The TextureAtlas data.
+	 * @param textureAtlasBytes The ByteArray representing the map.
 	 * @return ByteArray. A DragonBones compatible ByteArray.
 	 */
 
@@ -32,24 +31,24 @@ public class DataSerializer extends EventDispatcher
 		dataBytes.writeObject(textureAtlasData);
 		dataBytes.compress();
 
-		outputBytes.position = outputBytes.length;
+		outputBytes.setPosition(outputBytes.getLength());
 		outputBytes.writeBytes(dataBytes);
-		outputBytes.writeInt(dataBytes.length);
+		outputBytes.writeInt(dataBytes.getLength());
 
-		dataBytes.length = 0;
+		dataBytes.setLength(0);
 		dataBytes.writeObject(dragonBonesData);
 		dataBytes.compress();
 
-		outputBytes.position = outputBytes.length;
+		outputBytes.setPosition(outputBytes.getLength());
 		outputBytes.writeBytes(dataBytes);
-		outputBytes.writeInt(dataBytes.length);
+		outputBytes.writeInt(dataBytes.getLength());
 
 		return outputBytes;
 	}
 
 	/**
 	 * Decompress a compatible DragonBones data.
-	 * @param compressedByteArray The ByteArray to decompress.
+	 * @param inputByteArray The ByteArray to decompress.
 	 * @return A DecompressedData instance.
 	 */
 	public static DecompressedData decompressData(ByteArray inputByteArray)
@@ -62,51 +61,49 @@ public class DataSerializer extends EventDispatcher
 			case BytesType.JPG:
 			case BytesType.ATF:
 				Object dragonBonesData;
-				Object textureAtlasData;
+				String textureAtlasData;
 				Object textureAtlas;
+				ByteArray bytesToDecompress = null;
 				try
 				{
 					ByteArray tempByteArray = new ByteArray();
-					ByteArray bytesToDecompress = new ByteArray();
+					bytesToDecompress = new ByteArray();
 					bytesToDecompress.writeBytes(inputByteArray);
 
 				//Read DragonBones Data
-					bytesToDecompress.position = bytesToDecompress.length - 4;
+					bytesToDecompress.setPosition(bytesToDecompress.getLength() - 4);
 					int strSize = bytesToDecompress.readInt();
-					int position = bytesToDecompress.length - 4 - strSize;
+					int position = bytesToDecompress.getLength() - 4 - strSize;
 					tempByteArray.writeBytes(bytesToDecompress, position, strSize);
 					tempByteArray.uncompress();
 					dragonBonesData = tempByteArray.readObject();
 
-					tempByteArray.length = 0;
-					bytesToDecompress.length = position;
+					tempByteArray.setLength(0);
+					bytesToDecompress.setLength(position);
 
 				//Read TextureAtlas Data
-					bytesToDecompress.position = bytesToDecompress.length - 4;
+					bytesToDecompress.setPosition(bytesToDecompress.getLength() - 4);
 					strSize = bytesToDecompress.readInt();
-					position = bytesToDecompress.length - 4 - strSize;
+					position = bytesToDecompress.getLength() - 4 - strSize;
 					tempByteArray.writeBytes(bytesToDecompress, position, strSize);
 					tempByteArray.uncompress();
-					textureAtlasData = tempByteArray.readObject();
-					bytesToDecompress.length = position;
+					textureAtlasData = (String) tempByteArray.readObject();
+					bytesToDecompress.setLength(position);
 				}
 				catch (Exception e)
 				{
-					throw new Exception("Data error!");
+					throw new Error("Data error!");
 				}
 
 				DecompressedData outputDecompressedData = new DecompressedData();
 				outputDecompressedData.textureBytesDataType = dataType;
 				outputDecompressedData.dragonBonesData = dragonBonesData;
 				outputDecompressedData.textureAtlasData = textureAtlasData;
-				outputDecompressedData.textureAtlasBytes = bytesToDecompress
+				outputDecompressedData.textureAtlasBytes = bytesToDecompress;
 
 				return outputDecompressedData;
-
-			default:
-				throw new Error("Nonsupport data!");
 		}
 
-		return null;
+		throw new Error("Nonsupport data!");
 	}
 }
