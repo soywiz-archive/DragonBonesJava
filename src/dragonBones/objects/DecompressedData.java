@@ -55,20 +55,20 @@ public class DecompressedData extends EventDispatcher
 	public void parseTextureAtlasBytes()
 	{
 		TextureAtlasByteArrayLoader loader = new TextureAtlasByteArrayLoader();
-		loader.contentLoaderInfo.addEventListener(Event.COMPLETE, loaderCompleteHandler);
+		loader.getContentLoaderInfo().addEventListener(Event.COMPLETE, this::loaderCompleteHandler);
 		loader.loadBytes(textureAtlasBytes);
 	}
 
-	private void loaderCompleteHandler(Evenet e)
+	private void loaderCompleteHandler(Event e)
 	{
-		e.target.removeEventListener(Event.COMPLETE, loaderCompleteHandler);
+		e.target.removeEventListener(Event.COMPLETE, this::loaderCompleteHandler);
 		Loader loader = e.target.loader;
 		Object content = e.target.content;
 		loader.unloadAndStop();
 
 		if (content instanceof Bitmap)
 		{
-			textureAtlas =  ((Bitmap)content).bitmapData;
+			textureAtlas =  ((Bitmap)content).getBitmapData();
 		}
 		else if (content instanceof Sprite)
 		{

@@ -1,5 +1,7 @@
 package dragonBones.objects;
 
+import org.w3c.dom.Document;
+
 import java.util.Map;
 
 public class DataParser
@@ -10,9 +12,9 @@ public class DataParser
 
 	public static DragonBonesData parseData(Object rawData)
 	{
-		if(rawData instanceof XML)
+		if(rawData instanceof Document)
 		{
-			return XMLDataParser.parseDragonBonesData((XML)rawData);
+			return XMLDataParser.parseDragonBonesData((Document)rawData);
 		}
 		else
 		{
@@ -23,9 +25,9 @@ public class DataParser
 
 	public static Map<String, Object> parseTextureAtlasData(Object textureAtlasData, double scale= 1)
 	{
-		if(textureAtlasData instanceof XML)
+		if(textureAtlasData instanceof Document)
 		{
-			return XMLDataParser.parseTextureAtlasData((XML)textureAtlasData, scale);
+			return XMLDataParser.parseTextureAtlasData((Document)textureAtlasData, scale);
 		}
 		else
 		{

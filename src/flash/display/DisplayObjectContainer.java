@@ -20,4 +20,8 @@ public class DisplayObjectContainer extends DisplayObject {
 	public void removeChild(DisplayObject child) {
 		throw new Error();
 	}
+
+	public DisplayObject getChildAt(int index) {
+		throw new Error();
+	}
 }

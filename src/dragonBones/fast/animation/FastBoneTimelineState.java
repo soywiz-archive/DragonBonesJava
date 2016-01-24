@@ -1,9 +1,9 @@
 package dragonBones.fast.animation;
 
 import dragonBones.objects.CurveData;
+import dragonBones.utils.ArrayListUtils;
 import flash.geom.Point;
 
-import dragonBones.core.dragonBones_internal;
 import dragonBones.fast.FastBone;
 import dragonBones.objects.DBTransform;
 import dragonBones.objects.Frame;
@@ -12,74 +12,76 @@ import dragonBones.objects.TransformTimeline;
 import dragonBones.utils.MathUtil;
 import dragonBones.utils.TransformUtil;
 
+import java.util.ArrayList;
+
 //use namespace dragonBones_internal;
 
 public class FastBoneTimelineState
 {
-	private static var _pool:Vector.<FastBoneTimelineState> = new Vector.<FastBoneTimelineState>;
+	private static ArrayList<FastBoneTimelineState> _pool = new ArrayList<>();
 
 	/** @private */
-	dragonBones_internal static function borrowObject():FastBoneTimelineState
+	static FastBoneTimelineState borrowObject()
 	{
-		if(_pool.length == 0)
+		if(_pool.size() == 0)
 		{
 			return new FastBoneTimelineState();
 		}
-		return _pool.pop();
+		return ArrayListUtils.pop(_pool);
 	}
 
 	/** @private */
-	dragonBones_internal static function returnObject(timeline:FastBoneTimelineState):void
+	static void returnObject(FastBoneTimelineState timeline)
 	{
 		if(_pool.indexOf(timeline) < 0)
 		{
-			_pool[_pool.length] = timeline;
+			_pool.set(_pool.size(), timeline);
 		}
 		timeline.clear();
 	}
 
 	/** @private */
-	dragonBones_internal static function clear():void
+	static void clearStatic()
 	{
-		var i:int = _pool.length;
-		while(i --)
+		int i = _pool.size();
+		while(i -- > 0)
 		{
-			_pool[i].clear();
+			_pool.get(i).clear();
 		}
-		_pool.length = 0;
+		_pool.clear();
 	}
 
-	public var name:String;
-	private var _totalTime:int; //duration
-	private var _currentTime:int;
-	private var _lastTime:int;
-	private var _currentFrameIndex:int;
-	private var _currentFramePosition:int;
-	private var _currentFrameDuration:int;
+	public String name;
+	private int _totalTime; //duration
+	private int _currentTime;
+	private int _lastTime;
+	private int _currentFrameIndex;
+	private int _currentFramePosition;
+	private int _currentFrameDuration;
 
-	private var _bone:FastBone;
-	private var _timelineData:TransformTimeline;
-	private var _durationTransform:DBTransform;
+	private FastBone _bone;
+	private TransformTimeline _timelineData;
+	private DBTransform _durationTransform;
 
-	private var _tweenTransform:Boolean;
-	private var _tweenEasing:Number;
-	private var _tweenCurve:CurveData;
+	private boolean _tweenTransform;
+	private double _tweenEasing;
+	private CurveData _tweenCurve;
 
-	private var _updateMode:int;
-	private var _transformToFadein:DBTransform;
-	private var _durationPivot:Point;
-	private var _originPivot:Point;
+	private int _updateMode;
+	private DBTransform _transformToFadein;
+	private Point _durationPivot;
+	private Point _originPivot;
 	/** @private */
-	dragonBones_internal var _animationState:FastAnimationState;
+	FastAnimationState _animationState;
 	/** @private */
-	dragonBones_internal var _isComplete:Boolean;
+	boolean _isComplete;
 	/** @private */
-	dragonBones_internal var _transform:DBTransform;
+	public DBTransform _transform;
 	/** @private */
-	dragonBones_internal var _pivot:Point;
+	public Point _pivot;
 
 
-	public function FastBoneTimelineState()
+	public FastBoneTimelineState()
 	{
 		_transform = new DBTransform();
 		_durationTransform = new DBTransform();
@@ -88,9 +90,9 @@ public class FastBoneTimelineState
 		_durationPivot = new Point();
 	}
 
-	private function clear():void
+	private void clear()
 	{
-		if(_bone)
+		if(_bone != null)
 		{
 			_bone._timelineState = null;
 			_bone = null;
@@ -101,7 +103,7 @@ public class FastBoneTimelineState
 	}
 
 	/** @private */
-	dragonBones_internal function fadeIn(bone:FastBone, animationState:FastAnimationState, timelineData:TransformTimeline):void
+	void fadeIn(FastBone bone, FastAnimationState animationState, TransformTimeline timelineData)
 	{
 		_bone = bone;
 		_animationState = animationState;
@@ -116,14 +118,14 @@ public class FastBoneTimelineState
 		_tweenTransform = false;
 		_currentFrameIndex = -1;
 		_currentTime = -1;
-		_tweenEasing = NaN;
+		_tweenEasing = Double.NaN;
 
 		_durationPivot.x = 0;
 		_durationPivot.y = 0;
 		_pivot.x = 0;
 		_pivot.y = 0;
 		_originPivot = _timelineData.originPivot;
-		switch(_timelineData.frameList.length)
+		switch(_timelineData.getFrameList().size())
 		{
 			case 0:
 				_updateMode = 0;
@@ -141,8 +143,8 @@ public class FastBoneTimelineState
 
 		if(animationState._fadeTotalTime>0)
 		{
-			var pivotToFadein:Point;
-			if(_bone._timelineState)
+			Point pivotToFadein;
+			if(_bone._timelineState != null)
 			{
 				_transformToFadein.copy(_bone._timelineState._transform);
 
@@ -152,7 +154,7 @@ public class FastBoneTimelineState
 				_transformToFadein = new DBTransform();
 //					_pivotToFadein = new Point();
 			}
-			var firstFrame:TransformFrame = _timelineData.frameList[0] as TransformFrame;
+			TransformFrame firstFrame = (TransformFrame)(_timelineData.getFrameList().get(0));
 			_durationTransform.copy(firstFrame.transform);
 			_durationTransform.minus(this._transformToFadein);
 		}
@@ -161,19 +163,19 @@ public class FastBoneTimelineState
 	}
 
 	/** @private */
-	dragonBones_internal function updateFade(progress:Number):void
+	void updateFade(double progress)
 	{
 		_transform.x = _transformToFadein.x + _durationTransform.x * progress;
 		_transform.y = _transformToFadein.y + _durationTransform.y * progress;
 		_transform.scaleX = _transformToFadein.scaleX * (1 + (_durationTransform.scaleX -1 ) * progress);
 		_transform.scaleY = _transformToFadein.scaleX * (1 + (_durationTransform.scaleY -1 ) * progress);
-		_transform.rotation = _transformToFadein.rotation + _durationTransform.rotation * progress;
+		_transform.setRotation(_transformToFadein.getRotation() + _durationTransform.getRotation() * progress);
 
 		_bone.invalidUpdate();
 	}
 
 	/** @private */
-	dragonBones_internal function update(progress:Number):void
+	void update(double progress)
 	{
 		if(_updateMode == 1)
 		{
@@ -187,12 +189,12 @@ public class FastBoneTimelineState
 		}
 	}
 
-	private function updateSingleFrame():void
+	private void updateSingleFrame()
 	{
-		var currentFrame:TransformFrame = _timelineData.frameList[0] as TransformFrame;
+		TransformFrame currentFrame = (TransformFrame)_timelineData.getFrameList().get(0);
 		_bone.arriveAtFrame(currentFrame, _animationState);
 		_isComplete = true;
-		_tweenEasing = NaN;
+		_tweenEasing = Double.NaN;
 		_tweenTransform = false;
 		_pivot.x = _originPivot.x + currentFrame.pivot.x;
 		_pivot.y = _originPivot.y + currentFrame.pivot.y;
@@ -202,19 +204,20 @@ public class FastBoneTimelineState
 		_bone.invalidUpdate();
 	}
 
-	private function updateMultipleFrame(progress:Number):void
+	private void updateMultipleFrame(double progress)
 	{
-		var currentPlayTimes:int = 0;
+		int currentPlayTimes = 0;
 		progress /= _timelineData.scale;
 		progress += _timelineData.offset;
 
-		var currentTime:int = _totalTime * progress;
-		var playTimes:int = _animationState.playTimes;
+		int currentTime = (int)(_totalTime * progress);
+		int playTimes = _animationState.getPlayTimes();
 		if(playTimes == 0)
 		{
 			_isComplete = false;
-			currentPlayTimes = Math.ceil(Math.abs(currentTime) / _totalTime) || 1;
-			currentTime -= int(currentTime / _totalTime) * _totalTime;
+			currentPlayTimes = (int)Math.ceil(Math.abs(currentTime) / _totalTime);
+			if (currentPlayTimes == 0) currentPlayTimes = 1;
+			currentTime -= (int)(currentTime / _totalTime) * _totalTime;
 
 			if(currentTime < 0)
 			{
@@ -223,7 +226,7 @@ public class FastBoneTimelineState
 		}
 		else
 		{
-			var totalTimes:int = playTimes * _totalTime;
+			int totalTimes = playTimes * _totalTime;
 			if(currentTime >= totalTimes)
 			{
 				currentTime = totalTimes;
@@ -244,14 +247,15 @@ public class FastBoneTimelineState
 				currentTime += totalTimes;
 			}
 
-			currentPlayTimes = Math.ceil(currentTime / _totalTime) || 1;
+			currentPlayTimes = (int)Math.ceil(currentTime / _totalTime);
+			if (currentPlayTimes == 0) currentPlayTimes = 1;
 			if(_isComplete)
 			{
 				currentTime = _totalTime;
 			}
 			else
 			{
-				currentTime -= int(currentTime / _totalTime) * _totalTime;
+				currentTime -= (int)(currentTime / _totalTime) * _totalTime;
 			}
 		}
 
@@ -260,11 +264,11 @@ public class FastBoneTimelineState
 			_lastTime = _currentTime;
 			_currentTime = currentTime;
 
-			var frameList:Vector.<Frame> = _timelineData.frameList;
-			var prevFrame:TransformFrame;
-			var currentFrame:TransformFrame;
+			ArrayList<Frame> frameList = _timelineData.getFrameList();
+			TransformFrame prevFrame = null;
+			TransformFrame currentFrame = null;
 
-			for (var i:int = 0, l:int = _timelineData.frameList.length; i < l; ++i)
+			for (int i = 0, l = _timelineData.getFrameList().size(); i < l; ++i)
 			{
 				if(_currentFrameIndex < 0)
 				{
@@ -274,7 +278,7 @@ public class FastBoneTimelineState
 				{
 					_currentFrameIndex ++;
 					_lastTime = _currentTime;
-					if(_currentFrameIndex >= frameList.length)
+					if(_currentFrameIndex >= frameList.size())
 					{
 						if(_isComplete)
 						{
@@ -291,9 +295,9 @@ public class FastBoneTimelineState
 				{
 					break;
 				}
-				currentFrame = frameList[_currentFrameIndex] as TransformFrame;
+				currentFrame = (TransformFrame)frameList.get(_currentFrameIndex);
 
-				if(prevFrame)
+				if(prevFrame != null)
 				{
 					_bone.arriveAtFrame(prevFrame, _animationState);
 				}
@@ -303,7 +307,7 @@ public class FastBoneTimelineState
 				prevFrame = currentFrame;
 			}
 
-			if(currentFrame)
+			if(currentFrame != null)
 			{
 				_bone.arriveAtFrame(currentFrame, _animationState);
 				updateToNextFrame(currentPlayTimes);
@@ -318,32 +322,32 @@ public class FastBoneTimelineState
 
 	}
 
-	private function updateToNextFrame(currentPlayTimes:int):void
+	private void updateToNextFrame(int currentPlayTimes)
 	{
-		var nextFrameIndex:int = _currentFrameIndex + 1;
-		if(nextFrameIndex >= _timelineData.frameList.length)
+		int nextFrameIndex = _currentFrameIndex + 1;
+		if(nextFrameIndex >= _timelineData.getFrameList().size())
 		{
 			nextFrameIndex = 0;
 		}
-		var currentFrame:TransformFrame = _timelineData.frameList[_currentFrameIndex] as TransformFrame;
-		var nextFrame:TransformFrame = _timelineData.frameList[nextFrameIndex] as TransformFrame;
-		var tweenEnabled:Boolean = false;
-		if(nextFrameIndex == 0 &&( _animationState.playTimes &&
-									_animationState.currentPlayTimes >= _animationState.playTimes &&
+		TransformFrame currentFrame = (TransformFrame)_timelineData.getFrameList().get(_currentFrameIndex);
+		TransformFrame nextFrame = (TransformFrame)_timelineData.getFrameList().get(nextFrameIndex);
+		boolean tweenEnabled = false;
+		if(nextFrameIndex == 0 &&( _animationState.getPlayTimes() != 0 &&
+									_animationState.getCurrentPlayTimes() >= _animationState.getPlayTimes() &&
 									((_currentFramePosition + _currentFrameDuration) / _totalTime + currentPlayTimes - _timelineData.offset)* _timelineData.scale > 0.999999
 			))
 		{
-			_tweenEasing = NaN;
+			_tweenEasing = Double.NaN;
 			tweenEnabled = false;
 		}
 		else if(_animationState.autoTween)
 		{
 			_tweenEasing = _animationState.animationData.tweenEasing;
-			if(isNaN(_tweenEasing))
+			if(Double.isNaN(_tweenEasing))
 			{
 				_tweenEasing = currentFrame.tweenEasing;
 				_tweenCurve = currentFrame.curve;
-				if(isNaN(_tweenEasing))    //frame no tween
+				if(Double.isNaN(_tweenEasing))    //frame no tween
 				{
 					tweenEnabled = false;
 				}
@@ -367,9 +371,9 @@ public class FastBoneTimelineState
 		{
 			_tweenEasing = currentFrame.tweenEasing;
 			_tweenCurve = currentFrame.curve;
-			if(isNaN(_tweenEasing) || _tweenEasing == 10)    //frame no tween
+			if(Double.isNaN(_tweenEasing) || _tweenEasing == 10)    //frame no tween
 			{
-				_tweenEasing = NaN;
+				_tweenEasing = Double.NaN;
 				tweenEnabled = false;
 			}
 			else
@@ -401,14 +405,14 @@ public class FastBoneTimelineState
 			}
 
 			if(
-				_durationTransform.x ||
-				_durationTransform.y ||
-				_durationTransform.skewX ||
-				_durationTransform.skewY ||
+				_durationTransform.x != 0 ||
+				_durationTransform.y != 0 ||
+				_durationTransform.skewX != 0 ||
+				_durationTransform.skewY != 0 ||
 				_durationTransform.scaleX != 1 ||
 				_durationTransform.scaleY != 1 ||
-				_durationPivot.x ||
-				_durationPivot.y
+				_durationPivot.x != 0 ||
+				_durationPivot.y != 0
 			)
 			{
 				_tweenTransform = true;
@@ -433,22 +437,22 @@ public class FastBoneTimelineState
 		}
 	}
 
-	private function updateTween():void
+	private void updateTween()
 	{
-		var progress:Number = (_currentTime - _currentFramePosition) / _currentFrameDuration;
-		if (_tweenCurve)
+		double progress = (_currentTime - _currentFramePosition) / _currentFrameDuration;
+		if (_tweenCurve != null)
 		{
 			progress = _tweenCurve.getValueByProgress(progress);
 		}
-		if(_tweenEasing)
+		if(_tweenEasing != 0)
 		{
 			progress = MathUtil.getEaseValue(progress, _tweenEasing);
 		}
 
-		var currentFrame:TransformFrame = _timelineData.frameList[_currentFrameIndex] as TransformFrame;
+		TransformFrame currentFrame = (TransformFrame)_timelineData.getFrameList().get(_currentFrameIndex);
 
-		var currentTransform:DBTransform = currentFrame.transform;
-		var currentPivot:Point = currentFrame.pivot;
+		DBTransform currentTransform = currentFrame.transform;
+		Point currentPivot = currentFrame.pivot;
 		//normal blending
 		_transform.x = currentTransform.x + _durationTransform.x * progress;
 		_transform.y = currentTransform.y + _durationTransform.y * progress;

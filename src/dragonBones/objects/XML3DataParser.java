@@ -13,11 +13,9 @@ import flash.utils.Dictionary;
  */
 final public class XML3DataParser
 {
-	private static var tempDragonBonesData:DragonBonesData;
+	private static DragonBonesData tempDragonBonesData;
 
-	use namespace dragonBones_internal;
-
-	public function XML3DataParser()
+	public XML3DataParser()
 	{
 
 	}

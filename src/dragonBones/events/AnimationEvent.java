@@ -6,6 +6,8 @@
 * @langversion 3.0
 * @version 2.0
 */
+import dragonBones.Armature;
+import dragonBones.core.IName;
 import flash.events.Event;
 
 /**
@@ -64,13 +66,13 @@ public class AnimationEvent extends Event
 	 */
 	public String getMovementID()
 	{
-		return animationName;
+		return getAnimationName();
 	}
 
 	/**
 	 * The animationState instance.
 	 */
-	public Object animationState;
+	public IName animationState;
 
 	/**
 	 * The armature that is the taget of this event.
@@ -82,7 +84,7 @@ public class AnimationEvent extends Event
 
 	public String getAnimationName()
 	{
-		return animationState.name;
+		return animationState.getName();
 	}
 
 	/**

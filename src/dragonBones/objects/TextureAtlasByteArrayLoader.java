@@ -26,4 +26,6 @@ public class TextureAtlasByteArrayLoader extends Loader
 		context = context == null ? loaderContext : context;
 		super.loadBytes(bytes, context);
 	}
+
+
 }

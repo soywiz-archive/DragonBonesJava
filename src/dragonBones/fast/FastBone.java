@@ -32,7 +32,7 @@ public class FastBone extends FastDBObject
 	public ArrayList<FastSlot> slotList = new ArrayList<>();
 	public ArrayList<FastBone> boneList = new ArrayList<>();
 	/** @private */
-	FastBoneTimelineState _timelineState;
+	public FastBoneTimelineState _timelineState;
 
 	/** @private */
 	int _needUpdate;
@@ -51,9 +51,16 @@ public class FastBone extends FastDBObject
 	 * @return A Vector.&lt;Slot&gt; instance.
 	 * @see dragonBones.Slot
 	 */
-	public ArrayList<FastBone> getBones(boolean returnCopy = true)
+	public ArrayList<FastBone> getBones(boolean returnCopy)
 	{
 		return returnCopy? (ArrayList<FastBone>) boneList.clone() :boneList;
+	}
+
+	public ArrayList<FastBone> getBones() {
+		return getBones(true);
+	}
+	public ArrayList<FastSlot> getSlots() {
+		return getSlots(true);
 	}
 
 	/**
@@ -61,7 +68,7 @@ public class FastBone extends FastDBObject
 	 * @return A Vector.&lt;Slot&gt; instance.
 	 * @see dragonBones.Slot
 	 */
-	public ArrayList<FastSlot> getSlots(boolean returnCopy = true)
+	public ArrayList<FastSlot> getSlots(boolean returnCopy)
 	{
 		return returnCopy? (ArrayList<FastSlot>) slotList.clone() :slotList;
 	}
@@ -103,11 +110,16 @@ public class FastBone extends FastDBObject
 		_globalTransformMatrix = _frameCache.globalTransformMatrix;
 	}
 
-	/** @private */
-	void update(boolean needUpdate = false)
+	void update()
+	{
+		update(false);
+	}
+
+		/** @private */
+	void update(boolean needUpdate)
 	{
 		_needUpdate --;
-		if(needUpdate || _needUpdate > 0 || (this._parent && this._parent._needUpdate > 0))
+		if(needUpdate || _needUpdate > 0 || (this._parent != null && this._parent._needUpdate > 0))
 		{
 			_needUpdate = 1;
 		}
@@ -130,7 +142,7 @@ public class FastBone extends FastDBObject
 	}
 
 	/** @private When bone timeline enter a key frame, call this func*/
-	void arriveAtFrame(Frame frame, FastAnimationState animationState)
+	public void arriveAtFrame(Frame frame, FastAnimationState animationState)
 	{
 		FastSlot childSlot;
 		if(frame.event != null && this.armature.hasEventListener(FrameEvent.BONE_FRAME_EVENT))
@@ -157,10 +169,10 @@ public class FastBone extends FastDBObject
 	 */
 	public Object getChildArmature()
 	{
-		FastSlot s = slot;
+		FastSlot s = getSlot();
 		if(s != null)
 		{
-			return s.childArmature;
+			return s.getChildArmature();
 		}
 		return null;
 	}
@@ -170,7 +182,7 @@ public class FastBone extends FastDBObject
 	 */
 	public Object getDisplay()
 	{
-		FastSlot s = slot;
+		FastSlot s = getSlot();
 		if(s != null)
 		{
 			return s.getDisplay();
@@ -179,7 +191,7 @@ public class FastBone extends FastDBObject
 	}
 	public void setDisplay(Object value)
 	{
-		FastSlot s = slot;
+		FastSlot s = getSlot();
 		if(s != null)
 		{
 			s.setDisplay(value);

@@ -13,10 +13,12 @@ import dragonBones.textures.TextureData;
 import dragonBones.utils.ConstValues;
 import dragonBones.utils.DBDataUtil;
 
+import flash.errors.ArgumentError;
 import flash.geom.ColorTransform;
 import flash.geom.Point;
 import flash.geom.Rectangle;
 import flash.utils.Dictionary;
+import org.w3c.dom.Document;
 
 //use namespace dragonBones_internal;
 
@@ -70,13 +72,13 @@ final public class XMLDataParser
 	 * @param xml The SkeletonData xml to parse.
 	 * @return A SkeletonData instance.
 	 */
-	public static function parseDragonBonesData(rawData:XML):DragonBonesData
+	public static DragonBonesData parseDragonBonesData(Document rawData)
 	{
-		if(!rawData)
+		if(rawData == null)
 		{
 			throw new ArgumentError();
 		}
-		var version:String = rawData.@[ConstValues.A_VERSION];
+		String version = rawData.@[ConstValues.A_VERSION];
 		switch (version)
 		{
 			case "2.3":
@@ -90,7 +92,7 @@ final public class XMLDataParser
 				throw new Error("Nonsupport version!");
 		}
 
-		var frameRate:uint = int(rawData.@[ConstValues.A_FRAME_RATE]);
+		int frameRate = (int)(rawData.@[ConstValues.A_FRAME_RATE]);
 
 		var outputDragonBonesData:DragonBonesData = new DragonBonesData();
 		outputDragonBonesData.name = rawData.@[ConstValues.A_NAME];

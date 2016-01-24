@@ -2,6 +2,8 @@ package dragonBones.objects;
 
 import flash.geom.Point;
 
+import java.util.ArrayList;
+
 /**
  * 目前只支持两个控制点的贝塞尔曲线
  * @author CG
@@ -19,9 +21,8 @@ public class CurveData
 	{
 		for(int i=0; i < SamplingTimes-1; i++)
 		{
-			sampling[i] = new Point();
+			sampling.set(i, new Point());
 		}
-		sampling.fixed = true;
 	}
 
 	public double getValueByProgress(double progress)
@@ -30,9 +31,10 @@ public class CurveData
 		{
 			refreshSampling();
 		}
+		Point point = null;
 		for (int i = 0; i < SamplingTimes-1; i++)
 		{
-			Point point = sampling[i];
+			point = sampling.get(i);
 			if (point.x >= progress)
 			{
 				if(i == 0)
@@ -41,7 +43,7 @@ public class CurveData
 				}
 				else
 				{
-					var prevPoint:Point = sampling[i-1];
+					Point prevPoint = sampling.get(i - 1);
 					return prevPoint.y + (point.y - prevPoint.y) * (progress - prevPoint.x) / (point.x - prevPoint.x);
 				}
 
@@ -54,7 +56,7 @@ public class CurveData
 	{
 		for(int i = 0; i < SamplingTimes-1; i++)
 		{
-			bezierCurve(SamplingStep * (i+1), sampling[i]);
+			bezierCurve(SamplingStep * (i+1), sampling.get(i));
 		}
 		_dataChanged = false;
 	}
@@ -62,8 +64,8 @@ public class CurveData
 	private void bezierCurve(double t, Point outputPoint)
 	{
 		double l_t = 1-t;
-		outputPoint.x = 3* point1.x*t*l_t*l_t + 3*point2.x*t*t*l_t + Math.pow(t,3);
-		outputPoint.y = 3* point1.y*t*l_t*l_t + 3*point2.y*t*t*l_t + Math.pow(t,3);
+		outputPoint.x = 3* getPoint1().x*t*l_t*l_t + 3*getPoint2().x*t*t*l_t + Math.pow(t,3);
+		outputPoint.y = 3* getPoint1().y*t*l_t*l_t + 3*getPoint2().y*t*t*l_t + Math.pow(t,3);
 	}
 
 	public void setPointList(ArrayList<Point> value)
@@ -79,14 +81,14 @@ public class CurveData
 
 	public boolean isCurve()
 	{
-		return point1.x != 0 || point1.y != 0 || point2.x != 1 || point2.y != 1;
+		return getPoint1().x != 0 || getPoint1().y != 0 || getPoint2().x != 1 || getPoint2().y != 1;
 	}
 	public Point getPoint1()
 	{
-		return _pointList[0];
+		return _pointList.get(0);
 	}
 	public Point getPoint2()
 	{
-		return _pointList[1];
+		return _pointList.get(1);
 	}
 }

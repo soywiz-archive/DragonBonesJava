@@ -7,12 +7,13 @@
 */
 import flash.display.BitmapData;
 
-import dragonBones.core.dragonBones_internal;
 import dragonBones.objects.DataParser;
 
 import starling.textures.SubTexture;
 import starling.textures.Texture;
 import starling.textures.TextureAtlas;
+
+import java.util.Map;
 //use namespace dragonBones_internal;
 
 /**
@@ -24,7 +25,7 @@ public class StarlingTextureAtlas extends TextureAtlas implements ITextureAtlas
 	/**
 	 * @private
 	 */
-	protected Object _subTextureDic;
+	protected Map<String, Texture> _subTextureDic;
 	/**
 	 * @private
 	 */
@@ -87,11 +88,11 @@ public class StarlingTextureAtlas extends TextureAtlas implements ITextureAtlas
 	 */
 	@Override public Texture getTexture(String name)
 	{
-		Texture texture = _subTextureDic[name];
-		if (!texture)
+		Texture texture = _subTextureDic.get(name);
+		if (texture == null)
 		{
 			texture = super.getTexture(name);
-			if (texture)
+			if (texture != null)
 			{
 				_subTextureDic[name] = texture;
 			}
@@ -104,8 +105,8 @@ public class StarlingTextureAtlas extends TextureAtlas implements ITextureAtlas
 	protected void parseData(Object textureAtlasRawData)
 	{
 		Object textureAtlasData = DataParser.parseTextureAtlasData(textureAtlasRawData, _isDifferentConfig ? _scale : 1);
-		_name = textureAtlasData.__name;
-		delete textureAtlasData.__name;
+		_name = textureAtlasData.get("__name");
+		textureAtlasData.remove("__name");
 		for(String subTextureName : textureAtlasData)
 		{
 			TextureData textureData = textureAtlasData[subTextureName];

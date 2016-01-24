@@ -4,7 +4,6 @@ import dragonBones.objects.CurveData;
 import dragonBones.utils.ArrayListUtils;
 import flash.geom.ColorTransform;
 
-import dragonBones.core.dragonBones_internal;
 import dragonBones.fast.FastArmature;
 import dragonBones.fast.FastSlot;
 import dragonBones.objects.Frame;
@@ -118,7 +117,7 @@ public final class FastSlotTimelineState
 	{
 		_slot = slot;
 		_armature = _slot.armature;
-		_animation = (FastAnimation)_armature.animation;
+		_animation = (FastAnimation)_armature.getAnimation();
 		_animationState = animationState;
 		_timelineData = timelineData;
 
@@ -178,7 +177,7 @@ public final class FastSlotTimelineState
 		progress += _timelineData.offset;
 
 		int currentTime = (int)(_totalTime * progress);
-		int playTimes = _animationState.playTimes;
+		int playTimes = _animationState.getPlayTimes();
 		if(playTimes == 0)
 		{
 			_isComplete = false;
@@ -307,8 +306,8 @@ public final class FastSlotTimelineState
 		boolean tweenEnabled = false;
 		if(nextFrameIndex == 0 &&
 			(
-				_animationState.playTimes &&
-				_animationState.currentPlayTimes >= _animationState.playTimes &&
+				_animationState.getPlayTimes() != 0 &&
+				_animationState.getCurrentPlayTimes() >= _animationState.getPlayTimes() &&
 				((_currentFramePosition + _currentFrameDuration) / _totalTime + currentPlayTimes - _timelineData.offset) * _timelineData.scale > 0.999999
 			)
 		)
@@ -368,15 +367,19 @@ public final class FastSlotTimelineState
 		{
 			if(currentFrame.color != null || nextFrame.color != null)
 			{
-				ColorTransformUtil.minus(nextFrame.color || ColorTransformUtil.originalColor, currentFrame.color ||ColorTransformUtil.originalColor, _durationColor);
-				_tweenColor = 	_durationColor.alphaOffset ||
-								_durationColor.redOffset ||
-								_durationColor.greenOffset ||
-								_durationColor.blueOffset ||
-								_durationColor.alphaMultiplier ||
-								_durationColor.redMultiplier ||
-								_durationColor.greenMultiplier ||
-								_durationColor.blueMultiplier;
+				ColorTransformUtil.minus(
+					nextFrame.color != null ? nextFrame.color : ColorTransformUtil.originalColor,
+					currentFrame.color != null ? currentFrame.color : ColorTransformUtil.originalColor,
+					_durationColor
+				);
+				_tweenColor = 	_durationColor.alphaOffset != 0 ||
+								_durationColor.redOffset != 0 ||
+								_durationColor.greenOffset != 0 ||
+								_durationColor.blueOffset != 0 ||
+								_durationColor.alphaMultiplier != 0 ||
+								_durationColor.redMultiplier != 0 ||
+								_durationColor.greenMultiplier != 0 ||
+								_durationColor.blueMultiplier != 0;
 			}
 			else
 			{
@@ -393,7 +396,7 @@ public final class FastSlotTimelineState
 			ColorTransform targetColor;
 			boolean colorChanged;
 
-			if(currentFrame.colorChanged)
+			if(currentFrame.getColorChanged())
 			{
 				targetColor = currentFrame.color;
 				colorChanged = true;
@@ -425,7 +428,7 @@ public final class FastSlotTimelineState
 
 	private void updateTween()
 	{
-		SlotFrame currentFrame = _timelineData.frameList[_currentFrameIndex] as SlotFrame;
+		SlotFrame currentFrame = (SlotFrame)_timelineData.getFrameList().get(_currentFrameIndex);
 
 		if(_tweenColor)
 		{
@@ -434,7 +437,7 @@ public final class FastSlotTimelineState
 			{
 				progress = _tweenCurve.getValueByProgress(progress);
 			}
-			if(_tweenEasing)
+			if(_tweenEasing != 0)
 			{
 				progress = MathUtil.getEaseValue(progress, _tweenEasing);
 			}
@@ -482,7 +485,7 @@ public final class FastSlotTimelineState
 		{
 			ColorTransform targetColor;
 			boolean colorChanged;
-			if(currentFrame.colorChanged)
+			if(currentFrame.getColorChanged())
 			{
 				targetColor = currentFrame.color;
 				colorChanged = true;

@@ -3,6 +3,7 @@ package dragonBones.objects;
 import dragonBones.core.dragonBones_internal;
 import dragonBones.utils.ConstValues;
 import dragonBones.utils.DBDataUtil;
+import flash.errors.ArgumentError;
 import flash.geom.ColorTransform;
 import flash.geom.Point;
 import flash.utils.Dictionary;
@@ -12,7 +13,7 @@ import flash.utils.Dictionary;
  */
 final public class Object3DataParser
 {
-	private static var tempDragonBonesData:DragonBonesData;
+	private static DragonBonesData tempDragonBonesData;
 
 	//use namespace dragonBones_internal;
 
@@ -23,7 +24,7 @@ final public class Object3DataParser
 
 	public static DragonBonesData parseSkeletonData(Object rawData, boolean ifSkipAnimationData=false, Dictionary outputAnimationDictionary = null)
 	{
-		if(!rawData)
+		if(rawData == null)
 		{
 			throw new ArgumentError();
 		}

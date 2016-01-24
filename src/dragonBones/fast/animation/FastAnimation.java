@@ -2,12 +2,16 @@ package dragonBones.fast.animation;
 
 import dragonBones.animation.BaseAnimation;
 import dragonBones.cache.AnimationCacheManager;
+import dragonBones.core.IAnimationState;
 import dragonBones.core.IArmature;
 import dragonBones.fast.FastArmature;
 import dragonBones.fast.FastSlot;
 import dragonBones.objects.AnimationData;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 //use namespace dragonBones_internal;
 
@@ -21,7 +25,7 @@ public class FastAnimation extends BaseAnimation
 
 	private FastArmature _armature;
 	private ArrayList<AnimationData> _animationDataList;
-	private Object _animationDataObj;
+	private Map<String, AnimationData> _animationDataObj;
 	private boolean _isPlaying;
 	private double _timeScale;
 
@@ -32,7 +36,7 @@ public class FastAnimation extends BaseAnimation
 		ianimationState = animationState;
 		animationState._armature = armature;
 		animationList = new ArrayList<String>();
-		_animationDataObj = {};
+		_animationDataObj = new HashMap<>();
 
 		_isPlaying = false;
 		_timeScale = 1;
@@ -54,18 +58,13 @@ public class FastAnimation extends BaseAnimation
 		animationState = null;
 	}
 
-	public FastAnimationState gotoAndPlay(String animationName)
-	{
-		return gotoAndPlay(animationName, -1, -1, Double.NaN);
-	}
-
-	public FastAnimationState gotoAndPlay(String animationName, double fadeInTime, double duration, double playTimes)
+	public IAnimationState gotoAndPlay(String animationName, double fadeInTime, double duration, double playTimes)
 	{
 		if (_animationDataList == null)
 		{
 			return null;
 		}
-		AnimationData animationData = _animationDataObj[animationName];
+		AnimationData animationData = _animationDataObj.get(animationName);
 		if (animationData == null)
 		{
 			return null;
@@ -87,7 +86,7 @@ public class FastAnimation extends BaseAnimation
 
 		animationState.fadeIn(animationData, playTimes, 1 / durationScale, fadeInTime);
 
-		if(_armature.enableCache && animationCacheManager)
+		if(_armature.getEnableCache() && animationCacheManager != null)
 		{
 			animationState.animationCache = animationCacheManager.getAnimationCache(animationName);
 		}
@@ -95,7 +94,7 @@ public class FastAnimation extends BaseAnimation
 		int i = _armature.slotHasChildArmatureList.size();
 		while(i-- > 0)
 		{
-			FastSlot slot = _armature.slotHasChildArmatureList[i];
+			FastSlot slot = _armature.slotHasChildArmatureList.get(i);
 			IArmature childArmature = (IArmature)slot.getChildArmature();
 			if(childArmature != null)
 			{
@@ -103,6 +102,13 @@ public class FastAnimation extends BaseAnimation
 			}
 		}
 		return animationState;
+	}
+
+	public FastAnimationState gotoAndStop(
+		String animationName,
+		double time
+	) {
+		return gotoAndStop(animationName, time, -1, 0, -1);
 	}
 
 	/**
@@ -119,19 +125,19 @@ public class FastAnimation extends BaseAnimation
 	public FastAnimationState gotoAndStop(
 		String animationName,
 		double time,
-		double normalizedTime = -1,
-		double fadeInTime = 0,
-		double duration = -1
+		double normalizedTime,
+		double fadeInTime,
+		double duration
 	)
 	{
-		if(!animationState.name != animationName)
+		if(Objects.equals(animationState.name, animationName))
 		{
 			gotoAndPlay(animationName, fadeInTime, duration);
 		}
 
 		if(normalizedTime >= 0)
 		{
-			animationState.setCurrentTime(animationState.totalTime * normalizedTime);
+			animationState.setCurrentTime(animationState.getTotalTime() * normalizedTime);
 		}
 		else
 		{
@@ -171,7 +177,7 @@ public class FastAnimation extends BaseAnimation
 	}
 
 	/** @private */
-	void advanceTime(double passedTime)
+	public void advanceTime(double passedTime)
 	{
 		if(!_isPlaying)
 		{
@@ -184,11 +190,10 @@ public class FastAnimation extends BaseAnimation
 	/**
 	 * check if contains a AnimationData by name.
 	 * @return Boolean.
-	 * @see dragonBones.animation.AnimationData
 	 */
 	public boolean hasAnimation(String animationName)
 	{
-		return _animationDataObj[animationName] != null;
+		return _animationDataObj.containsKey(animationName);
 	}
 
 	/**
@@ -200,7 +205,7 @@ public class FastAnimation extends BaseAnimation
 	}
 	public void setTimeScale(double value)
 	{
-		if(isNaN(value) || value < 0)
+		if(Double.isNaN(value) || value < 0)
 		{
 			value = 1;
 		}
@@ -209,20 +214,20 @@ public class FastAnimation extends BaseAnimation
 
 	/**
 	 * The AnimationData list associated with this Animation instance.
-	 * @see dragonBones.objects.AnimationData.
+	 * @see dragonBones.objects.AnimationData
 	 */
-	public function get animationDataList():Vector.<AnimationData>
+	public ArrayList<AnimationData> getAnimationDataList()
 	{
 		return _animationDataList;
 	}
-	public function set animationDataList(value:Vector.<AnimationData>):void
+	public void setAnimationDataList(ArrayList<AnimationData> value)
 	{
 		_animationDataList = value;
-		animationList.length = 0;
-		for each(var animationData:AnimationData in _animationDataList)
+		animationList.clear();
+		for (AnimationData animationData : _animationDataList)
 		{
-			animationList.push(animationData.name);
-			_animationDataObj[animationData.name] = animationData;
+			animationList.add(animationData.name);
+			_animationDataObj.put(animationData.name, animationData);
 		}
 	}
 
@@ -239,7 +244,7 @@ public class FastAnimation extends BaseAnimation
 	 */
 	public String getMovementID()
 	{
-		return lastAnimationName;
+		return getLastAnimationName();
 	}
 
 	/**
@@ -257,7 +262,7 @@ public class FastAnimation extends BaseAnimation
 	 */
 	public boolean isComplete()
 	{
-		return animationState.isComplete;
+		return animationState.isComplete();
 	}
 
 	/**

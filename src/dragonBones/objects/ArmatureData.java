@@ -1,8 +1,10 @@
 package dragonBones.objects;
 
+import flash.Pair;
 import flash.errors.ArgumentError;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Objects;
 
 /** @private */
@@ -31,7 +33,7 @@ final public class ArmatureData
 		{
 			_slotDataList.get(i).dispose();
 		}
-		SkinData skinData;
+		SkinData skinData = null;
 		if(skinName == null && _skinDataList.size() > 0)
 		{
 			skinData = _skinDataList.get(0);
@@ -233,10 +235,10 @@ final public class ArmatureData
 			return;
 		}
 
-		Array helpArray = [];
+		ArrayList<Pair<Integer, BoneData>> helpArray = new ArrayList<>();
 		while(i -- > 0)
 		{
-			BoneData boneData = _boneDataList[i];
+			BoneData boneData = _boneDataList.get(i);
 			int level = 0;
 			BoneData parentData = boneData;
 			while(parentData != null)
@@ -244,15 +246,20 @@ final public class ArmatureData
 				level ++;
 				parentData = getBoneData(parentData.parent);
 			}
-			helpArray[i] = [level, boneData];
+			helpArray.set(i, new Pair(level, boneData));
 		}
 
-		helpArray.sortOn("0", Array.NUMERIC);
+		helpArray.sort(new Comparator<Pair<Integer, BoneData>>() {
+			@Override
+			public int compare(Pair<Integer, BoneData> o1, Pair<Integer, BoneData> o2) {
+				return Integer.compare(o1.first, o2.first);
+			}
+		});
 
-		i = helpArray.length;
-		while(i --)
+		i = helpArray.size();
+		while(i -- > 0)
 		{
-			_boneDataList[i] = helpArray[i][1];
+			_boneDataList.set(i, helpArray.get(i).second);
 		}
 	}
 

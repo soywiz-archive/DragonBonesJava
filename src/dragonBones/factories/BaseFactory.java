@@ -1,5 +1,6 @@
 package dragonBones.factories;
 
+import flash.errors.ArgumentError;
 import flash.errors.IllegalOperationError;
 import flash.events.Event;
 import flash.events.EventDispatcher;
@@ -24,18 +25,22 @@ import dragonBones.objects.SkinData;
 import dragonBones.objects.SlotData;
 import dragonBones.textures.ITextureAtlas;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 //use namespace dragonBones_internal;
 
 public class BaseFactory  extends EventDispatcher
 {
-	protected static const _helpMatrix:Matrix = new Matrix();
+	protected static final Matrix _helpMatrix = new Matrix();
 
 	/** @private */
-	protected var dragonBonesDataDic:Dictionary = new Dictionary();
+	protected Map<String, DragonBonesData> dragonBonesDataDic = new HashMap<>();
 
 	/** @private */
-	protected var textureAtlasDic:Dictionary = new Dictionary();
-	public function BaseFactory(self:BaseFactory)
+	protected Map<String, ArrayList<ITextureAtlas>> textureAtlasDic = new HashMap<>();
+	public BaseFactory(BaseFactory self)
 	{
 		super(this);
 
@@ -45,21 +50,26 @@ public class BaseFactory  extends EventDispatcher
 		}
 	}
 
+	public void dispose()
+	{
+		dispose(true);
+	}
+
 	/**
 	 * Cleans up resources used by this BaseFactory instance.
 	 * @param (optional) Destroy all internal references.
 	 */
-	public function dispose(disposeData:Boolean = true):void
+	public void dispose(boolean disposeData)
 	{
 		if(disposeData)
 		{
-			for(var skeletonName:String in dragonBonesDataDic)
+			for(String skeletonName : dragonBonesDataDic.keySet())
 			{
-				(dragonBonesDataDic[skeletonName] as DragonBonesData).dispose();
-				delete dragonBonesDataDic[skeletonName];
+				((DragonBonesData)dragonBonesDataDic.get(skeletonName)).dispose();
+				dragonBonesDataDic.remove(skeletonName);
 			}
 
-			for(var textureAtlasName:String in textureAtlasDic)
+			for (String textureAtlasName : textureAtlasDic.keySet())
 			{
 				var textureAtlasArr:Array = textureAtlasDic[textureAtlasName] as Array;
 				if (textureAtlasArr)
@@ -84,9 +94,9 @@ public class BaseFactory  extends EventDispatcher
 	 * @param The name of an existing SkeletonData instance.
 	 * @return A SkeletonData instance with given name (if exist).
 	 */
-	public function getSkeletonData(name:String):DragonBonesData
+	public DragonBonesData getSkeletonData(String name)
 	{
-		return dragonBonesDataDic[name];
+		return dragonBonesDataDic.get(name);
 	}
 
 	/**
@@ -94,41 +104,41 @@ public class BaseFactory  extends EventDispatcher
 	 * @param A SkeletonData instance.
 	 * @param (optional) A name for this SkeletonData instance.
 	 */
-	public function addSkeletonData(data:DragonBonesData, name:String = null):void
+	public void addSkeletonData(DragonBonesData data, String name = null)
 	{
-		if(!data)
+		if(data == null)
 		{
 			throw new ArgumentError();
 		}
-		name = name || data.name;
-		if(!name)
+		name = name != null ? name : data.name;
+		if(name == null)
 		{
 			throw new ArgumentError("Unnamed data!");
 		}
-		if(dragonBonesDataDic[name])
+		if(dragonBonesDataDic.containsKey(name))
 		{
 			throw new ArgumentError();
 		}
-		dragonBonesDataDic[name] = data;
+		dragonBonesDataDic.put(name, data);
 	}
 
 	/**
 	 * Remove a SkeletonData instance from this BaseFactory instance.
-	 * @param The name for the SkeletonData instance to remove.
+	 * @param name The name for the SkeletonData instance to remove.
 	 */
-	public function removeSkeletonData(name:String):void
+	public void removeSkeletonData(String name)
 	{
-		delete dragonBonesDataDic[name];
+		dragonBonesDataDic.remove(name);
 	}
 
 	/**
 	 * Return the TextureAtlas by name.
-	 * @param The name of the TextureAtlas to return.
+	 * @param name The name of the TextureAtlas to return.
 	 * @return A textureAtlas.
 	 */
-	public function getTextureAtlas(name:String):Object
+	public Object getTextureAtlas(String name)
 	{
-		return textureAtlasDic[name];
+		return textureAtlasDic.get(name);
 	}
 
 	/**
@@ -136,40 +146,40 @@ public class BaseFactory  extends EventDispatcher
 	 * @param A textureAtlas to add to this BaseFactory instance.
 	 * @param (optional) A name for this TextureAtlas.
 	 */
-	public function addTextureAtlas(textureAtlas:Object, name:String = null):void
+	public void addTextureAtlas(ITextureAtlas textureAtlas, String name = null)
 	{
-		if(!textureAtlas)
+		if(textureAtlas == null)
 		{
 			throw new ArgumentError();
 		}
-		if(!name && textureAtlas is ITextureAtlas)
+		if(name == null && textureAtlas instanceof ITextureAtlas)
 		{
-			name = textureAtlas.name;
+			name = ((ITextureAtlas) textureAtlas).getName();
 		}
-		if(!name)
+		if(name == null)
 		{
 			throw new ArgumentError("Unnamed data!");
 		}
-		var textureAtlasArr:Array = textureAtlasDic[name] as Array;
+		ArrayList<ITextureAtlas> textureAtlasArr = textureAtlasDic.get(name);
 		if (textureAtlasArr == null)
 		{
-			textureAtlasArr = [];
-			textureAtlasDic[name] = textureAtlasArr;
+			textureAtlasArr = new ArrayList<>();
+			textureAtlasDic.put(name, textureAtlasArr);
 		}
 		if(textureAtlasArr.indexOf(textureAtlas) != -1)
 		{
 			throw new ArgumentError();
 		}
-		textureAtlasArr.push(textureAtlas);
+		textureAtlasArr.add(textureAtlas);
 	}
 
 	/**
 	 * Remove a textureAtlas from this baseFactory instance.
 	 * @param The name of the TextureAtlas to remove.
 	 */
-	public function removeTextureAtlas(name:String):void
+	public void removeTextureAtlas(String name)
 	{
-		delete textureAtlasDic[name];
+		textureAtlasDic.remove(name);
 	}
 
 	/**
@@ -180,22 +190,22 @@ public class BaseFactory  extends EventDispatcher
 	 * @param The registration pivotY position.
 	 * @return An Object.
 	 */
-	public function getTextureDisplay(textureName:String, textureAtlasName:String = null, pivotX:Number = NaN, pivotY:Number = NaN):Object
+	public Object getTextureDisplay(String textureName, String textureAtlasName = null, double pivotX = Double.NaN, double pivotY = Double.NaN)
 	{
-		var targetTextureAtlas:Object;
-		var textureAtlasArr:Array;
-		var i:int;
-		var len:int;
+		ITextureAtlas targetTextureAtlas = null;
+		ArrayList<ITextureAtlas> textureAtlasArr;
+		int i;
+		int len;
 
-		if(textureAtlasName)
+		if(textureAtlasName != null)
 		{
-			textureAtlasArr = textureAtlasDic[textureAtlasName] as Array;
-			if (textureAtlasArr)
+			textureAtlasArr = textureAtlasDic.get(textureAtlasName);
+			if (textureAtlasArr != null)
 			{
-				for (i = 0, len = textureAtlasArr.length; i < len; i++)
+				for (i = 0, len = textureAtlasArr.size(); i < len; i++)
 				{
-					targetTextureAtlas = textureAtlasArr[i];
-					if (targetTextureAtlas.getRegion(textureName))
+					targetTextureAtlas = textureAtlasArr.get(i);
+					if (targetTextureAtlas.getRegion(textureName) != null)
 					{
 						break;
 					}
@@ -205,15 +215,15 @@ public class BaseFactory  extends EventDispatcher
 		}
 		else
 		{
-			for (textureAtlasName in textureAtlasDic)
+			for (String textureAtlasName2 : textureAtlasDic.keySet())
 			{
-				textureAtlasArr = textureAtlasDic[textureAtlasName] as Array;
-				if (textureAtlasArr)
+				textureAtlasArr = textureAtlasDic.get(textureAtlasName2);
+				if (textureAtlasArr != null)
 				{
-					for (i = 0, len = textureAtlasArr.length; i < len; i++)
+					for (i = 0, len = textureAtlasArr.size(); i < len; i++)
 					{
-						targetTextureAtlas = textureAtlasArr[i];
-						if (targetTextureAtlas.getRegion(textureName))
+						targetTextureAtlas = textureAtlasArr.get(i);
+						if (targetTextureAtlas.getRegion(textureName) != null)
 						{
 							break;
 						}
@@ -227,20 +237,20 @@ public class BaseFactory  extends EventDispatcher
 			}
 		}
 
-		if(!targetTextureAtlas)
+		if(targetTextureAtlas == null)
 		{
 			return null;
 		}
 
-		if(isNaN(pivotX) || isNaN(pivotY))
+		if(Double.isNaN(pivotX) || Double.isNaN(pivotY))
 		{
 			//默认dragonBonesData的名字和和纹理集的名字是一致的
-			var data:DragonBonesData = dragonBonesDataDic[textureAtlasName];
-			data = data ? data : findFirstDragonBonesData();
-			if(data)
+			DragonBonesData data = dragonBonesDataDic[textureAtlasName];
+			data = data != null ? data : findFirstDragonBonesData();
+			if(data != null)
 			{
-				var displayData:DisplayData = data.getDisplayDataByName(textureName);
-				if(displayData)
+				DisplayData displayData = data.getDisplayDataByName(textureName);
+				if(displayData != null)
 				{
 					pivotX = displayData.pivot.x;
 					pivotY = displayData.pivot.y;

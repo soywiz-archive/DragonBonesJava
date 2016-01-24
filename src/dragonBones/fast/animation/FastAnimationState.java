@@ -2,6 +2,7 @@ package dragonBones.fast.animation;
 
 import dragonBones.cache.AnimationCache;
 import dragonBones.core.IAnimationState;
+import dragonBones.core.IName;
 import dragonBones.events.AnimationEvent;
 import dragonBones.fast.FastArmature;
 import dragonBones.fast.FastBone;
@@ -15,7 +16,7 @@ import java.util.ArrayList;
 
 //use namespace dragonBones_internal;
 
-public class FastAnimationState implements IAnimationState
+public class FastAnimationState implements IAnimationState, IName
 {
 
 	public AnimationCache animationCache;
@@ -32,6 +33,7 @@ public class FastAnimationState implements IAnimationState
 	public AnimationData animationData;
 
 	public String name;
+	public String getName() { return name; }
 	private double _time;//秒
 	private int _currentFrameIndex;
 	private int _currentFramePosition;
@@ -93,7 +95,7 @@ public class FastAnimationState implements IAnimationState
 		return this;
 	}
 
-	void resetTimelineStateList()
+	public void resetTimelineStateList()
 	{
 		int i = _boneTimelineStateList.size();
 		while(i -- > 0)
@@ -120,7 +122,7 @@ public class FastAnimationState implements IAnimationState
 		_totalTime = animationData.duration;
 		autoTween = aniData.autoTween;
 		setTimeScale(timeScale);
-		setPlayTimes(playTimes);
+		setPlayTimes((int)playTimes);
 
 		//reset
 		_isComplete = false;
